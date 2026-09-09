@@ -17,6 +17,7 @@ import { useTranslation } from '../i18n/useTranslation';
 import { useMyPatients } from '../hooks/usePatients';
 import { useCreateConsulta } from '../hooks/useConsultas';
 import { patientSummaryLine, patientFallbackId } from '../utils/patientDisplay';
+import { isScheduleInPast, startOfToday, toLocalDateTimeString } from '../utils/consultaScheduling';
 import type { AnimalDto } from '../services/patientService';
 import type { Modalidade } from '../services/consultaService';
 import type { AppStackParamList } from '../interfaces/navigation';
@@ -25,40 +26,6 @@ import { commonStyles } from '../styles/common';
 
 const MODALIDADE_VALUES: Modalidade[] = ['PRESENCIAL', 'REMOTA'];
 const SEARCH_DEBOUNCE_MS = 300;
-
-/**
- * Builds the exact `LocalDateTime` string Spring expects — local wall-clock
- * time, zero-padded, no timezone/UTC conversion (`ConsultaRequest.dataHora`
- * is a `LocalDateTime`, not an `Instant`/`OffsetDateTime`).
- */
-function toLocalDateTimeString(date: Date, time: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  const hh = String(time.getHours()).padStart(2, '0');
-  const mm = String(time.getMinutes()).padStart(2, '0');
-  return `${y}-${m}-${d}T${hh}:${mm}:00`;
-}
-
-/**
- * Compares at minute precision (seconds zeroed on both sides) so a handful
- * of seconds elapsing between picking a time and tapping "Criar consulta"
- * never turns a value the veterinarian legitimately chose as "now" into a
- * false rejection — the exact tolerance the task calls for, without a magic
- * numeric buffer.
- */
-function isScheduleInPast(date: Date, time: Date): boolean {
-  const combined = new Date(date.getFullYear(), date.getMonth(), date.getDate(), time.getHours(), time.getMinutes(), 0, 0);
-  const now = new Date();
-  const flooredNow = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes(), 0, 0);
-  return combined.getTime() < flooredNow.getTime();
-}
-
-/** Today at midnight — the earliest selectable date for a new consultation. */
-function startOfToday(): Date {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-}
 
 export function NewConsultaScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();

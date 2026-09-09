@@ -249,6 +249,9 @@ export const en = {
     registerButton: 'Register patient',
     addAccessibilityLabel: 'Register patient',
   },
+  patientDisplay: {
+    fallbackId: 'Patient #{{id}}',
+  },
   patientDetail: {
     title: 'Patient',
     loading: 'Loading patient...',
@@ -302,8 +305,7 @@ export const en = {
     validationNoName: "Enter the patient's name.",
     validationNoSpecies: "Select the patient's species.",
     birthDateLabel: 'Birth date (optional)',
-    createBreedButton: '+ Register new breed',
-    createBreedNeedsSpecies: 'Select the species to register a new breed.',
+    createBreedButton: 'Add new breed',
     createBreedModalTitle: 'Register new breed',
     createBreedSpeciesContext: 'Species: {{value}}',
     createBreedNameLabel: 'Breed name',

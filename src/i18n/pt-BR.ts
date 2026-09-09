@@ -251,6 +251,9 @@ export const pt = {
     registerButton: 'Cadastrar paciente',
     addAccessibilityLabel: 'Cadastrar paciente',
   },
+  patientDisplay: {
+    fallbackId: 'Paciente #{{id}}',
+  },
   patientDetail: {
     title: 'Paciente',
     loading: 'Carregando paciente...',
@@ -304,8 +307,7 @@ export const pt = {
     validationNoName: 'Informe o nome do paciente.',
     validationNoSpecies: 'Selecione a espécie do paciente.',
     birthDateLabel: 'Data de nascimento (opcional)',
-    createBreedButton: '+ Cadastrar nova raça',
-    createBreedNeedsSpecies: 'Selecione a espécie para cadastrar uma nova raça.',
+    createBreedButton: 'Cadastrar nova raça',
     createBreedModalTitle: 'Cadastrar nova raça',
     createBreedSpeciesContext: 'Espécie: {{value}}',
     createBreedNameLabel: 'Nome da raça',
