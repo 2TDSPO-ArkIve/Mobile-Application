@@ -155,20 +155,16 @@ export function PatientForm({
               ? t('patientForm.loadingBreeds')
               : t('patientForm.noBreeds')
         }
+        // No species selected -> no "+" at all (nothing to scope a new
+        // breed to yet); the ChipGroup's own emptyMessage above already
+        // tells the vet to pick a species first, so no separate hint text
+        // is needed either.
+        leadingAction={
+          especieId
+            ? { icon: 'add', onPress: () => setBreedModalOpen(true), accessibilityLabel: t('patientForm.createBreedButton') }
+            : undefined
+        }
       />
-
-      <AppButton
-        title={t('patientForm.createBreedButton')}
-        variant="ghost"
-        icon="add"
-        onPress={() => setBreedModalOpen(true)}
-        disabled={!especieId}
-      />
-      {!especieId ? (
-        <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, marginTop: -spacing.xs, marginBottom: spacing.sm }}>
-          {t('patientForm.createBreedNeedsSpecies')}
-        </Text>
-      ) : null}
 
       <CreateBreedModal
         visible={breedModalOpen}

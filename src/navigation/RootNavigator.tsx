@@ -38,7 +38,18 @@ export function RootNavigator() {
   }
 
   return (
-    <NavigationContainer key={status}>
+    // On web, `NavigationContainer` sets `document.title` itself by default
+    // (`useDocumentTitle`, active even with no `linking` prop) — falling
+    // back to the raw internal route name whenever a screen doesn't set its
+    // own `options.title` (none in this app do). That's what produced
+    // malformed tab titles like the bare route name "InsightArkive"
+    // (PascalCase, no branding) instead of anything resembling "ArkIve".
+    // This app has no screen-aware web-title mechanism, so rather than add
+    // one, `documentTitle` is disabled outright — `document.title` then
+    // simply keeps the correct static "ArkIve" already set in
+    // `web/index.html` (a single app-wide title, not per-screen). No-op on
+    // native (`useDocumentTitle` is a documented noop off web).
+    <NavigationContainer key={status} documentTitle={{ enabled: false }}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {status === 'authenticated' ? (
           <Stack.Screen name="App" component={AppStack} />

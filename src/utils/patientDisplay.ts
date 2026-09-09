@@ -20,15 +20,18 @@ export function patientSummaryLine(animal: AnimalDto): string {
 }
 
 /**
- * `#id` — the last-resort fallback identifier for list/selector cards.
- * Deliberately does NOT include the tutor's name the way a single patient's
- * detail screen can: showing "Tutor: X" on every row of a patient list
- * would mean firing one `GET /api/animais-responsaveis/animal/{id}` per
+ * "Paciente #184" — the last-resort fallback identifier for list/selector
+ * cards. Deliberately does NOT include the tutor's name the way a single
+ * patient's detail screen can: showing "Tutor: X" on every row of a patient
+ * list would mean firing one `GET /api/animais-responsaveis/animal/{id}` per
  * visible card (no bulk endpoint exists, and inventing N+1 fetches for a
  * potentially long list isn't a reasonable trade for a cosmetic line) —
  * `PatientDetailScreen`, which already pays for exactly one such fetch for
  * the single patient being viewed, is where the real tutor name is shown.
+ *
+ * Never renders a bare/unlabeled `#184` — the label makes clear at a glance
+ * that this is a stable record identifier, not a room number or a typo.
  */
 export function patientFallbackId(animal: Pick<AnimalDto, 'id'>): string {
-  return `#${animal.id}`;
+  return t('patientDisplay.fallbackId', { id: animal.id });
 }
