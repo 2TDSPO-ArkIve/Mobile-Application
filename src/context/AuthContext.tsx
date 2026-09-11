@@ -7,7 +7,6 @@ import React, {
   useState,
 } from 'react';
 import type { AuthContextValue, AuthStatus } from '../interfaces/navigation';
-import type { User } from '../types';
 import {
   getCredentials,
   saveCredentials,
@@ -20,18 +19,6 @@ import { onUnauthorized } from '../services/authEvents';
 import { queryClient } from '../query/queryClient';
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
-
-function toLegacyUser(username: string): User {
-  return {
-    id: username,
-    name: username,
-    email: '',
-    phone: '',
-    cpf: '',
-    role: 'veterinario',
-    createdAt: new Date().toISOString(),
-  };
-}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>('initializing');
@@ -193,9 +180,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       status,
       username,
       identity,
-      user: username ? toLegacyUser(username) : null,
-      role: username ? 'veterinario' : null,
-      loading: status === 'initializing',
       login,
       logout,
       refreshUser,

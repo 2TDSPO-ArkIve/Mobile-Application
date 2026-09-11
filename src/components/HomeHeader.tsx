@@ -11,9 +11,7 @@ import type { AppStackParamList } from '../interfaces/navigation';
 
 /**
  * White surface with a thin bottom border, matching AppHeader — one coherent
- * header system app-wide. Notifications are not part of the core
- * veterinarian workflow yet, so that entry point was removed from here —
- * NotificationsScreen/route still exist, just not linked from this header.
+ * header system app-wide.
  */
 export function HomeHeader() {
   const colors = useThemeColors();

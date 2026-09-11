@@ -2,15 +2,12 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { BottomTabs } from './BottomTabs';
-import { NewAnimalScreen } from '../screens/NewAnimalScreen';
-import { EditAnimalScreen } from '../screens/EditAnimalScreen';
-import { AnimalFollowUpScreen } from '../screens/AnimalFollowUpScreen';
-import { NewAppointmentScreen } from '../screens/NewAppointmentScreen';
 import { ConsultaDetailScreen } from '../screens/ConsultaDetailScreen';
 import { ArkiveAnalysisScreen } from '../screens/ArkiveAnalysisScreen';
 import { ArkiveInsightScreen } from '../screens/ArkiveInsightScreen';
 import { VeterinarianConclusionScreen } from '../screens/VeterinarianConclusionScreen';
 import { NewConsultaScreen } from '../screens/NewConsultaScreen';
+import { EditConsultaScreen } from '../screens/EditConsultaScreen';
 import { NewPatientScreen } from '../screens/NewPatientScreen';
 import { PatientDetailScreen } from '../screens/PatientDetailScreen';
 import { EditPatientScreen } from '../screens/EditPatientScreen';
@@ -18,13 +15,8 @@ import { PrescricoesScreen } from '../screens/PrescricoesScreen';
 import { NewPrescricaoScreen } from '../screens/NewPrescricaoScreen';
 import { PrescricaoDetailScreen } from '../screens/PrescricaoDetailScreen';
 import { EditPrescricaoScreen } from '../screens/EditPrescricaoScreen';
-import { EvaluationsScreen } from '../screens/EvaluationsScreen';
-import { NewEvaluationScreen } from '../screens/NewEvaluationScreen';
-import { FeedbackScreen } from '../screens/FeedbackScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
-import { SearchScreen } from '../screens/SearchScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
-import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { ChangePasswordScreen } from '../screens/ChangePasswordScreen';
 import { useThemeColors } from '../hooks/useThemeColors';
 
@@ -41,11 +33,8 @@ export function AppStack() {
       }}
     >
       <Stack.Screen name="MainTabs" component={BottomTabs} />
-      <Stack.Screen name="NovoAnimal" component={NewAnimalScreen} />
-      <Stack.Screen name="AtualizarAnimal" component={EditAnimalScreen} />
-      <Stack.Screen name="AcompanhamentoAnimal" component={AnimalFollowUpScreen} />
-      <Stack.Screen name="NovaConsulta" component={NewAppointmentScreen} />
       <Stack.Screen name="ConsultaDetalhe" component={ConsultaDetailScreen} />
+      <Stack.Screen name="EditarConsulta" component={EditConsultaScreen} />
       <Stack.Screen name="AnaliseArkive" component={ArkiveAnalysisScreen} />
       <Stack.Screen name="InsightArkive" component={ArkiveInsightScreen} />
       <Stack.Screen name="ConclusaoVeterinaria" component={VeterinarianConclusionScreen} />
@@ -57,13 +46,8 @@ export function AppStack() {
       <Stack.Screen name="NovaPrescricao" component={NewPrescricaoScreen} />
       <Stack.Screen name="PrescricaoDetalhe" component={PrescricaoDetailScreen} />
       <Stack.Screen name="EditarPrescricao" component={EditPrescricaoScreen} />
-      <Stack.Screen name="Avaliacoes" component={EvaluationsScreen} />
-      <Stack.Screen name="NovaAvaliacao" component={NewEvaluationScreen} />
-      <Stack.Screen name="Feedback" component={FeedbackScreen} />
       <Stack.Screen name="Perfil" component={ProfileScreen} />
-      <Stack.Screen name="Pesquisa" component={SearchScreen} />
       <Stack.Screen name="Configuracoes" component={SettingsScreen} />
-      <Stack.Screen name="Notificacoes" component={NotificationsScreen} />
       <Stack.Screen name="AlterarSenha" component={ChangePasswordScreen} />
     </Stack.Navigator>
   );

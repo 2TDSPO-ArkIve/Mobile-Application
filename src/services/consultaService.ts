@@ -111,17 +111,18 @@ export type CreateConsultaInput = ConsultaRequestInput;
  * a patch (`ConsultaService.aplicarDados` is shared between create/update).
  * `animalId`/`veterinarioId` (and clinicaId, not exposed here) must match
  * the consultation's current values exactly — `exigirAssociacoesImutaveis`
- * returns 409 otherwise. Confirmed, but not wired to any screen this phase.
+ * returns 409 otherwise. `EditConsultaScreen` never sends `veterinarioId`
+ * (the backend fills it from the consultation's current value when omitted)
+ * and always echoes the existing `animalId` back unchanged.
  *
  * CRITICAL for `endereco` specifically: the clinic-address auto-snapshot
  * ONLY applies `criando` (create) — confirmed in `ConsultaService`, the
  * blank-endereco fallback is gated on `criando && ...`. On a PUT, an
  * omitted/blank `endereco` is NOT backfilled from the clinic; it simply
- * clears the field (`vazioParaNulo(request.endereco())`). Whenever this type
- * is ever wired to a real edit screen, the caller MUST hydrate `endereco`
- * from the existing `ConsultaDto` and only send a different value when the
- * veterinarian actually changed it — never omit a populated value "because
- * the user didn't touch that field".
+ * clears the field (`vazioParaNulo(request.endereco())`). `EditConsultaScreen`
+ * hydrates `endereco` (and every other field it doesn't expose in its own
+ * form) from the existing `ConsultaDto` and only sends a different value
+ * when the veterinarian actually changed it.
  */
 export type UpdateConsultaInput = ConsultaRequestInput;
 
@@ -184,7 +185,7 @@ export async function createConsulta(input: CreateConsultaInput): Promise<Consul
   return apiPost<ConsultaDto>('/api/consultas', input);
 }
 
-/** Full-replace PUT — see the confidence note on UpdateConsultaInput. Not called by any screen yet. */
+/** Full-replace PUT — see the confidence note on UpdateConsultaInput. Called from `EditConsultaScreen` via `useUpdateConsulta`. */
 export async function updateConsulta(
   id: number,
   input: UpdateConsultaInput

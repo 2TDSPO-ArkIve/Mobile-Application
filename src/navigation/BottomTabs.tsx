@@ -105,11 +105,9 @@ function CustomTabBar({ state, descriptors, navigation, insets }: BottomTabBarPr
 
 /**
  * The old "Agenda"/"Animais" tabs (Node-backend Appointment/Animal screens)
- * have been removed from the primary tab bar — that backend no longer
- * exists, so they were guaranteed-broken entry points on the app's main
- * happy path. Their screens still exist in src/screens/ and still compile;
- * they're just no longer linked from here. "Consultas" and "Pacientes" are
- * the real, Spring-backed replacements.
+ * and their screen files have been removed entirely — that backend no
+ * longer exists. "Consultas" and "Pacientes" are the real, Spring-backed
+ * replacements.
  */
 export function BottomTabs() {
   const { t } = useTranslation();

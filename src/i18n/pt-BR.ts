@@ -42,15 +42,31 @@ export const pt = {
     loginButton: 'Entrar',
     missingFields: 'Preencha usuário e senha.',
     createAccount: 'Criar conta',
-    registerTitle: 'Cadastro',
-    registerMessage:
-      'O cadastro de veterinários ainda não está disponível diretamente pelo aplicativo. Se você já possui usuário e senha, volte para a tela de login.',
+    registerTitle: 'Cadastro de Veterinário',
     registerBackButton: 'Voltar para o login',
     invalidCredentials: 'Usuário ou senha inválidos.',
     wrongRole: 'Este usuário não tem acesso ao aplicativo do veterinário.',
     verifyUnknown: 'Não foi possível validar suas credenciais agora. Tente novamente.',
     unreachable: 'Servidor indisponível no momento. O ArkIve pode estar iniciando — tente novamente em instantes.',
     verifyUnexpected: 'Erro inesperado ao validar credenciais.',
+  },
+  register: {
+    nomeLabel: 'Nome',
+    nomePlaceholder: 'Nome completo',
+    crmvLabel: 'CRMV',
+    crmvPlaceholder: 'Ex.: 12345-SP',
+    emailLabel: 'E-mail',
+    emailPlaceholder: 'seu-email@exemplo.com',
+    passwordHelper:
+      'Sua senha inicial será o próprio e-mail cadastrado. No primeiro acesso você será solicitado a definir uma senha nova.',
+    submit: 'Cadastrar',
+    errorNoNome: 'Informe seu nome completo.',
+    errorNoCrmv: 'Informe seu CRMV.',
+    errorInvalidEmail: 'Informe um e-mail válido.',
+    successTitle: 'Cadastro realizado',
+    successMessage:
+      'Conta criada para {{email}}. Use este e-mail como login e o próprio e-mail como senha inicial — você definirá uma nova senha no primeiro acesso.',
+    goToLogin: 'Ir para o login',
   },
   patientAge: {
     years: '{{count}} anos',
@@ -159,10 +175,19 @@ export const pt = {
     closedReadOnly: 'Consulta encerrada — registro somente leitura.',
     startConsulta: 'Iniciar consulta',
     startError: 'Não foi possível iniciar a consulta.',
+    editConsulta: 'Editar consulta',
     deleteConsulta: 'Excluir consulta',
     deleteConfirmTitle: 'Excluir consulta',
     deleteConfirmMessage: 'Tem certeza que deseja excluir a consulta #{{id}}? Esta ação não pode ser desfeita.',
     deleteError: 'Não foi possível excluir a consulta.',
+  },
+  editConsulta: {
+    title: 'Editar Consulta',
+    patientImmutableHelper: 'O paciente não pode ser alterado após a criação da consulta.',
+    notEditableTitle: 'Não é possível editar',
+    notEditableMessage: 'Esta consulta não está mais agendada e não pode ser editada.',
+    submit: 'Salvar alterações',
+    errorGeneric: 'Não foi possível salvar as alterações da consulta.',
   },
   clinicalIntake: {
     question: 'O que aconteceu com {{name}}?',
@@ -402,7 +427,6 @@ export const pt = {
     securitySection: 'Segurança',
     changePasswordButton: 'Alterar senha',
     settingsButton: 'Configurações',
-    notificationsButton: 'Notificações',
     logoutButton: 'Sair',
   },
   consultaStatus: {
@@ -490,6 +514,9 @@ export const pt = {
     passwordChangeGeneric: 'Não foi possível alterar a senha agora.',
     passwordChangeNetwork: 'Sem conexão com o servidor. A senha não foi alterada — tente novamente.',
     passwordPolicyGeneric: 'Verifique os requisitos da nova senha.',
+    registrationGeneric: 'Não foi possível concluir o cadastro agora.',
+    registrationUnavailable: 'Não foi possível concluir o cadastro agora. Tente novamente em instantes.',
+    registrationNetwork: 'Sem conexão com o servidor. O cadastro não foi concluído — tente novamente.',
   },
 };
 

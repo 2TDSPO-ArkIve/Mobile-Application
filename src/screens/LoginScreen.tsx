@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { AppInput } from '../components/AppInput';
 import { AppButton } from '../components/AppButton';
 import { useAuth } from '../hooks/useAuth';
@@ -40,11 +40,12 @@ import { shadows } from '../styles/shadows';
 export function LoginScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  const route = useRoute<RouteProp<AuthStackParamList, 'Login'>>();
   const { login } = useAuth();
   const { t } = useTranslation();
   const colors = lightColors;
 
-  const [identifier, setIdentifier] = useState('');
+  const [identifier, setIdentifier] = useState(route.params?.prefillIdentifier ?? '');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
