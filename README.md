@@ -1,464 +1,577 @@
-# ARKIVE — Aplicativo Mobile
+# ArkIve — Mobile Application Development
 
-> **Gestão veterinária otimizada** — aplicativo mobile para acompanhamento de animais, consultas, avaliações de bem-estar animal, feedbacks e notificações integradas ao banco Oracle.
+## Sprint 3 — FIAP
 
----
+ArkIve é uma aplicação mobile de **apoio à rotina clínica veterinária**, desenvolvida para auxiliar veterinários no registro, acompanhamento e condução de consultas.
 
-## Sobre o Projeto
-
-**ARKIVE** é um aplicativo mobile de gestão veterinária desenvolvido em **React Native com TypeScript e Expo**, voltado para tutores e veterinários.
-
-O sistema tem como objetivo simplificar procedimentos clínico-veterinários, permitindo que tutores acompanhem seus animais e que veterinários registrem informações relevantes sobre consultas, avaliações de bem-estar animal e histórico de atendimento.
-
-O aplicativo se conecta a um backend em **Node.js + Express**, responsável pela comunicação com o banco de dados **Oracle**, onde ficam armazenadas as informações de usuários, animais, consultas, avaliações, feedbacks e notificações.
-
-A proposta do ARKIVE é oferecer uma solução mobile-first para o gerenciamento de informações veterinárias, preservando organização de código, navegação entre telas, persistência local com AsyncStorage e integração com dados reais do banco.
+O sistema utiliza Inteligência Artificial como uma ferramenta de **apoio à decisão clínica**. A IA organiza e analisa as informações fornecidas durante a consulta e apresenta sugestões e insights ao profissional, mas a decisão clínica final permanece sempre sob responsabilidade do veterinário.
 
 ---
 
-## Disciplina
+# Problema
 
-**Mobile Application Development**
+Durante uma consulta veterinária, o profissional precisa lidar simultaneamente com diversas informações:
 
-Turma: `2TDSPO` · FIAP - Unidade Paulista · 2026
+* histórico do animal;
+* sintomas relatados;
+* observações clínicas;
+* informações do paciente;
+* evolução da consulta;
+* possíveis hipóteses;
+* prescrições;
+* registros posteriores.
 
----
+Esse processo pode consumir tempo e tornar o atendimento mais fragmentado.
 
-## Equipe
-
-| RM | Nome |
-|:---|:-----|
-| RM561408 | Gustavo Crevelari Monteiro Porto |
-| RM561996 | Lucca de Araujo Gomes |
-| RM561671 | Rafaela Ferreira Santos |
-| RM566224 | Victor Sabelli Rocha Batista |
-
----
-
-## Links do Projeto
-
-### Repositório
-
-> [GitHub — Mobile Application](https://github.com/2TDSPO-1-2/Mobile-Application)
-
-### Aplicação publicada
-
-> [GitHub Pages — ArkIve Mobile](https://2TDSPO-1-2.github.io/Mobile-Application/)
-
-### API publicada
-
-> [Render — ArkIve API (Spring Boot)](https://arkive-b7v2.onrender.com)
-
-### Vídeo demonstrativo
-
-> [YouTube — Projeto ArkIve (MAD)](https://youtu.be/20kEQ-NOdss)
+O ArkIve foi desenvolvido para centralizar essas informações e apoiar o veterinário durante o atendimento, permitindo que ele tenha uma visão organizada da consulta e utilize Inteligência Artificial como suporte para análise do caso.
 
 ---
 
-## Tecnologias Utilizadas
+# Solução
 
-### Aplicativo Mobile
+O aplicativo oferece um fluxo clínico estruturado que acompanha a consulta desde o agendamento até sua conclusão.
 
-- React Native
-- TypeScript
-- Expo
-- React Navigation
-- AsyncStorage
-- StyleSheet
-- Expo Web / React Native Web
+O fluxo principal segue os seguintes estados:
 
-### Backend
+```text
+AG → EP → AP → FI
+```
 
-- Node.js
-- Express
-- TypeScript
-- node-oracledb
-- dotenv
-- cors
+Onde:
 
-### Banco de Dados
+* **AG — Agendada:** consulta criada e ainda não iniciada;
+* **EP — Em Progresso:** veterinário registra a narrativa clínica do caso;
+* **AP — Aguardando Parecer:** o ArkIve processa o caso e fornece suporte clínico por Inteligência Artificial;
+* **FI — Finalizada:** o veterinário registra sua própria conclusão e encerra o atendimento.
 
-- Oracle Database
-- Schema relacional ARKIVE
-- Tabelas `TB_ARKIVE_*`
-- Procedures `PR_ARKIVE_*`
-
-### Publicação
-
-- GitHub
-- GitHub Pages
-- Render
+A IA não substitui o veterinário. Seu objetivo é fornecer um ponto de partida para a análise clínica, ajudando o profissional a trabalhar com mais agilidade e organização.
 
 ---
 
-## Estrutura do Repositório
+# Usuário do Aplicativo
 
-```txt
-Mobile-Application/
-├── README.md
-│
-└── ARKIVE/
-    ├── App.tsx
-    ├── app.json
-    ├── babel.config.js
-    ├── index.ts
-    ├── package.json
-    ├── package-lock.json
-    ├── tsconfig.json
-    │
-    ├── src/
-    │   ├── assets/
-    │   ├── components/
-    │   ├── config/
-    │   ├── context/
-    │   ├── data/
-    │   ├── hooks/
-    │   ├── interfaces/
-    │   ├── navigation/
-    │   ├── screens/
-    │   ├── services/
-    │   ├── storage/
-    │   ├── styles/
-    │   ├── types/
-    │   └── utils/
-    │
-    └── backend/
-        ├── package.json
-        ├── package-lock.json
-        ├── tsconfig.json
-        ├── README.md
-        ├── .env.example
-        │
-        └── src/
-            ├── config/
-            ├── controllers/
-            ├── middleware/
-            ├── repositories/
-            ├── routes/
-            ├── services/
-            ├── types/
-            ├── utils/
-            └── server.ts
+Nesta Sprint, o aplicativo mobile é direcionado ao perfil:
+
+**VETERINÁRIO**
+
+O veterinário pode:
+
+* realizar cadastro;
+* autenticar-se;
+* consultar pacientes;
+* cadastrar pacientes;
+* criar consultas;
+* editar consultas;
+* excluir consultas permitidas;
+* iniciar o atendimento;
+* registrar a narrativa clínica;
+* utilizar transcrição de voz;
+* solicitar suporte clínico por IA;
+* visualizar os insights produzidos;
+* registrar sua própria conclusão;
+* finalizar consultas;
+* criar, visualizar, editar e excluir prescrições;
+* gerar o resumo da consulta em PDF;
+* gerenciar suas configurações e sessão.
+
+---
+
+# Tecnologias Utilizadas
+
+## Mobile
+
+* React Native
+* Expo SDK 57
+* TypeScript
+* React Navigation
+* TanStack Query
+* Expo SecureStore
+* Expo Audio
+* Expo File System
+* Expo Sharing
+
+## Backend
+
+* Java
+* Spring Boot
+* Spring Security
+* Spring Data JPA
+* Flyway
+* Oracle Database
+* Maven
+
+## Serviços
+
+* Render — publicação da API
+* Azure Speech — transcrição de áudio para texto
+
+---
+
+# Arquitetura da Aplicação
+
+A aplicação foi organizada separando interface, lógica de aplicação e comunicação HTTP.
+
+```text
+Screen
+   ↓
+Custom Hook
+   ↓
+TanStack Query
+   ↓
+Service
+   ↓
+API Client
+   ↓
+Spring Boot API
+   ↓
+Oracle Database
+```
+
+As telas não executam requisições HTTP diretamente.
+
+As operações de consulta e mutação são centralizadas em hooks e serviços reutilizáveis.
+
+Estrutura principal:
+
+```text
+src/
+├── components/
+├── config/
+├── context/
+├── hooks/
+├── i18n/
+├── interfaces/
+├── navigation/
+├── query/
+├── screens/
+├── services/
+├── storage/
+├── styles/
+├── types/
+└── utils/
 ```
 
 ---
 
-## Visão Geral da Aplicação
+# Navegação
 
-O ARKIVE Mobile possui dois perfis principais de uso:
+O projeto utiliza exclusivamente **React Navigation**.
 
-### Tutor
+A navegação é organizada em três níveis principais.
 
-O tutor é o responsável pelo animal. Ele pode:
+## Root Navigator
 
-- Fazer login com CPF e senha.
-- Cadastrar animais.
-- Atualizar dados dos animais.
-- Solicitar consultas.
-- Consultar agenda.
-- Visualizar avaliações de bem-estar animal.
-- Consultar feedbacks.
-- Receber notificações.
-- Editar dados básicos do perfil.
-- Alternar tema claro/escuro.
+Controla qual fluxo deve ser apresentado:
 
-### Veterinário
+```text
+Usuário não autenticado
+        ↓
+AuthStack
 
-O veterinário é o profissional responsável pelo atendimento clínico. Ele pode:
+Usuário autenticado com troca de senha obrigatória
+        ↓
+MandatoryPasswordChange
 
-- Fazer login com CRMV e senha.
-- Visualizar pacientes vinculados.
-- Consultar agenda de atendimentos.
-- Registrar avaliação de bem-estar animal.
-- Marcar consultas como realizadas.
-- Consultar feedbacks recebidos.
-- Receber notificações.
-- Editar dados básicos do perfil.
-
----
-
-## Arquitetura da Solução
-
-```txt
-┌────────────────────────────────────────────┐
-│ App Mobile — React Native + Expo           │
-│                                            │
-│ Telas                                      │
-│ Componentes reutilizáveis                  │
-│ Contextos                                  │
-│ Services                                   │
-│ AsyncStorage                               │
-└───────────────────────┬────────────────────┘
-                        │ HTTP / JSON
-                        ▼
-┌────────────────────────────────────────────┐
-│ Backend — Node.js + Express + TypeScript   │
-│                                            │
-│ Routes                                     │
-│ Controllers                                │
-│ Services                                   │
-│ Repositories                               │
-│ node-oracledb                              │
-└───────────────────────┬────────────────────┘
-                        │ SQL / Procedures
-                        ▼
-┌────────────────────────────────────────────┐
-│ Oracle Database                            │
-│                                            │
-│ TB_ARKIVE_*                                │
-│ PR_ARKIVE_*                                │
-└────────────────────────────────────────────┘
+Usuário autenticado normalmente
+        ↓
+AppStack
 ```
 
----
+## AuthStack
 
-## Persistência de Dados
+Contém:
 
-O projeto utiliza duas camadas de persistência.
+* Login
+* Cadastro
 
-### Oracle Database
+## Aplicação autenticada
 
-O Oracle é a fonte principal dos dados de negócio:
+O menu principal possui três áreas:
 
-- Usuários
-- Tutores
-- Veterinários
-- Animais
-- Consultas
-- Avaliações de Bem-Estar Animal
-- Feedbacks
-- Notificações
+* Home
+* Consultas
+* Pacientes
 
-### AsyncStorage
+Além dessas áreas, o aplicativo possui fluxos específicos para:
 
-O AsyncStorage é usado no app para:
+* detalhes de consulta;
+* criação de consulta;
+* edição de consulta;
+* análise ArkIve;
+* insight clínico;
+* conclusão veterinária;
+* prescrições;
+* cadastro e edição de pacientes;
+* perfil;
+* configurações;
+* alteração de senha.
 
-- Sessão do usuário
-- Início automático
-- Tema claro/escuro
-- Preferências locais
-- Cache/fallback quando a API não estiver disponível
-
----
-
-## Principais Funcionalidades
-
-### Autenticação
-
-- Login por CPF para tutores.
-- Login por CRMV para veterinários.
-- Cadastro de tutor.
-- Cadastro de veterinário.
-- Persistência de sessão.
-- Início automático.
-
-### Animais
-
-- Tutor visualiza apenas seus animais.
-- Tutor cadastra novo animal.
-- Tutor atualiza dados do animal.
-- Veterinário visualiza pacientes vinculados às suas consultas.
-- Espécie e raça são selecionadas com base em registros existentes.
-
-### Consultas
-
-- Tutor solicita consulta.
-- Tutor seleciona animal, veterinário, data e horário.
-- Veterinário visualiza consultas atribuídas.
-- Consultas são organizadas em:
-  - Solicitadas
-  - Marcadas
-  - Realizadas
-
-### Avaliação de Bem-Estar Animal
-
-- Registrada pelo veterinário.
-- Vinculada à consulta.
-- Separada do feedback.
-- Contém observações clínicas e informações de bem-estar animal.
-
-### Feedbacks
-
-- Feedback é separado da avaliação de bem-estar.
-- Nota de 0 a 5.
-- Pode ser vinculado à consulta.
-- Usuário pode consultar feedbacks recebidos.
-
-### Notificações
-
-- Exibição de notificações relacionadas ao usuário.
-- Marcar notificação como lida.
-- Marcar todas como lidas.
-- Expansão de cards para ações.
-
-### Perfil e Configurações
-
-- Visualização do perfil.
-- Edição de nome, e-mail e telefone.
-- Logout.
-- Preferências de tema.
-- Preferências de notificações.
-- Informações do app.
-
-### Pesquisa
-
-- Busca global.
-- Filtros por tipo.
-- Pesquisa por:
-  - Animais
-  - Veterinários
-  - Clínicas
+A aplicação possui mais de seis telas funcionais e distintas, atendendo ao requisito da Sprint 3.
 
 ---
 
-## Telas do Aplicativo
+# Integração com API
 
-| Tela | Descrição |
-|:-----|:----------|
-| Entrar | Login por CPF ou CRMV |
-| Cadastro | Cadastro de tutor ou veterinário |
-| Início | Resumo de consultas do dia e acesso rápido |
-| Agenda | Consultas solicitadas, marcadas e realizadas |
-| Animais/Pacientes | Animais do tutor ou pacientes do veterinário |
-| Novo Animal | Cadastro de animal |
-| Atualizar Animal | Atualização de dados do animal |
-| Acompanhamento | Histórico e detalhes do animal |
-| Nova Consulta | Solicitação de consulta |
-| Avaliações de BEA | Lista de avaliações de bem-estar animal |
-| Avaliação de Bem-Estar Animal | Registro feito pelo veterinário |
-| Feedbacks | Lista e envio de feedbacks |
-| Pesquisa | Busca global por dados do sistema |
-| Perfil | Dados do usuário e ações de conta |
-| Configurações | Tema, notificações e informações do app |
-| Notificações | Histórico de notificações |
+Todos os dados funcionais utilizados pelo aplicativo são provenientes da API Spring Boot.
 
----
+URL padrão da API:
 
-## Integração com a API
-
-> O antigo backend Node.js/Express deste repositório (`ARKIVE/backend/`) foi removido. O app
-> agora se conecta diretamente à **API Spring Boot** do ArkIve — Oracle, Flyway e Spring
-> Security, autenticação HTTP Basic em `/api/**`.
-
-```txt
+```text
 https://arkive-b7v2.onrender.com
 ```
 
-Configuração centralizada em:
-
-```txt
-src/config/api.ts
-```
-
-Por padrão o app usa a URL acima. Para apontar para outro ambiente (por exemplo, um backend
-rodando na rede local), defina a variável pública `EXPO_PUBLIC_API_URL` (veja `.env.example`) —
-não edite a URL diretamente no código-fonte:
+A URL pode ser sobrescrita utilizando:
 
 ```env
-EXPO_PUBLIC_API_URL=http://192.168.15.14:8080
+EXPO_PUBLIC_API_URL=
 ```
 
-A URL da API não é segredo; **credenciais de veterinário nunca vão em variáveis de ambiente** —
-são digitadas na tela de login e guardadas com `expo-secure-store` (ver
-`src/storage/credentialStore.ts`).
+Quando essa variável não é definida, o aplicativo utiliza automaticamente a API hospedada no Render.
 
 ---
 
-## Endpoints Utilizados (histórico — backend Node retirado)
+# TanStack Query
 
-> A tabela abaixo documenta os endpoints do antigo backend Node.js/Express (removido). O app
-> agora consome a API Spring Boot (`/api/**`, autenticação HTTP Basic), que ainda está sendo
-> integrada — ver `src/services/consultaService.ts` para o primeiro endpoint real conectado
-> (`GET /api/consultas`).
+O projeto utiliza TanStack Query para:
 
-| Método | Endpoint | Descrição |
-|:------:|:---------|:----------|
-| GET | `/` | Verifica se a API está online |
-| GET | `/health` | Verifica status da API |
-| POST | `/auth/login` | Login |
-| POST | `/auth/register` | Cadastro |
-| GET | `/users` | Lista usuários |
-| GET | `/users/:id` | Busca usuário |
-| GET | `/animals` | Lista animais |
-| GET | `/animals/:id` | Busca animal |
-| POST | `/animals` | Cria animal |
-| PUT | `/animals/:id` | Atualiza animal |
-| DELETE | `/animals/:id` | Inativa animal |
-| GET | `/appointments` | Lista consultas |
-| GET | `/appointments/:id` | Busca consulta |
-| POST | `/appointments` | Cria consulta |
-| PUT | `/appointments/:id/status` | Atualiza status da consulta |
-| GET | `/evaluations` | Lista avaliações |
-| POST | `/evaluations` | Cria avaliação de bem-estar |
-| GET | `/feedbacks` | Lista feedbacks |
-| POST | `/feedbacks` | Cria feedback |
-| GET | `/notifications` | Lista notificações |
-| PUT | `/notifications/:id/read` | Marca notificação como lida |
-| GET | `/search` | Pesquisa global |
+* carregamento dos dados;
+* gerenciamento de cache;
+* mutations;
+* estados de loading;
+* tratamento de erros;
+* atualização automática após alterações.
+
+Após operações de Create, Update ou Delete, as queries relacionadas são invalidadas e recarregadas automaticamente.
+
+Isso permite que as alterações apareçam na interface sem necessidade de reiniciar o aplicativo.
 
 ---
+
+# CRUD 1 — Consultas
+
+O módulo de Consultas possui CRUD completo.
+
+| Operação | Implementação                  |
+| -------- | ------------------------------ |
+| Create   | Criar nova consulta            |
+| Read     | Lista e detalhes das consultas |
+| Update   | Editar uma consulta agendada   |
+| Delete   | Excluir uma consulta permitida |
+
+Fluxo simplificado:
+
+```text
+Consultas
+    ↓
+Criar Consulta
+    ↓
+POST /api/consultas
+```
+
+```text
+ConsultaDetalhe
+    ↓
+Editar Consulta
+    ↓
+PUT /api/consultas/{id}
+```
+
+```text
+ConsultaDetalhe
+    ↓
+Excluir
+    ↓
+DELETE /api/consultas/{id}
+```
+
+Consultas são atualizadas automaticamente na interface utilizando invalidação de queries do TanStack Query.
+
+---
+
+# CRUD 2 — Prescrições
+
+O módulo de Prescrições também possui CRUD completo.
+
+| Operação | Implementação      |
+| -------- | ------------------ |
+| Create   | Criar prescrição   |
+| Read     | Lista e detalhes   |
+| Update   | Editar prescrição  |
+| Delete   | Excluir prescrição |
+
+Endpoints principais:
+
+```text
+GET    /api/prescricoes
+POST   /api/prescricoes
+GET    /api/prescricoes/{id}
+PUT    /api/prescricoes/{id}
+DELETE /api/prescricoes/{id}
+```
+
+Todas as operações estão disponíveis pela interface do aplicativo.
+
+---
+
+# Fluxo Clínico ArkIve
+
+O principal fluxo da aplicação acontece dentro de uma Consulta.
+
+## 1. Consulta Agendada
+
+O veterinário cria uma consulta associada a um paciente.
+
+```text
+AG
+```
+
+Enquanto a consulta estiver agendada, ela pode ser editada ou excluída.
+
+---
+
+## 2. Início da Consulta
+
+O veterinário inicia o atendimento.
+
+```text
+AG → EP
+```
+
+Nesse momento começa o registro clínico.
+
+---
+
+## 3. Narrativa Clínica
+
+O veterinário descreve o caso do animal.
+
+A narrativa pode ser:
+
+* digitada;
+* registrada por voz.
+
+Quando utilizado áudio, o aplicativo envia a gravação para:
+
+```text
+POST /api/transcricoes
+```
+
+O backend realiza a transcrição utilizando Azure Speech.
+
+---
+
+## 4. Suporte Clínico por IA
+
+Após registrar o caso, o veterinário pode solicitar uma análise do ArkIve.
+
+```text
+EP → AP
+```
+
+O backend processa as informações e retorna suporte clínico contendo informações que auxiliam o veterinário na análise do caso.
+
+A IA funciona exclusivamente como ferramenta de apoio.
+
+---
+
+## 5. Conclusão Veterinária
+
+Depois de analisar o caso e os insights apresentados, o veterinário registra sua própria conclusão.
+
+A decisão final continua pertencendo ao profissional.
+
+```text
+AP → FI
+```
+
+---
+
+## 6. Prescrições
+
+Após a finalização da consulta, o veterinário pode gerenciar prescrições relacionadas ao atendimento.
+
+As prescrições possuem CRUD completo integrado ao backend.
+
+---
+
+# Transcrição por Voz
+
+Durante o registro clínico, o veterinário pode narrar o caso utilizando o microfone.
+
+Fluxo:
+
+```text
+Gravação
+   ↓
+Arquivo de áudio
+   ↓
+POST /api/transcricoes
+   ↓
+Azure Speech
+   ↓
+Texto transcrito
+   ↓
+Narrativa clínica
+```
+
+A funcionalidade reduz a necessidade de digitação durante o atendimento.
+
+---
+
+# Resumo da Consulta em PDF
+
+O aplicativo permite obter um resumo da consulta em PDF através do backend.
+
+Endpoint:
+
+```text
+GET /api/consultas/{id}/resumo-pdf
+```
+
+O arquivo pode ser aberto ou compartilhado pelo dispositivo.
+
+---
+
+# Autenticação
+
+A autenticação utiliza Spring Security com HTTP Basic.
+
+O aplicativo armazena as credenciais de forma persistente utilizando:
+
+* `expo-secure-store` em dispositivos móveis;
+* `localStorage` na versão web.
+
+Em cada restauração de sessão, o aplicativo valida novamente as credenciais através de:
+
+```text
+GET /api/auth/me
+```
+
+Enquanto essa validação ocorre, a navegação permanece no estado de inicialização.
+
+---
+
+# Cadastro de Veterinário
+
+O aplicativo possui cadastro real de veterinários.
+
+Endpoint:
+
+```text
+POST /api/auth/register
+```
+
+Campos:
+
+* Nome
+* CRMV
+* E-mail
+
+O perfil não é escolhido pelo usuário.
+
+O backend define obrigatoriamente:
+
+```text
+VETERINARIO
+```
+
+Isso impede que alguém utilize o cadastro público para criar contas administrativas.
+
+---
+
+# Primeiro Acesso
+
+Após o cadastro:
+
+```text
+Login = e-mail cadastrado
+Senha temporária = e-mail cadastrado
+```
+
+A senha temporária é armazenada no banco exclusivamente como hash BCrypt.
+
+O backend marca o usuário com troca de senha obrigatória.
+
+Fluxo:
+
+```text
+Cadastro
+   ↓
+Login
+   ↓
+trocaSenhaObrigatoria = true
+   ↓
+MandatoryPasswordChange
+   ↓
+Nova senha
+   ↓
+Aplicativo
+```
+
+Após a alteração, a senha temporária deixa de funcionar.
+
+---
+
+# Proteção de Rotas
+
+As telas internas não ficam registradas no mesmo fluxo de navegação das telas públicas.
+
+O `RootNavigator` decide qual stack deve existir de acordo com o estado de autenticação.
+
+Assim:
+
+```text
+Não autenticado
+→ Login / Cadastro
+
+Autenticado
+→ Aplicação
+
+Troca obrigatória
+→ Alteração de senha
+```
+
+Isso impede acesso às telas internas simplesmente navegando diretamente para uma rota privada.
+
+---
+
+# Logout
+
+Ao realizar logout, o aplicativo:
+
+1. remove as credenciais persistidas;
+2. limpa o cache do TanStack Query;
+3. altera o estado de autenticação;
+4. desmonta o navegador autenticado;
+5. retorna ao Login.
+
+Por isso, não é possível utilizar o botão “voltar” para retornar a uma tela protegida após encerrar a sessão.
+
+---
+
+# Tratamento de Estados
+
+As funcionalidades integradas à API possuem tratamento para:
+
+* Loading
+* Erro
+* Empty State
+* Mutation em andamento
+* Retry quando aplicável
+
+Botões de envio são bloqueados durante operações pendentes, evitando requisições duplicadas.
+
+---
+
+# Como Executar
 
 ## Pré-requisitos
 
-Para executar o projeto, é necessário ter instalado:
+* Node.js
+* npm
+* Expo Go ou emulador Android/iOS
 
-- Node.js
-- npm
-- Expo
-- Navegador web moderno
-- Acesso à internet
-- Acesso ao banco Oracle FIAP
-
----
-
-## Como Executar o Backend Localmente (removido)
-
-O backend Node.js/Express que vivia em `ARKIVE/backend/` foi removido deste repositório — não há
-mais um servidor local para instalar/rodar aqui. O app se conecta diretamente à API Spring Boot
-publicada em produção (veja "Integração com a API" acima); rodar essa API localmente é um assunto
-do repositório do backend Spring, não deste.
-
-## API Publicada no Render
-
-```txt
-https://arkive-b7v2.onrender.com
-```
-
-> Observação: em planos gratuitos, a primeira requisição pode demorar bastante porque o serviço
-> pode entrar em modo de inatividade — trate isso como um estado de carregamento normal, nunca
-> como credencial inválida (ver `src/context/AuthContext.tsx`, estado `unreachable`).
-
----
-
-## Configuração Oracle (histórico — backend Node retirado)
-
-> **Aviso de segurança:** uma versão anterior deste README publicou aqui, em texto puro, um
-> usuário e senha reais do Oracle FIAP. Esse valor foi removido e a credencial correspondente
-> deve ser considerada comprometida e rotacionada. Nunca commitar credenciais reais — apenas
-> placeholders, como no exemplo abaixo.
-
-O antigo backend Node.js/Express (pasta `ARKIVE/backend/`) utilizava `node-oracledb` para conexão
-direta com o banco Oracle. Essa pasta foi removida do repositório: o aplicativo agora se conecta
-à API Spring Boot do ArkIve (veja "Integração com a API" acima). O formato de configuração usado
-pelo backend Node, para referência histórica, era:
-
-```env
-ORACLE_USER=<usuario>
-ORACLE_PASSWORD=<senha>
-ORACLE_CONNECT_STRING=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=oracle.fiap.com.br)(PORT=1521))(CONNECT_DATA=(SID=ORCL)))
-```
-
-Essa configuração não se aplica mais ao aplicativo mobile.
-
----
-
-## Como Executar o App Localmente
-
-Acesse a pasta do app:
-
-```bash
-cd ARKIVE
-```
+Clone o repositório e acesse sua raiz.
 
 Instale as dependências:
 
@@ -466,253 +579,113 @@ Instale as dependências:
 npm install
 ```
 
-Para rodar na web:
+Inicie o Expo:
+
+```bash
+npx expo start
+```
+
+Também podem ser utilizados:
+
+```bash
+npm run android
+```
+
+```bash
+npm run ios
+```
 
 ```bash
 npm run web
 ```
 
-ou:
-
-```bash
-npx expo start --web
-```
-
-O app será iniciado em:
-
-```txt
-http://localhost:8081
-```
-
-Para iniciar pelo Expo:
-
-```bash
-npm start
-```
-
 ---
 
-## Ditado por Voz na Narrativa Clínica
 
-A narrativa clínica (consulta em `EP`) aceita ditado por voz além do teclado. A transcrição em si
-**não roda no celular** — o app apenas grava um áudio local (`expo-audio`, formato `.m4a`/AAC) e
-envia esse arquivo para a API Spring Boot:
+# Validação do Projeto
 
-```txt
-Microfone → gravação local (.m4a) → POST /api/transcricoes → Spring/Azure Speech → texto
-```
+## Mobile
 
-O backend (`TranscricaoController`) recebe o áudio, converte com FFmpeg quando necessário e chama
-o Azure Speech, retornando apenas `{ transcricao, idioma }`. Nenhuma chave da Azure existe no
-aplicativo mobile.
-
-Diferente da tentativa anterior (reconhecimento de voz nativo via `expo-speech-recognition`, já
-removida deste branch), **gravação de áudio com `expo-audio` funciona no Expo Go** — não é
-necessário development build para testar o ditado. Basta:
+Validação TypeScript:
 
 ```bash
-npm start
-```
-
-e abrir no Expo Go normalmente. O microfone pede permissão na primeira gravação; se negada, o
-teclado continua funcionando normalmente — voz é sempre um complemento, nunca um requisito.
-
-O backend publicado no Render precisa ter configurado `arkive.azure.speech.endpoint` e
-`arkive.azure.speech.api-key` (variáveis de ambiente `AZURE_SPEECH_ENDPOINT`/`AZURE_SPEECH_API_KEY`
-no serviço), além da imagem Docker com FFmpeg — isso é responsabilidade do backend, não deste
-repositório.
-
----
-
-## Como Acessar o App Publicado
-
-O app está publicado no GitHub Pages:
-
-```txt
-https://2TDSPO-1-2.github.io/Mobile-Application/
-```
-
-A publicação web foi gerada com:
-
-```bash
-cd ARKIVE
-npx expo export --platform web
-npx gh-pages --nojekyll -d dist
-```
-
----
-
-## Scripts Disponíveis
-
-### App
-
-| Comando | Descrição |
-|:--------|:----------|
-| `npm start` | Inicia o Expo |
-| `npm run web` | Executa o app na web |
-| `npm run android` | Executa no Android, se configurado |
-| `npm run ios` | Executa no iOS, se configurado |
-
-### Backend
-
-| Comando | Descrição |
-|:--------|:----------|
-| `npm run dev` | Inicia o backend em desenvolvimento |
-| `npm run build` | Compila o backend |
-| `npm start` | Executa a versão compilada |
-| `npm run typecheck` | Valida TypeScript |
-
----
-
-## Validação TypeScript
-
-No app:
-
-```bash
-cd ARKIVE
 npx tsc --noEmit
 ```
 
-No backend:
+Resultado da versão entregue:
 
-```bash
-cd ARKIVE/backend
-npm run typecheck
+```text
+0 erros
+```
+
+
+---
+
+# Atendimento aos Requisitos da Sprint 3
+
+| Requisito                            | Implementação                    |
+| ------------------------------------ | -------------------------------- |
+| Mínimo de 6 telas                    | ✅                                |
+| Navegação por biblioteca             | ✅ React Navigation               |
+| Rotas reais                          | ✅                                |
+| Integração HTTP                      | ✅ Spring Boot API                |
+| TanStack Query                       | ✅                                |
+| 2 funcionalidades dependentes da API | ✅                                |
+| 2 CRUDs completos                    | ✅ Consultas + Prescrições        |
+| Loading e atualização automática     | ✅                                |
+| Autenticação real                    | ✅                                |
+| Login                                | ✅                                |
+| Cadastro                             | ✅                                |
+| Sessão persistente                   | ✅                                |
+| Proteção de rotas                    | ✅                                |
+| Logout                               | ✅                                |
+| Separação de responsabilidades       | ✅                                |
+| Hooks e serviços                     | ✅                                |
+| Código organizado                    | ✅                                |
+| README                               | ✅                                |
+| Vídeo de apresentação                | ✅ Após publicação do vídeo final |
+
+---
+
+# Vídeo de Apresentação
+
+Link:
+
+```text
+[INSERIR LINK DO YOUTUBE DA SPRINT 3]
+```
+
+O vídeo demonstra:
+
+* Cadastro
+* Login
+* Troca obrigatória da senha
+* Navegação
+* Consultas
+* CRUD de Consultas
+* Fluxo clínico ArkIve
+* Suporte por Inteligência Artificial
+* CRUD de Prescrições
+* Logout
+* Proteção das rotas
+
+---
+
+# Integrantes
+
+Adicionar os integrantes da equipe antes da entrega:
+
+```text
+Gustavo Crevelari Monteiro Porto — RM561408
+Lucca de Araujo Gomes — RM561996
+Rafaela Ferreira Santos — RM561671
+Victor Sabelli Rocha Batista — RM566224
 ```
 
 ---
 
-## Credenciais de Teste
+# Status
 
-### Tutor
+**Sprint 3 — aplicação funcional e integrada ao backend.**
 
-```txt
-CPF: 12345678901
-Senha: hash_senha_001
-```
-
-### Veterinário
-
-```txt
-CRMV: 12345-SP
-Senha: hash_senha_006
-```
-
----
-
-## Fluxo de Demonstração
-
-### Tutor
-
-1. Acessar a tela de login.
-2. Entrar com CPF e senha.
-3. Visualizar a tela Início.
-4. Acessar Animais.
-5. Cadastrar ou editar um animal.
-6. Solicitar uma consulta.
-7. Visualizar a consulta na Agenda.
-8. Consultar notificações.
-9. Visualizar feedbacks.
-10. Acessar Perfil e sair da conta.
-
-### Veterinário
-
-1. Entrar com CRMV e senha.
-2. Visualizar pacientes vinculados.
-3. Acessar Agenda.
-4. Visualizar consultas atribuídas.
-5. Registrar Avaliação de Bem-Estar Animal.
-6. Marcar consulta como realizada.
-7. Visualizar feedbacks recebidos.
-8. Consultar notificações.
-
----
-
-## Roteiro Sugerido para Vídeo
-
-1. Apresentar o objetivo do ARKIVE.
-2. Mostrar login como tutor.
-3. Mostrar tela Início.
-4. Cadastrar um animal.
-5. Solicitar consulta.
-6. Mostrar a agenda do tutor.
-7. Sair e entrar como veterinário.
-8. Mostrar pacientes e agenda do veterinário.
-9. Registrar Avaliação de Bem-Estar Animal.
-10. Marcar consulta como realizada.
-11. Mostrar feedbacks e notificações.
-12. Mostrar configurações e tema escuro.
-13. Encerrar explicando a integração app + backend + Oracle.
-
----
-
-## Critérios Acadêmicos Atendidos
-
-| Critério | Implementação |
-|:---------|:--------------|
-| Navegação entre telas | React Navigation com stacks e bottom tabs |
-| TypeScript | Tipagem em telas, services, contextos e backend |
-| Organização do projeto | Estrutura modular em `src/` |
-| Styles separados | Uso de `StyleSheet`, tema e arquivos de estilo |
-| AsyncStorage | Sessão, tema, preferências e cache |
-| Persistência local | Sessão e fallback local |
-| Protótipo funcional | Fluxos principais implementados |
-| Execução Expo | Compatível com Expo Web e Expo Go |
-| Integração com banco | Backend Express conectado ao Oracle |
-| Publicação web | GitHub Pages |
-| API pública | Render |
-
----
-
-## Identidade Visual
-
-O ARKIVE utiliza:
-
-- Tons de verde.
-- Logo institucional.
-- Ícone próprio.
-- Bordas arredondadas.
-- Componentes reutilizáveis.
-- Tema claro e escuro.
-- Layout mobile-first.
-- Compatibilidade web via Expo.
-
----
-
-## Observações Técnicas
-
-- O app é mobile-first, mas pode ser executado na web via Expo.
-- O backend é necessário para integração com Oracle.
-- O app não acessa o banco diretamente.
-- As credenciais Oracle são usadas apenas no backend.
-- AsyncStorage é utilizado para sessão, tema e cache.
-- O feedback é diferente da Avaliação de Bem-Estar Animal.
-- Avaliações de BEA são registradas por veterinários.
-- Tutores solicitam consultas e acompanham seus animais.
-- A versão publicada no GitHub Pages depende da API publicada no Render para autenticação e dados reais.
-- A primeira chamada para a API publicada pode demorar alguns segundos em razão da política de inatividade do plano gratuito do Render.
-
----
-
-## Status Final
-
-O projeto contempla uma solução funcional para demonstração acadêmica:
-
-- Login e cadastro.
-- Perfis de tutor e veterinário.
-- Cadastro e atualização de animais.
-- Solicitação e acompanhamento de consultas.
-- Registro de Avaliação de Bem-Estar Animal.
-- Feedbacks.
-- Notificações.
-- Pesquisa global.
-- Perfil.
-- Configurações.
-- Tema claro/escuro.
-- Backend integrado ao Oracle.
-- App publicado no GitHub Pages.
-- API publicada no Render.
-
----
-
-*Maio de 2026 · FIAP 2TDSPO*
+O aplicativo possui navegação real, autenticação, cadastro, persistência de sessão, integração HTTP, dois CRUDs completos e o fluxo clínico principal do ArkIve integrado à API Spring Boot.
