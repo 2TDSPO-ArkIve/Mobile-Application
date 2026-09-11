@@ -98,3 +98,41 @@ export async function verifyCredentials(
 export async function changePassword(newPassword: string): Promise<void> {
   await apiPost<void>('/api/auth/change-password', { novaSenha: newPassword });
 }
+
+/** Confirmed against `VeterinarioResponse.java` — same shape returned by the SysAdmin-facing veterinarian creation flow this endpoint reuses server-side. */
+export interface VeterinarioRegistrationResponse {
+  id: number;
+  nome: string;
+  crmv: string;
+  especialidade: string | null;
+  email: string;
+  clinicaId: number | null;
+  clinicaNome: string | null;
+  ativo: string;
+}
+
+export interface VeterinarioRegistrationInput {
+  nome: string;
+  crmv: string;
+  email: string;
+}
+
+/**
+ * `POST /api/auth/register` — the one deliberate public exception on
+ * `/api/**` (confirmed in `SecurityConfig`: method+path specific). No
+ * `authOverride` is passed and none is needed: this call only ever happens
+ * from the unauthenticated Cadastro screen, where `apiClient` already has no
+ * stored credential to attach.
+ *
+ * There is no password field here on purpose — the backend provisions the
+ * account with the e-mail itself as a temporary password (BCrypt-hashed,
+ * `trocaSenha=S`), exactly like the existing SysAdmin-created-veterinarian
+ * flow. The veterinarian sets their real password on first login via the
+ * app's existing mandatory-password-change screen — this call never accepts
+ * or transmits a client-chosen password.
+ */
+export async function registerVeterinario(
+  input: VeterinarioRegistrationInput
+): Promise<VeterinarioRegistrationResponse> {
+  return apiPost<VeterinarioRegistrationResponse>('/api/auth/register', input);
+}

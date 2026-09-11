@@ -208,3 +208,28 @@ export function describeChangePasswordError(error: unknown): string {
   }
   return t('errors.passwordChangeGeneric');
 }
+
+/**
+ * Translates a `POST /api/auth/register` failure. Confirmed against
+ * `VeterinarioService.criar`/`AuthService.registrarVeterinario`: a duplicate
+ * CRMV is a 409 ("CRMV ja cadastrado."), a duplicate e-mail/login is a 400
+ * ("Login de usuario ja cadastrado."), and Bean Validation failures are also
+ * 400 with a field-by-field message — all already specific and
+ * human-readable, so they're shown verbatim rather than replaced with a
+ * generic one, same reasoning as `describeChangePasswordError`.
+ */
+export function describeRegistrationError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 400 || error.status === 409) {
+      return error.message || t('errors.registrationGeneric');
+    }
+    if (error.status >= 500) {
+      return t('errors.registrationUnavailable');
+    }
+    return t('errors.registrationGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.registrationNetwork');
+  }
+  return t('errors.registrationGeneric');
+}

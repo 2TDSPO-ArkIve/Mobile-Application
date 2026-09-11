@@ -86,12 +86,6 @@ export function ProfileScreen() {
           onPress={() => navigation.navigate('Configuracoes')}
         />
 
-        <AppButton
-          title={t('profile.notificationsButton')}
-          variant="secondary"
-          onPress={() => navigation.navigate('Notificacoes')}
-        />
-
         <AppButton title={t('profile.logoutButton')} variant="danger" onPress={logout} />
       </ScreenContainer>
     </View>

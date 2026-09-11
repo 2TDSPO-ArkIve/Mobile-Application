@@ -57,12 +57,10 @@ export function useCreateConsulta() {
 }
 
 /**
- * Deliberately unused by any screen in this phase — the mutation is real and
- * ready, but no UI exposes it, because no field name in `UpdateConsultaInput`
- * is confirmed against a live Spring response, and a Spring @PutMapping is
- * commonly full-replace: sending a guessed partial body at a real
- * consultation risks silently nulling fields this app can't even see.
- * Wire this up once the PUT contract is confirmed.
+ * Consumed by EditConsultaScreen (AG-only — see that screen's own note on
+ * why). The mutation hydrates every field the form doesn't expose from the
+ * already-fetched `ConsultaDto` before sending, since Spring's PUT is a
+ * full replace (`ConsultaService.aplicarDados`), never a partial patch.
  */
 export function useUpdateConsulta(id: number) {
   const queryClient = useQueryClient();

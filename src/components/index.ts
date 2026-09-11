@@ -7,4 +7,3 @@ export { AppCard } from './AppCard';
 export { SearchBar } from './SearchBar';
 export { EmptyState } from './EmptyState';
 export { StatusBadge } from './StatusBadge';
-export { RatingInput } from './RatingInput';

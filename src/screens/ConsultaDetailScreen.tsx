@@ -178,6 +178,7 @@ export function ConsultaDetailScreen() {
   }
 
   const canStart = consulta.status === 'AG';
+  const canEdit = consulta.status === 'AG';
   const canDelete = consulta.status === 'AG';
   const isFinalizada = consulta.status === 'FI';
 
@@ -274,6 +275,14 @@ export function ConsultaDetailScreen() {
             title={t('consultaDetail.startConsulta')}
             onPress={handleStart}
             loading={startMutation.isPending}
+          />
+        ) : null}
+
+        {canEdit ? (
+          <AppButton
+            title={t('consultaDetail.editConsulta')}
+            variant="outline"
+            onPress={() => navigation.navigate('EditarConsulta', { consultaId: consulta.id })}
           />
         ) : null}
 
