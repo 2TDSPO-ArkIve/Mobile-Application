@@ -222,6 +222,13 @@ https://arkive-b7v2.onrender.com
 
 
 
+
+# Aplicação no ar 
+
+```text
+https://mobile-application-sooty.vercel.app/
+```
+
 ---
 
 # TanStack Query
