@@ -21,7 +21,7 @@ Durante uma consulta veterinária, o profissional precisa lidar simultaneamente 
 * prescrições;
 * registros posteriores.
 
-Esse processo pode consumir tempo e tornar o atendimento mais fragmentado.
+Esse processo pode consumir tempo e tornar o atendimento mais lento.
 
 O ArkIve foi desenvolvido para centralizar essas informações e apoiar o veterinário durante o atendimento, permitindo que ele tenha uma visão organizada da consulta e utilize Inteligência Artificial como suporte para análise do caso.
 
@@ -29,7 +29,7 @@ O ArkIve foi desenvolvido para centralizar essas informações e apoiar o veteri
 
 # Solução
 
-O aplicativo oferece um fluxo clínico estruturado que acompanha a consulta desde o agendamento até sua conclusão.
+O aplicativo oferece um fluxo clínico que acompanha a consulta desde o agendamento até sua conclusão.
 
 O fluxo principal segue os seguintes estados:
 
@@ -50,9 +50,9 @@ A IA não substitui o veterinário. Seu objetivo é fornecer um ponto de partida
 
 # Usuário do Aplicativo
 
-Nesta Sprint, o aplicativo mobile é direcionado ao perfil:
+Nesta Sprint, o aplicativo mobile é direcionado ao veterinário:
 
-**VETERINÁRIO**
+
 
 O veterinário pode:
 
@@ -220,13 +220,7 @@ URL padrão da API:
 https://arkive-b7v2.onrender.com
 ```
 
-A URL pode ser sobrescrita utilizando:
 
-```env
-EXPO_PUBLIC_API_URL=
-```
-
-Quando essa variável não é definida, o aplicativo utiliza automaticamente a API hospedada no Render.
 
 ---
 
@@ -621,38 +615,14 @@ Resultado da versão entregue:
 
 ---
 
-# Atendimento aos Requisitos da Sprint 3
 
-| Requisito                            | Implementação                    |
-| ------------------------------------ | -------------------------------- |
-| Mínimo de 6 telas                    | ✅                                |
-| Navegação por biblioteca             | ✅ React Navigation               |
-| Rotas reais                          | ✅                                |
-| Integração HTTP                      | ✅ Spring Boot API                |
-| TanStack Query                       | ✅                                |
-| 2 funcionalidades dependentes da API | ✅                                |
-| 2 CRUDs completos                    | ✅ Consultas + Prescrições        |
-| Loading e atualização automática     | ✅                                |
-| Autenticação real                    | ✅                                |
-| Login                                | ✅                                |
-| Cadastro                             | ✅                                |
-| Sessão persistente                   | ✅                                |
-| Proteção de rotas                    | ✅                                |
-| Logout                               | ✅                                |
-| Separação de responsabilidades       | ✅                                |
-| Hooks e serviços                     | ✅                                |
-| Código organizado                    | ✅                                |
-| README                               | ✅                                |
-| Vídeo de apresentação                | ✅ Após publicação do vídeo final |
-
----
 
 # Vídeo de Apresentação
 
 Link:
 
 ```text
-[INSERIR LINK DO YOUTUBE DA SPRINT 3]
+https://youtu.be/_NwnBUfvCpo
 ```
 
 O vídeo demonstra:
@@ -662,10 +632,8 @@ O vídeo demonstra:
 * Troca obrigatória da senha
 * Navegação
 * Consultas
-* CRUD de Consultas
 * Fluxo clínico ArkIve
 * Suporte por Inteligência Artificial
-* CRUD de Prescrições
 * Logout
 * Proteção das rotas
 
@@ -673,19 +641,9 @@ O vídeo demonstra:
 
 # Integrantes
 
-Adicionar os integrantes da equipe antes da entrega:
-
 ```text
 Gustavo Crevelari Monteiro Porto — RM561408
 Lucca de Araujo Gomes — RM561996
 Rafaela Ferreira Santos — RM561671
 Victor Sabelli Rocha Batista — RM566224
 ```
-
----
-
-# Status
-
-**Sprint 3 — aplicação funcional e integrada ao backend.**
-
-O aplicativo possui navegação real, autenticação, cadastro, persistência de sessão, integração HTTP, dois CRUDs completos e o fluxo clínico principal do ArkIve integrado à API Spring Boot.
