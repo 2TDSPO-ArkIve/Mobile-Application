@@ -233,3 +233,28 @@ export function describeRegistrationError(error: unknown): string {
   }
   return t('errors.registrationGeneric');
 }
+
+/**
+ * Translates a `POST /api/auth/register/responsavel` failure. Confirmed
+ * against `ResponsavelRegistrationService`/`PasswordPolicy.java`: a password
+ * policy violation, a confirmation mismatch, and Bean Validation failures are
+ * all 400 with an already specific, human-readable message; a duplicate
+ * e-mail/login or document is 409 ("E-mail/login ja cadastrado." /
+ * "Documento de responsavel ja cadastrado."). Shown verbatim, same reasoning
+ * as `describeRegistrationError`/`describeChangePasswordError`.
+ */
+export function describeResponsavelRegistrationError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 400 || error.status === 409) {
+      return error.message || t('errors.registrationResponsavelGeneric');
+    }
+    if (error.status >= 500) {
+      return t('errors.registrationResponsavelUnavailable');
+    }
+    return t('errors.registrationResponsavelGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.registrationResponsavelNetwork');
+  }
+  return t('errors.registrationResponsavelGeneric');
+}

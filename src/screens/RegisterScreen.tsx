@@ -199,6 +199,15 @@ export function RegisterScreen() {
             style={styles.backLink}
             colors={lightColors}
           />
+
+          <AppButton
+            title={t('auth.registerResponsavelLink')}
+            variant="ghost"
+            size="small"
+            onPress={() => navigation.replace('CadastroResponsavel')}
+            style={styles.backLink}
+            colors={lightColors}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -17,6 +17,9 @@ export const queryKeys = {
     /** `GET /api/animais/me` — this veterinarian's own patient registry (see `listMyPatients`). */
     mine: (filters?: { nome?: string; especieId?: number; racaId?: number }) =>
       [...queryKeys.patients.all, 'mine', filters ?? {}] as const,
+    /** `GET /api/animais` — this RESPONSAVEL's backend-authorized animal list (see `listAccessibleAnimals`). */
+    accessible: (filters?: { nome?: string; especieId?: number; racaId?: number }) =>
+      [...queryKeys.patients.all, 'accessible', filters ?? {}] as const,
     detail: (id: string | number) => [...queryKeys.patients.all, 'detail', id] as const,
   },
   especies: {

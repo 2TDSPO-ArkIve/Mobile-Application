@@ -135,6 +135,15 @@ export function LoginScreen() {
             style={styles.registerLink}
             colors={lightColors}
           />
+
+          <AppButton
+            title={t('auth.createAccountResponsavel')}
+            variant="ghost"
+            size="small"
+            onPress={() => navigation.navigate('CadastroResponsavel')}
+            style={styles.registerLink}
+            colors={lightColors}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

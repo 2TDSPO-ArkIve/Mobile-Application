@@ -8,6 +8,13 @@ import { apiGet, apiPost, apiPut } from './apiClient';
  */
 export interface AnimalDto {
   id: number;
+  /**
+   * Permanent, opaque, non-secret public identifier (`ARK-PET-XXXXX-...`) —
+   * display only, never an authorization mechanism. Nullable only for
+   * defensiveness against pre-migration records; every animal the backend
+   * returns today has one.
+   */
+  arkivePatientId: string | null;
   nome: string;
   especieId: number;
   especieNome: string;
@@ -78,6 +85,27 @@ export async function listMyPatients(filters?: MyPatientsFilters): Promise<Anima
   if (filters?.racaId != null) params.set('racaId', String(filters.racaId));
   const query = params.toString() ? `?${params.toString()}` : '';
   const page = await apiGet<{ content: AnimalDto[] }>(`/api/animais/me${query}`);
+  return page.content;
+}
+
+/**
+ * CONFIRMED: `AnimalController.listar` (`GET /api/animais`, no suffix) →
+ * `AnimalService.listarAutorizado`, whose `switch` on `principal.getTipoUsuario()`
+ * has a dedicated `RESPONSAVEL` branch (`animalRepository.buscarParaResponsavel`,
+ * scoped to `principal.getResponsavelId()`) — this is the real, backend-authorized
+ * "animals I have access to" list for a responsible person, not a client-side
+ * filter. Deliberately NOT reused by `listMyPatients` (`/api/animais/me` is
+ * VETERINARIO-only and means something different: "patients I registered or
+ * previously consulted") — same underlying entity, two distinct, role-specific
+ * endpoints, kept as two separate functions so neither name's meaning is diluted.
+ */
+export async function listAccessibleAnimals(filters?: MyPatientsFilters): Promise<AnimalDto[]> {
+  const params = new URLSearchParams();
+  if (filters?.nome) params.set('nome', filters.nome);
+  if (filters?.especieId != null) params.set('especieId', String(filters.especieId));
+  if (filters?.racaId != null) params.set('racaId', String(filters.racaId));
+  const query = params.toString() ? `?${params.toString()}` : '';
+  const page = await apiGet<{ content: AnimalDto[] }>(`/api/animais${query}`);
   return page.content;
 }
 
