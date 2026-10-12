@@ -13,16 +13,26 @@ import * as SecureStore from 'expo-secure-store';
  * Deliberately NOT AsyncStorage: a share token is bearer-style and sensitive
  * enough (though short-lived and single-use) to warrant the same storage
  * tier as login credentials, not the plain-prefs tier.
+ *
+ * Web uses `sessionStorage`, not `localStorage` (unlike `credentialStore.ts`,
+ * which persists real login credentials across browser restarts on purpose).
+ * This token is an ephemeral, single-use secret that only ever needs to
+ * survive the current browser tab's session — a page reload mid-flow, or
+ * navigating through registration/login — not forever. `sessionStorage` is
+ * cleared when the tab/browser closes, which is the correct lifetime: there
+ * is no architectural reason to outlive that, and every real clear path
+ * (redeemed, discarded, confirmed permanently invalid) already removes it
+ * explicitly regardless of which storage holds it.
  */
 const PENDING_SHARE_TOKEN_KEY = 'arkive.share.pending-token';
 const isWeb = Platform.OS === 'web';
 
 let memoryFallbackToken: string | null = null;
 
-/** Guards against `localStorage` throwing merely on *access* in some locked-down browser contexts — same defensive pattern as `credentialStore.ts`. */
+/** Guards against `sessionStorage` throwing merely on *access* in some locked-down browser contexts — same defensive pattern as `credentialStore.ts`. */
 function getWebStorage(): Storage | null {
   try {
-    return typeof localStorage !== 'undefined' ? localStorage : null;
+    return typeof sessionStorage !== 'undefined' ? sessionStorage : null;
   } catch {
     return null;
   }

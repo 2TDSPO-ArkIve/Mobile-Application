@@ -129,6 +129,9 @@ export const en = {
     shareLinkButton: 'Share link',
     shareMessage: "I'm sharing a patient with you on ArkIve: {{patientName}}\n{{url}}",
     doneHelper: 'You can come back to the patient anytime — the invitation stays valid until it expires.',
+    copyCodeButton: 'Copy code',
+    codeCopiedFeedback: 'Code copied!',
+    linkCopiedFeedback: 'Link copied!',
   },
   sharePreview: {
     title: 'Sharing invitation',
@@ -168,6 +171,15 @@ export const en = {
     instructions: "Point the camera at the invitation's QR code.",
     invalidQr: "This QR code doesn't contain a valid ArkIve invitation.",
     scanAgain: 'Scan again',
+  },
+  enterShareCode: {
+    entryLink: 'Enter invitation code',
+    title: 'Enter invitation code',
+    instructions: 'Paste or type the invitation code you received from another veterinarian.',
+    codeLabel: 'Invitation code',
+    codePlaceholder: 'Paste the code here',
+    continueButton: 'Continue',
+    errorEmpty: 'Enter the invitation code.',
   },
   patientAge: {
     years: '{{count}} years',

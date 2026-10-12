@@ -131,6 +131,9 @@ export const pt = {
     shareLinkButton: 'Compartilhar link',
     shareMessage: 'Compartilho com você um paciente no ArkIve: {{patientName}}\n{{url}}',
     doneHelper: 'Você pode voltar ao paciente quando quiser — o convite continua válido até expirar.',
+    copyCodeButton: 'Copiar código',
+    codeCopiedFeedback: 'Código copiado!',
+    linkCopiedFeedback: 'Link copiado!',
   },
   sharePreview: {
     title: 'Convite de compartilhamento',
@@ -170,6 +173,15 @@ export const pt = {
     instructions: 'Aponte a câmera para o QR Code do convite.',
     invalidQr: 'Este QR Code não contém um convite válido do ArkIve.',
     scanAgain: 'Escanear novamente',
+  },
+  enterShareCode: {
+    entryLink: 'Inserir código de convite',
+    title: 'Inserir código de convite',
+    instructions: 'Cole ou digite o código de convite que você recebeu de outro veterinário.',
+    codeLabel: 'Código do convite',
+    codePlaceholder: 'Cole o código aqui',
+    continueButton: 'Continuar',
+    errorEmpty: 'Informe o código do convite.',
   },
   patientAge: {
     years: '{{count}} anos',

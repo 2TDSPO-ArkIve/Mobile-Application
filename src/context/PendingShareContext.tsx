@@ -20,9 +20,25 @@ export interface PendingShareContextValue {
   restored: boolean;
   setPendingToken: (token: string) => void;
   clearPendingToken: () => void;
-  /** Marks `token` as already presented (auto-navigated to) in this app session, so `usePendingShareAutoReturn` doesn't reopen the preview screen every time the user returns to a stack's root after intentionally navigating away. */
+  /** Marks `token` as already presented (auto-navigated to), so `usePendingShareAutoReturn` doesn't reopen the preview screen every time the user returns to a stack's root after intentionally navigating away (e.g. pushing a detail screen and coming back). */
   markPresented: (token: string) => void;
   hasBeenPresented: (token: string) => boolean;
+  /**
+   * Re-arms presentation WITHOUT touching the token itself — the token stays
+   * exactly as it is in memory/SecureStore. Call this right before
+   * navigating away from `SharePreviewScreen` for a reason that will later
+   * land on a *different* authenticated/unauthenticated root than the one
+   * that's currently "presented" for this token: logging in, registering, or
+   * logging out to switch accounts. Without this, `hasBeenPresented` stays
+   * true across that whole transition (it was set the moment the invitation
+   * was first opened, e.g. by `ScanShareQrScreen`), so the root screen the
+   * user eventually lands on after authenticating silently refuses to
+   * auto-return to a still-pending, unredeemed invitation — see the bug this
+   * fixes. This is deliberately a separate method from `clearPendingToken`:
+   * that one destroys the invitation; this one only allows it to be shown
+   * again.
+   */
+  resetPresented: () => void;
 }
 
 const PendingShareContext = createContext<PendingShareContextValue | null>(null);
@@ -77,6 +93,18 @@ export function PendingShareProvider({ children }: { children: React.ReactNode }
 
   const hasBeenPresented = useCallback((token: string) => presentedTokenRef.current === token, []);
 
+  // A plain ref mutation — deliberately NOT state. Calling this must not, by
+  // itself, cause any other already-mounted screen (e.g. LoginScreen, still
+  // mounted underneath the preview while the user registers/logs in) to
+  // re-render or re-evaluate its own `usePendingShareAutoReturn` effect.
+  // Only a real `pendingToken` change (a new/cleared token) or a fresh mount
+  // does that — which is exactly what makes it safe to reset here without
+  // causing a premature bounce back to the preview before authentication
+  // completes.
+  const resetPresented = useCallback(() => {
+    presentedTokenRef.current = null;
+  }, []);
+
   const value = useMemo<PendingShareContextValue>(
     () => ({
       pendingToken,
@@ -85,8 +113,9 @@ export function PendingShareProvider({ children }: { children: React.ReactNode }
       clearPendingToken,
       markPresented,
       hasBeenPresented,
+      resetPresented,
     }),
-    [pendingToken, restored, setPendingToken, clearPendingToken, markPresented, hasBeenPresented]
+    [pendingToken, restored, setPendingToken, clearPendingToken, markPresented, hasBeenPresented, resetPresented]
   );
 
   return <PendingShareContext.Provider value={value}>{children}</PendingShareContext.Provider>;

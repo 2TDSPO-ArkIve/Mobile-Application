@@ -63,10 +63,18 @@ export function useRedeemPatientShare() {
  * mount resolves (which would otherwise read `pendingToken` as `null` on a
  * fresh app launch and skip a real pending invitation). `hasBeenPresented`
  * prevents re-opening the preview screen every time the user navigates back
- * to this root screen within the same app session — it does NOT prevent
- * re-presenting on a fresh app launch, which is deliberate: an
- * unredeemed, still-pending invitation should keep guiding the user back
- * until they explicitly accept or discard it.
+ * to this root screen within the same app session.
+ *
+ * Crucially, `hasBeenPresented` is checked fresh every time THIS hook's own
+ * effect runs — on this screen's mount, and whenever `pendingToken` itself
+ * changes. `SharePreviewScreen` calls `resetPresented()` right before
+ * sending an unauthenticated/wrong-role viewer off to log in, register, or
+ * switch accounts, specifically so that once they land back on an
+ * authenticated root (this hook, mounted fresh after the `AuthStatus`-driven
+ * navigator remount), it sees `hasBeenPresented === false` again and
+ * re-opens the still-pending invitation. Without that reset, the invitation
+ * would stay silently stuck "already presented" forever, since it's the same
+ * token the whole time.
  */
 export function usePendingShareAutoReturn(navigation: { navigate: (route: 'ConvitePaciente') => void }) {
   const { pendingToken, restored, hasBeenPresented, markPresented } = usePendingShare();

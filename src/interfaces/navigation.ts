@@ -56,6 +56,8 @@ export type AppStackParamList = {
   CompartilharPaciente: { patientId: number };
   ConvitePaciente: undefined;
   EscanearConvite: undefined;
+  /** Manual invitation-code entry — VETERINARIO-only fallback transport alongside QR/link; no route params (reads/writes `PendingShareContext` directly, same as `EscanearConvite`). */
+  InserirCodigoConvite: undefined;
   Prescricoes: { consultaId: number };
   NovaPrescricao: { consultaId: number };
   PrescricaoDetalhe: { prescricaoId: number; consultaId: number };

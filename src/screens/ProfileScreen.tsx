@@ -93,6 +93,13 @@ export function ProfileScreen() {
           onPress={() => navigation.navigate('EscanearConvite')}
         />
 
+        <AppButton
+          title={t('enterShareCode.entryLink')}
+          variant="ghost"
+          size="small"
+          onPress={() => navigation.navigate('InserirCodigoConvite')}
+        />
+
         <AppButton title={t('profile.logoutButton')} variant="danger" onPress={logout} />
       </ScreenContainer>
     </View>

@@ -30,3 +30,33 @@ function resolveApiBaseUrl(): string {
 }
 
 export const API_BASE_URL = resolveApiBaseUrl();
+
+/**
+ * The canonical public web host this app is deployed to — confirmed against
+ * `vercel.json` (a catch-all SPA rewrite, `/:path*` -> `/`, so ANY path
+ * including `/share/<token>` already resolves to the app bundle without any
+ * hosting change) and the backend's own CORS allowlist
+ * (`SecurityConfig.corsConfigurationSource`), which already trusts this exact
+ * origin. Used only to build/validate patient-sharing URLs
+ * (`src/utils/shareLink.ts`) — never used for API calls.
+ */
+const ARKIVE_WEB_BASE_URL = 'https://mobile-application-sooty.vercel.app';
+
+function resolveShareBaseUrl(): string {
+  const override = process.env.EXPO_PUBLIC_SHARE_BASE_URL?.trim();
+
+  if (!override) {
+    return ARKIVE_WEB_BASE_URL;
+  }
+
+  if (!/^https?:\/\/[^\s]+$/i.test(override)) {
+    throw new Error(
+      `EXPO_PUBLIC_SHARE_BASE_URL is set to an invalid value: "${override}". ` +
+        'It must be a full http(s) URL. Fix or unset it to use the default ArkIve web host.'
+    );
+  }
+
+  return override.replace(/\/+$/, '');
+}
+
+export const SHARE_BASE_URL = resolveShareBaseUrl();
