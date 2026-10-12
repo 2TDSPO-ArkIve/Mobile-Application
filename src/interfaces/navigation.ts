@@ -6,6 +6,15 @@ export type AuthStackParamList = {
   Login: { prefillIdentifier?: string } | undefined;
   Cadastro: undefined;
   CadastroResponsavel: undefined;
+  /**
+   * No params — the screen always reads `PendingShareContext.pendingToken`
+   * rather than a route param, so later deep-link/QR entry points can simply
+   * call `setPendingToken(token)` then navigate here, without this route's
+   * shape ever needing to change.
+   */
+  ConvitePaciente: undefined;
+  /** QR scanner entry point — registered in all three stacks, one implementation (`ScanShareQrScreen`), no route params (it only ever calls `setPendingToken` + navigates to `ConvitePaciente`). */
+  EscanearConvite: undefined;
 };
 
 export type BottomTabParamList = {
@@ -24,6 +33,9 @@ export type BottomTabParamList = {
 export type ResponsavelAppStackParamList = {
   MeusAnimais: undefined;
   PacienteDetalhe: { patientId: number };
+  CompartilharPaciente: { patientId: number };
+  ConvitePaciente: undefined;
+  EscanearConvite: undefined;
   MinhaConta: undefined;
   Configuracoes: undefined;
   AlterarSenha: undefined;
@@ -41,6 +53,9 @@ export type AppStackParamList = {
   NovoPaciente: { returnToConsulta?: boolean } | undefined;
   PacienteDetalhe: { patientId: number };
   EditarPaciente: { patientId: number };
+  CompartilharPaciente: { patientId: number };
+  ConvitePaciente: undefined;
+  EscanearConvite: undefined;
   Prescricoes: { consultaId: number };
   NovaPrescricao: { consultaId: number };
   PrescricaoDetalhe: { prescricaoId: number; consultaId: number };

@@ -6,6 +6,9 @@ import { PatientDetailScreen } from '../screens/PatientDetailScreen';
 import { ResponsavelAccountScreen } from '../screens/ResponsavelAccountScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { ChangePasswordScreen } from '../screens/ChangePasswordScreen';
+import { CreateShareScreen } from '../screens/CreateShareScreen';
+import { SharePreviewScreen } from '../screens/SharePreviewScreen';
+import { ScanShareQrScreen } from '../screens/ScanShareQrScreen';
 import { useThemeColors } from '../hooks/useThemeColors';
 
 const Stack = createNativeStackNavigator<ResponsavelAppStackParamList>();
@@ -36,6 +39,9 @@ export function ResponsavelAppStack() {
     >
       <Stack.Screen name="MeusAnimais" component={MeusAnimaisScreen} />
       <Stack.Screen name="PacienteDetalhe" component={PatientDetailScreen} />
+      <Stack.Screen name="CompartilharPaciente" component={CreateShareScreen} />
+      <Stack.Screen name="ConvitePaciente" component={SharePreviewScreen} />
+      <Stack.Screen name="EscanearConvite" component={ScanShareQrScreen} />
       <Stack.Screen name="MinhaConta" component={ResponsavelAccountScreen} />
       <Stack.Screen name="Configuracoes" component={SettingsScreen} />
       <Stack.Screen name="AlterarSenha" component={ChangePasswordScreen} />

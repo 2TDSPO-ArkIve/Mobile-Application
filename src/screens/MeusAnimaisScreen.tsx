@@ -10,6 +10,7 @@ import { EmptyState } from '../components/EmptyState';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useMyAnimals } from '../hooks/usePatients';
+import { usePendingShareAutoReturn } from '../hooks/useShares';
 import { patientSummaryLine, patientFallbackId } from '../utils/patientDisplay';
 import type { ResponsavelAppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize } from '../styles/theme';
@@ -30,6 +31,11 @@ export function MeusAnimaisScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<ResponsavelAppStackParamList>>();
   const [search, setSearch] = useState('');
+
+  // MeusAnimais is ResponsavelAppStack's root screen, so it's the reliable
+  // single mount point to guide a RESPONSAVEL back to a still-pending share
+  // invitation once authenticated — see usePendingShareAutoReturn's own note.
+  usePendingShareAutoReturn(navigation);
 
   const { data, isPending, isError, error } = useMyAnimals();
 

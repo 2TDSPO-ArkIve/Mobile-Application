@@ -54,6 +54,13 @@ export function ResponsavelAccountScreen() {
           onPress={() => navigation.navigate('Configuracoes')}
         />
 
+        <AppButton
+          title={t('scanShareQr.entryLink')}
+          variant="ghost"
+          size="small"
+          onPress={() => navigation.navigate('EscanearConvite')}
+        />
+
         <AppButton title={t('account.logoutButton')} variant="danger" onPress={logout} />
       </ScreenContainer>
     </View>

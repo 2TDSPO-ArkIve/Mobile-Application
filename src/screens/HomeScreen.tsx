@@ -12,6 +12,7 @@ import { EmptyState } from '../components/EmptyState';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useConsultas } from '../hooks/useConsultas';
+import { usePendingShareAutoReturn } from '../hooks/useShares';
 import { consultaStatusPresentation } from '../utils/statusPresentation';
 import { formatTime } from '../utils/localeFormat';
 import type { AppStackParamList } from '../interfaces/navigation';
@@ -40,6 +41,11 @@ export function HomeScreen() {
   const { t } = useTranslation();
   const navigation =
     useNavigation<NativeStackNavigationProp<AppStackParamList>>();
+
+  // Home is AppStack's default/initial tab, so it's the reliable single
+  // mount point to guide the veterinarian back to a still-pending share
+  // invitation once authenticated — see usePendingShareAutoReturn's own note.
+  usePendingShareAutoReturn(navigation);
 
   const IN_PROGRESS_COPY: Record<string, string> = {
     EP: t('home.continueAttendance'),

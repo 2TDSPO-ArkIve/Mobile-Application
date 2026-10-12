@@ -38,7 +38,10 @@ import { commonStyles } from '../styles/common';
  * show the tutor's name).
  */
 type PatientDetailRouteParamList = { PacienteDetalhe: { patientId: number } };
-type PatientDetailNavigationParamList = { EditarPaciente: { patientId: number } };
+type PatientDetailNavigationParamList = {
+  EditarPaciente: { patientId: number };
+  CompartilharPaciente: { patientId: number };
+};
 
 export function PatientDetailScreen() {
   const route = useRoute<RouteProp<PatientDetailRouteParamList, 'PacienteDetalhe'>>();
@@ -139,6 +142,15 @@ export function PatientDetailScreen() {
             onPress={() => navigation.navigate('EditarPaciente', { patientId: patient.id })}
           />
         ) : null}
+
+        {/* Both VETERINARIO and RESPONSAVEL may share a patient they
+            legitimately have access to — confirmed against
+            `ClinicalAccessService.exigirCriacaoCompartilhamentoAnimal`. */}
+        <AppButton
+          title={t('patientDetail.shareButton')}
+          variant="outline"
+          onPress={() => navigation.navigate('CompartilharPaciente', { patientId: patient.id })}
+        />
       </ScreenContainer>
     </View>
   );
