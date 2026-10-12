@@ -3,6 +3,7 @@
     "name": "ArkIve",
     "slug": "arkive",
     "version": "1.0.0",
+    "scheme": "arkive",
     "orientation": "portrait",
     "icon": "./src/assets/branding/definitive-square.png",
     "userInterfaceStyle": "automatic",
@@ -42,7 +43,14 @@
       ],
       "@react-native-community/datetimepicker",
       "expo-font",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "O ArkIve usa a câmera para ler QR Codes de compartilhamento de pacientes.",
+          "microphonePermission": false
+        }
+      ]
     ]
   }
 }

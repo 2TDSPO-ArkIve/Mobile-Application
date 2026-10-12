@@ -2,15 +2,43 @@ import type { AnimalDto } from '../services/patientService';
 import type { AuthMeResponse } from '../services/authService';
 
 export type AuthStackParamList = {
-  /** `prefillIdentifier` — set by RegisterScreen after a successful cadastro, so the veterinarian doesn't have to retype the e-mail they just registered with. */
+  /** `prefillIdentifier` — set by RegisterScreen/RegisterResponsavelScreen after a successful cadastro, so the user doesn't have to retype the e-mail they just registered with. */
   Login: { prefillIdentifier?: string } | undefined;
   Cadastro: undefined;
+  CadastroResponsavel: undefined;
+  /**
+   * No params — the screen always reads `PendingShareContext.pendingToken`
+   * rather than a route param, so later deep-link/QR entry points can simply
+   * call `setPendingToken(token)` then navigate here, without this route's
+   * shape ever needing to change.
+   */
+  ConvitePaciente: undefined;
+  /** QR scanner entry point — registered in all three stacks, one implementation (`ScanShareQrScreen`), no route params (it only ever calls `setPendingToken` + navigates to `ConvitePaciente`). */
+  EscanearConvite: undefined;
 };
 
 export type BottomTabParamList = {
   Home: undefined;
   Consultas: undefined;
   Pacientes: undefined;
+};
+
+/**
+ * The RESPONSAVEL application shell — deliberately small (Sprint "RESPONSAVEL
+ * Phase 1/2"): read-only patient access only, no clinical write screens, no
+ * sharing yet. `PacienteDetalhe` here is the exact same `PatientDetailScreen`
+ * component `AppStackParamList` uses (shared, role-neutral display), typed
+ * independently in each param list rather than sharing one big union.
+ */
+export type ResponsavelAppStackParamList = {
+  MeusAnimais: undefined;
+  PacienteDetalhe: { patientId: number };
+  CompartilharPaciente: { patientId: number };
+  ConvitePaciente: undefined;
+  EscanearConvite: undefined;
+  MinhaConta: undefined;
+  Configuracoes: undefined;
+  AlterarSenha: undefined;
 };
 
 export type AppStackParamList = {
@@ -25,6 +53,9 @@ export type AppStackParamList = {
   NovoPaciente: { returnToConsulta?: boolean } | undefined;
   PacienteDetalhe: { patientId: number };
   EditarPaciente: { patientId: number };
+  CompartilharPaciente: { patientId: number };
+  ConvitePaciente: undefined;
+  EscanearConvite: undefined;
   Prescricoes: { consultaId: number };
   NovaPrescricao: { consultaId: number };
   PrescricaoDetalhe: { prescricaoId: number; consultaId: number };
@@ -73,6 +104,14 @@ export interface AuthContextValue {
    * is `authenticated` or `password-change-required`, null otherwise.
    */
   identity: import('../services/authService').AuthMeResponse | null;
+  /**
+   * Derived once here, from `identity.tipo`, rather than scattered across
+   * screens as `identity?.tipo === 'VETERINARIO'`. Both false while
+   * `identity` is null (not yet authenticated). Role is a separate dimension
+   * from `status` — these do not replace or duplicate the `AuthStatus` model.
+   */
+  isVeterinario: boolean;
+  isResponsavel: boolean;
   login: (username: string, password: string) => Promise<string | null>;
   logout: () => Promise<void>;
   /** Re-runs credential verification against the backend (e.g. to leave the `unreachable` state). */

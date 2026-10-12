@@ -233,3 +233,110 @@ export function describeRegistrationError(error: unknown): string {
   }
   return t('errors.registrationGeneric');
 }
+
+/**
+ * Translates a `POST /api/auth/register/responsavel` failure. Confirmed
+ * against `ResponsavelRegistrationService`/`PasswordPolicy.java`: a password
+ * policy violation, a confirmation mismatch, and Bean Validation failures are
+ * all 400 with an already specific, human-readable message; a duplicate
+ * e-mail/login or document is 409 ("E-mail/login ja cadastrado." /
+ * "Documento de responsavel ja cadastrado."). Shown verbatim, same reasoning
+ * as `describeRegistrationError`/`describeChangePasswordError`.
+ */
+export function describeResponsavelRegistrationError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 400 || error.status === 409) {
+      return error.message || t('errors.registrationResponsavelGeneric');
+    }
+    if (error.status >= 500) {
+      return t('errors.registrationResponsavelUnavailable');
+    }
+    return t('errors.registrationResponsavelGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.registrationResponsavelNetwork');
+  }
+  return t('errors.registrationResponsavelGeneric');
+}
+
+/**
+ * Translates a `POST /api/animais/{id}/compartilhamentos` failure. Confirmed
+ * against `ClinicalAccessService.exigirCriacaoCompartilhamentoAnimal`: 403
+ * means either the caller isn't a VETERINARIO/RESPONSAVEL, or has no read
+ * access to this specific animal; 404 means the animal itself wasn't found.
+ */
+export function describeCreateShareError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 403) {
+      return t('errors.shareCreateForbidden');
+    }
+    if (error.status === 404) {
+      return t('errors.shareCreateNotFound');
+    }
+    if (error.status >= 500) {
+      return t('errors.shareCreateUnavailable');
+    }
+    return t('errors.shareCreateGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.shareCreateNetwork');
+  }
+  return t('errors.shareCreateGeneric');
+}
+
+/**
+ * Translates a `POST /api/compartilhamentos/preview` failure — note this
+ * only ever fires for a token the backend doesn't recognize at all (404) or
+ * an infra problem. An expired/revoked/already-used token is a normal 200
+ * response (`valid:false` + `status`), handled separately by the screen, not
+ * through this function.
+ */
+export function describePreviewShareError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 404) {
+      return t('errors.sharePreviewNotFound');
+    }
+    if (error.status >= 500) {
+      return t('errors.sharePreviewUnavailable');
+    }
+    return t('errors.sharePreviewGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.sharePreviewNetwork');
+  }
+  return t('errors.sharePreviewGeneric');
+}
+
+/**
+ * Translates a `POST /api/compartilhamentos/redeem` failure. Confirmed
+ * against `PatientShareService`: 403 is a role mismatch
+ * (`validateRecipientRole`) — should be rare in practice since the preview
+ * screen already gates the Accept action by role client-side; 404 is an
+ * unrecognized token; 409 is "already used"; 410 covers both expired and
+ * revoked (the backend's own message already distinguishes which, shown
+ * verbatim rather than collapsed into one generic sentence).
+ */
+export function describeRedeemShareError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 403) {
+      return error.message || t('errors.shareRedeemRoleMismatch');
+    }
+    if (error.status === 404) {
+      return t('errors.shareRedeemNotFound');
+    }
+    if (error.status === 409) {
+      return error.message || t('errors.shareRedeemAlreadyUsed');
+    }
+    if (error.status === 410) {
+      return error.message || t('errors.shareRedeemGone');
+    }
+    if (error.status >= 500) {
+      return t('errors.shareRedeemUnavailable');
+    }
+    return t('errors.shareRedeemGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.shareRedeemNetwork');
+  }
+  return t('errors.shareRedeemGeneric');
+}

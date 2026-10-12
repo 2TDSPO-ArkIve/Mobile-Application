@@ -6,11 +6,28 @@ import { useAuth } from '../hooks/useAuth';
 import { lightColors } from '../styles/colors';
 import { AuthStack } from './AuthStack';
 import { AppStack } from './AppStack';
+import { ResponsavelAppStack } from './ResponsavelAppStack';
 import { BackendUnavailableScreen } from '../screens/BackendUnavailableScreen';
 import { MandatoryPasswordChangeScreen } from '../screens/MandatoryPasswordChangeScreen';
 import type { RootStackParamList } from '../interfaces/navigation';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+/**
+ * Role is a dimension separate from `AuthStatus` (see `AuthContextValue`'s
+ * own note) — this is the one place that dimension is actually consulted to
+ * pick a screen, deliberately kept out of `AuthStatus` itself so "VETERINARIO
+ * vs RESPONSAVEL" never has to be threaded through the `initializing`/
+ * `unreachable`/`password-change-required` states at all. Defaults to the
+ * existing `AppStack` (VETERINARIO) for any identity that isn't confirmed
+ * RESPONSAVEL — `verifyCredentials` already guarantees `identity.tipo` is one
+ * of exactly these two roles by the time `status` can ever reach
+ * `authenticated`.
+ */
+function AuthenticatedAppRouter() {
+  const { isResponsavel } = useAuth();
+  return isResponsavel ? <ResponsavelAppStack /> : <AppStack />;
+}
 
 export function RootNavigator() {
   const { status } = useAuth();
@@ -52,7 +69,7 @@ export function RootNavigator() {
     <NavigationContainer key={status} documentTitle={{ enabled: false }}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {status === 'authenticated' ? (
-          <Stack.Screen name="App" component={AppStack} />
+          <Stack.Screen name="App" component={AuthenticatedAppRouter} />
         ) : status === 'password-change-required' ? (
           <Stack.Screen name="PasswordChange" component={MandatoryPasswordChangeScreen} />
         ) : (

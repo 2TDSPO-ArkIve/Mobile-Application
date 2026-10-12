@@ -15,6 +15,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { AppInput } from '../components/AppInput';
 import { AppButton } from '../components/AppButton';
 import { useAuth } from '../hooks/useAuth';
+import { usePendingShareAutoReturn } from '../hooks/useShares';
 import { useTranslation } from '../i18n/useTranslation';
 import { lightColors } from '../styles/colors';
 import type { AuthStackParamList } from '../interfaces/navigation';
@@ -44,6 +45,12 @@ export function LoginScreen() {
   const { login } = useAuth();
   const { t } = useTranslation();
   const colors = lightColors;
+
+  // Login is AuthStack's default/initial screen, so it's the reliable single
+  // mount point to present a pending share invitation to an unauthenticated
+  // visitor (a deep link tapped before ever opening the app, or a QR scanned
+  // from this same screen) — see usePendingShareAutoReturn's own note.
+  usePendingShareAutoReturn(navigation);
 
   const [identifier, setIdentifier] = useState(route.params?.prefillIdentifier ?? '');
   const [password, setPassword] = useState('');
@@ -132,6 +139,24 @@ export function LoginScreen() {
             title={t('auth.createAccount')}
             variant="ghost"
             onPress={() => navigation.navigate('Cadastro')}
+            style={styles.registerLink}
+            colors={lightColors}
+          />
+
+          <AppButton
+            title={t('auth.createAccountResponsavel')}
+            variant="ghost"
+            size="small"
+            onPress={() => navigation.navigate('CadastroResponsavel')}
+            style={styles.registerLink}
+            colors={lightColors}
+          />
+
+          <AppButton
+            title={t('scanShareQr.entryLink')}
+            variant="ghost"
+            size="small"
+            onPress={() => navigation.navigate('EscanearConvite')}
             style={styles.registerLink}
             colors={lightColors}
           />

@@ -4,11 +4,13 @@ import type { StoredCredentials } from '../storage/credentialStore';
 
 /**
  * Confirmed against `AuthMeResponse.java` — every field here is a direct
- * match. `responsavelId` is only ever populated for a RESPONSAVEL account;
- * this app is veterinarian-only, so it's typed but never expected to be
- * used. For an authenticated VETERINARIO, `veterinarioId` is always
- * resolvable (derived from the Usuario/Veterinario relationship, never from
- * consultation history), and `clinicaId` may legitimately be null.
+ * match. The mobile app now authenticates two account types:
+ * - VETERINARIO: `veterinarioId`/`crmv`/`email` populated, `responsavelId` null.
+ * - RESPONSAVEL: `responsavelId` populated, `veterinarioId`/`crmv`/`email` null
+ *   (a responsible person's e-mail lives on `login`, not on this `email`
+ *   field — that one is sourced from `Veterinario.email` server-side and is
+ *   simply absent for a RESPONSAVEL).
+ * `clinicaId` may legitimately be null for either role.
  */
 export interface AuthMeResponse {
   usuarioId: number;
@@ -23,7 +25,12 @@ export interface AuthMeResponse {
   clinicaId: number | null;
 }
 
-const VETERINARIO_TIPO = 'VETERINARIO';
+/**
+ * The two account types the mobile app authenticates. SYSADMIN and
+ * ADMIN_CLINICA remain web/admin-only — rejected the same way an unknown
+ * `tipo` would be, below.
+ */
+const ALLOWED_MOBILE_ROLES = ['VETERINARIO', 'RESPONSAVEL'] as const;
 
 export type CredentialVerificationResult =
   | { ok: true; identity: AuthMeResponse; requiresPasswordChange: boolean }
@@ -46,10 +53,10 @@ export type CredentialVerificationResult =
  * mandatory-password-change filter and made a brand-new account look like
  * an invalid login.
  *
- * Also confirms the account is actually a VETERINARIO — this app has no use
- * for a RESPONSAVEL/ADMIN_CLINICA/SYSADMIN session, so that's treated the
- * same as "forbidden" rather than silently proceeding with an identity nothing
- * else in this app knows how to use.
+ * Also confirms the account is one of the two roles this app supports
+ * (VETERINARIO or RESPONSAVEL) — an ADMIN_CLINICA/SYSADMIN session (or any
+ * future/unknown `tipo`) is treated the same as "forbidden" rather than
+ * silently proceeding with an identity nothing in this app knows how to use.
  */
 export async function verifyCredentials(
   credentials: StoredCredentials
@@ -57,7 +64,7 @@ export async function verifyCredentials(
   try {
     const identity = await apiGet<AuthMeResponse>('/api/auth/me', { authOverride: credentials });
 
-    if (identity.tipo !== VETERINARIO_TIPO) {
+    if (!ALLOWED_MOBILE_ROLES.includes(identity.tipo as (typeof ALLOWED_MOBILE_ROLES)[number])) {
       return { ok: false, reason: 'forbidden', message: t('auth.wrongRole') };
     }
 
@@ -135,4 +142,42 @@ export async function registerVeterinario(
   input: VeterinarioRegistrationInput
 ): Promise<VeterinarioRegistrationResponse> {
   return apiPost<VeterinarioRegistrationResponse>('/api/auth/register', input);
+}
+
+/** Confirmed against `RegistroResponsavelResponse.java`. `trocaSenhaObrigatoria` is always `false` here — unlike veterinarian provisioning, the responsible person chose their own password at registration. */
+export interface ResponsavelRegistrationResponse {
+  usuarioId: number;
+  responsavelId: number;
+  nome: string;
+  email: string;
+  tipo: string;
+  ativo: string;
+  trocaSenhaObrigatoria: boolean;
+}
+
+export interface ResponsavelRegistrationInput {
+  nome: string;
+  documento: string;
+  email: string;
+  /** Omitted entirely (not sent as an empty string) when left blank — matches `RegistroResponsavelRequest.telefone`'s optional, nullable contract. */
+  telefone?: string;
+  senha: string;
+  confirmacaoSenha: string;
+}
+
+/**
+ * `POST /api/auth/register/responsavel` — confirmed public (method+path
+ * specific, same pattern as `/api/auth/register`) in `SecurityConfig`. Unlike
+ * veterinarian self-registration, the responsible person chooses their own
+ * password here and there is no mandatory first-login password change
+ * (`ResponsavelRegistrationService` always persists `trocaSenha='N'`).
+ *
+ * Registration itself does not create an Animal, an AnimalResponsavel link,
+ * or any PatientAccess — it only creates the account. Patient access comes
+ * later, through sharing (not implemented yet).
+ */
+export async function registerResponsavel(
+  input: ResponsavelRegistrationInput
+): Promise<ResponsavelRegistrationResponse> {
+  return apiPost<ResponsavelRegistrationResponse>('/api/auth/register/responsavel', input);
 }

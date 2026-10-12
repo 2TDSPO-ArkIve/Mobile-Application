@@ -180,6 +180,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       status,
       username,
       identity,
+      isVeterinario: identity?.tipo === 'VETERINARIO',
+      isResponsavel: identity?.tipo === 'RESPONSAVEL',
       login,
       logout,
       refreshUser,

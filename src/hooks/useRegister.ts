@@ -1,5 +1,10 @@
 import { useMutation } from '@tanstack/react-query';
-import { registerVeterinario, type VeterinarioRegistrationInput } from '../services/authService';
+import {
+  registerVeterinario,
+  registerResponsavel,
+  type VeterinarioRegistrationInput,
+  type ResponsavelRegistrationInput,
+} from '../services/authService';
 
 /**
  * No query invalidation on success — registration happens entirely before
@@ -8,5 +13,12 @@ import { registerVeterinario, type VeterinarioRegistrationInput } from '../servi
 export function useRegisterVeterinario() {
   return useMutation({
     mutationFn: (input: VeterinarioRegistrationInput) => registerVeterinario(input),
+  });
+}
+
+/** Same reasoning as `useRegisterVeterinario` — no authenticated cache exists yet to invalidate. */
+export function useRegisterResponsavel() {
+  return useMutation({
+    mutationFn: (input: ResponsavelRegistrationInput) => registerResponsavel(input),
   });
 }

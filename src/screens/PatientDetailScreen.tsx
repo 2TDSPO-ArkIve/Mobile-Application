@@ -7,20 +7,29 @@ import { ScreenContainer } from '../components/ScreenContainer';
 import { AppCard } from '../components/AppCard';
 import { AppButton } from '../components/AppButton';
 import { EmptyState } from '../components/EmptyState';
+import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { usePatient } from '../hooks/usePatients';
 import { useAnimalTutores } from '../hooks/useTutores';
 import { formatAge } from '../utils/localeFormat';
-import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
 /**
- * Read-only patient metadata. Deliberately shows no "owner veterinarian" —
- * that relationship doesn't exist (Animal -> Clínica, not Animal ->
- * Veterinário). No Excluir/Desativar action either: the backend forbids
- * both for VETERINARIO (`AnimalService.exigirPermissaoAdministrativaAnimal`).
+ * Shared read-only patient display, mounted from TWO different navigators —
+ * `AppStack` (VETERINARIO, with the Editar action) and `ResponsavelAppStack`
+ * (RESPONSAVEL, strictly read-only). Route/nav types are therefore
+ * deliberately NOT bound to either big `AppStackParamList`/
+ * `ResponsavelAppStackParamList` — a minimal inline param shape keeps this
+ * screen correct under both stacks instead of lying about which one it's
+ * actually in.
+ *
+ * Deliberately shows no "owner veterinarian" — that relationship doesn't
+ * exist (Animal -> Clínica, not Animal -> Veterinário). No Excluir/Desativar
+ * action either: the backend forbids both for VETERINARIO
+ * (`AnimalService.exigirPermissaoAdministrativaAnimal`), and RESPONSAVEL never
+ * gets a write action here at all — only `isVeterinario` sees Editar.
  *
  * The one extra request this screen pays for (beyond the patient itself) is
  * its own active tutor relationships — cheap here because it's exactly one
@@ -28,11 +37,18 @@ import { commonStyles } from '../styles/common';
  * an unbounded N+1 (see `patientDisplay.ts`'s note on why list cards don't
  * show the tutor's name).
  */
+type PatientDetailRouteParamList = { PacienteDetalhe: { patientId: number } };
+type PatientDetailNavigationParamList = {
+  EditarPaciente: { patientId: number };
+  CompartilharPaciente: { patientId: number };
+};
+
 export function PatientDetailScreen() {
-  const route = useRoute<RouteProp<AppStackParamList, 'PacienteDetalhe'>>();
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
+  const route = useRoute<RouteProp<PatientDetailRouteParamList, 'PacienteDetalhe'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<PatientDetailNavigationParamList>>();
   const colors = useThemeColors();
   const { t } = useTranslation();
+  const { isVeterinario } = useAuth();
   const { data: patient, isPending, isError, error, refetch } = usePatient(route.params.patientId);
   const { data: tutores } = useAnimalTutores(patient?.id ?? null);
   const currentTutor = tutores?.find((rel) => rel.principal === 'S') ?? tutores?.[0] ?? null;
@@ -106,12 +122,34 @@ export function PatientDetailScreen() {
               {t('patientDetail.clinicLabel', { clinic: patient.clinicaNome })}
             </Text>
           ) : null}
+          {patient.arkivePatientId ? (
+            <View style={styles.arkiveIdWrap}>
+              <Text style={[styles.arkiveIdLabel, { color: colors.textSecondary }]}>
+                {t('patientDetail.arkiveIdLabel')}
+              </Text>
+              {/* Permanent, opaque, NOT secret — selectable/readable text, never masked or treated as a credential. */}
+              <Text style={[styles.arkiveIdValue, { color: colors.text }]} selectable>
+                {patient.arkivePatientId}
+              </Text>
+            </View>
+          ) : null}
         </AppCard>
 
+        {isVeterinario ? (
+          <AppButton
+            title={t('patientDetail.editButton')}
+            variant="outline"
+            onPress={() => navigation.navigate('EditarPaciente', { patientId: patient.id })}
+          />
+        ) : null}
+
+        {/* Both VETERINARIO and RESPONSAVEL may share a patient they
+            legitimately have access to — confirmed against
+            `ClinicalAccessService.exigirCriacaoCompartilhamentoAnimal`. */}
         <AppButton
-          title={t('patientDetail.editButton')}
+          title={t('patientDetail.shareButton')}
           variant="outline"
-          onPress={() => navigation.navigate('EditarPaciente', { patientId: patient.id })}
+          onPress={() => navigation.navigate('CompartilharPaciente', { patientId: patient.id })}
         />
       </ScreenContainer>
     </View>
@@ -121,4 +159,7 @@ export function PatientDetailScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
+  arkiveIdWrap: { marginTop: spacing.sm },
+  arkiveIdLabel: { fontSize: fontSize.xs, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  arkiveIdValue: { fontSize: fontSize.sm, fontFamily: 'monospace', marginTop: 2 },
 });

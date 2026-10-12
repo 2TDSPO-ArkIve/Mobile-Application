@@ -86,6 +86,13 @@ export function ProfileScreen() {
           onPress={() => navigation.navigate('Configuracoes')}
         />
 
+        <AppButton
+          title={t('scanShareQr.entryLink')}
+          variant="ghost"
+          size="small"
+          onPress={() => navigation.navigate('EscanearConvite')}
+        />
+
         <AppButton title={t('profile.logoutButton')} variant="danger" onPress={logout} />
       </ScreenContainer>
     </View>

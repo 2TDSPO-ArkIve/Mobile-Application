@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createPatient,
   getPatientById,
+  listAccessibleAnimals,
   listMyPatients,
   updatePatient,
   type AnimalRequestInput,
@@ -14,6 +15,20 @@ export function useMyPatients(filters?: MyPatientsFilters, options?: { enabled?:
   return useQuery({
     queryKey: queryKeys.patients.mine(filters),
     queryFn: () => listMyPatients(filters),
+    enabled: options?.enabled ?? true,
+  });
+}
+
+/**
+ * This RESPONSAVEL's backend-authorized animal list (`GET /api/animais`, no
+ * suffix — see `listAccessibleAnimals`'s own confirmation note). Deliberately
+ * a separate hook from `useMyPatients`, which is VETERINARIO-specific and
+ * calls a different endpoint with a different authorization meaning.
+ */
+export function useMyAnimals(filters?: MyPatientsFilters, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: queryKeys.patients.accessible(filters),
+    queryFn: () => listAccessibleAnimals(filters),
     enabled: options?.enabled ?? true,
   });
 }
