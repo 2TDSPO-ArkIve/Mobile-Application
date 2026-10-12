@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Alert, StyleSheet } from 'react-native';
+import { View, Text, Alert, Platform, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
@@ -67,18 +67,39 @@ export function SharePreviewScreen() {
     navigation.goBack();
   };
 
+  /**
+   * Navigation must NOT depend on an Alert button's `onPress` —
+   * `react-native-web`'s `Alert.alert` is a no-op (it never shows anything
+   * and never invokes a button callback), so gating navigation behind it
+   * left the browser flow stuck on this screen after a successful redeem
+   * (redemption, `clearPendingToken()`, and the mutation's own cache
+   * invalidation all ran fine; only the navigation call, buried in the never
+   * -called `onPress`, didn't). `Alert.alert` is still called here as
+   * fire-and-forget feedback (a real modal on native, nothing on web) — it
+   * neither blocks nor gates the `replace` below.
+   *
+   * `replace` (not `navigate`) so the consumed invitation is removed from
+   * the stack entirely — pressing Back from the patient detail screen must
+   * land on Meus Animais/the veterinarian's patient flow, never back onto an
+   * already-redeemed "Convite de compartilhamento" screen.
+   */
   const handleAccept = async () => {
     if (!pendingToken) return;
     setRedeemError('');
     try {
       const access = await redeemMutation.mutateAsync(pendingToken);
       clearPendingToken();
-      Alert.alert(t('sharePreview.redeemSuccessTitle'), t('sharePreview.redeemSuccessMessage'), [
-        {
-          text: t('common.done'),
-          onPress: () => navigation.navigate('PacienteDetalhe', { patientId: access.animalId }),
-        },
-      ]);
+      // The address bar was pointed at /convite by DeepLinkHandler back when
+      // the invitation was first ingested; this app never syncs routes to
+      // the URL afterward, so nothing else would update it. Scrub it back to
+      // a clean root now that the invitation is consumed — same
+      // history.replaceState technique DeepLinkHandler already uses, no new
+      // patient ID/token ever goes into the URL.
+      if (Platform.OS === 'web' && typeof window !== 'undefined' && window.history?.replaceState) {
+        window.history.replaceState(null, '', '/');
+      }
+      navigation.replace('PacienteDetalhe', { patientId: access.animalId });
+      Alert.alert(t('sharePreview.redeemSuccessTitle'), t('sharePreview.redeemSuccessMessage'));
     } catch (err) {
       setRedeemError(describeRedeemShareError(err));
     }
