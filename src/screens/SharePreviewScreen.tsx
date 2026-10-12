@@ -49,7 +49,7 @@ export function SharePreviewScreen() {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const { status, isVeterinario, isResponsavel, logout } = useAuth();
-  const { pendingToken, clearPendingToken } = usePendingShare();
+  const { pendingToken, clearPendingToken, resetPresented } = usePendingShare();
 
   const previewMutation = usePreviewPatientShare();
   const redeemMutation = useRedeemPatientShare();
@@ -82,6 +82,36 @@ export function SharePreviewScreen() {
     } catch (err) {
       setRedeemError(describeRedeemShareError(err));
     }
+  };
+
+  /**
+   * Each of these four leaves the preview for a reason that ends with the
+   * user authenticated as a (hopefully) different role/account than "right
+   * now" — re-arming presentation here is what lets the root screen they
+   * eventually land on (Home, MeusAnimais, or this same preview reopened
+   * from a freshly-logged-out Login) auto-return to this still-pending
+   * invitation instead of silently refusing because it was already shown
+   * once, back when the invitation was first opened. The token itself is
+   * untouched — only `handleDiscard`/a successful `handleAccept` clear it.
+   */
+  const handleGoToLogin = () => {
+    resetPresented();
+    navigation.navigate('Login');
+  };
+
+  const handleGoToRegisterResponsavel = () => {
+    resetPresented();
+    navigation.navigate('CadastroResponsavel');
+  };
+
+  const handleGoToRegisterVeterinario = () => {
+    resetPresented();
+    navigation.navigate('Cadastro');
+  };
+
+  const handleLogoutToSwitchAccount = () => {
+    resetPresented();
+    logout();
   };
 
   if (!pendingToken) {
@@ -174,18 +204,18 @@ export function SharePreviewScreen() {
 
         {!isAuthenticated ? (
           <>
-            <AppButton title={t('sharePreview.loginButton')} onPress={() => navigation.navigate('Login')} />
+            <AppButton title={t('sharePreview.loginButton')} onPress={handleGoToLogin} />
             {preview.invitationType === 'RESPONSAVEL' ? (
               <AppButton
                 title={t('sharePreview.registerResponsavelButton')}
                 variant="outline"
-                onPress={() => navigation.navigate('CadastroResponsavel')}
+                onPress={handleGoToRegisterResponsavel}
               />
             ) : (
               <AppButton
                 title={t('sharePreview.registerVeterinarioButton')}
                 variant="outline"
-                onPress={() => navigation.navigate('Cadastro')}
+                onPress={handleGoToRegisterVeterinario}
               />
             )}
             <AppButton title={t('sharePreview.discardButton')} variant="ghost" size="small" onPress={handleDiscard} />
@@ -196,7 +226,7 @@ export function SharePreviewScreen() {
               {t('sharePreview.roleMismatchMessage', { invitationType: invitationLabel })}
             </Text>
             <AppButton title={t('sharePreview.backButton')} variant="outline" onPress={() => navigation.goBack()} />
-            <AppButton title={t('sharePreview.logoutButton')} variant="danger" onPress={logout} />
+            <AppButton title={t('sharePreview.logoutButton')} variant="danger" onPress={handleLogoutToSwitchAccount} />
           </>
         ) : (
           <>

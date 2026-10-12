@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, Share, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Share, Platform, StyleSheet } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
+import * as Clipboard from 'expo-clipboard';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { AppCard } from '../components/AppCard';
@@ -31,10 +32,15 @@ const INVITATION_TYPES: PatientAccessRole[] = ['VETERINARIO', 'RESPONSAVEL'];
  * Invitation creation is an explicit user action (tap a recipient type) —
  * never fired on render/rerender. The raw token only ever lives in this
  * screen's own local state once created (`created.rawToken`); it is never
- * logged, never put in a query key or route param, and is shown to the
- * sender only as a QR code and inside the native share-sheet message — never
- * dumped as plain selectable developer text (that transitional UI existed
- * only before Phase 5 and is gone now).
+ * logged, never put in a query key or route param.
+ *
+ * For VETERINARIO invitations only, the raw token is also offered as a
+ * "Copiar código" action — a legitimate manual fallback transport (the
+ * recipient vet types/pastes it into `EnterShareCodeScreen`), since the
+ * backend has no shorter code for this sprint; the token IS the code. This is
+ * deliberately NOT shown for RESPONSAVEL invitations, where the QR/link path
+ * alone is the intended tutor-onboarding UX (see `shareCreate.question` flow)
+ * and a visible raw code would add nothing but exposure.
  */
 type CreateShareRouteParamList = { CompartilharPaciente: { patientId: number } };
 
@@ -48,6 +54,7 @@ export function CreateShareScreen() {
   const createShare = useCreatePatientShare(patientId);
   const [error, setError] = useState('');
   const [created, setCreated] = useState<PatientShareCreatedDto | null>(null);
+  const [copyFeedback, setCopyFeedback] = useState('');
 
   const handleSelect = async (invitationType: PatientAccessRole) => {
     setError('');
@@ -59,16 +66,54 @@ export function CreateShareScreen() {
     }
   };
 
+  /**
+   * Native keeps using RN's `Share.share` (the OS share sheet already works
+   * well there). Web has no native module for it: `navigator.share` (Web
+   * Share API) is used when the browser supports it, falling back to copying
+   * the same message to the clipboard — no large dependency, just the
+   * already-installed `expo-clipboard` (which also backs "Copiar código"
+   * below).
+   */
   const handleShareLink = async () => {
     if (!created || !patient) return;
     const url = buildPatientShareUrl(created.rawToken);
+    const message = t('shareCreate.shareMessage', { patientName: patient.nome, url });
+
+    if (Platform.OS === 'web') {
+      const nav = typeof navigator !== 'undefined' ? (navigator as Navigator & { share?: (data: { text: string }) => Promise<void> }) : undefined;
+      if (nav?.share) {
+        try {
+          await nav.share({ text: message });
+          return;
+        } catch {
+          // User cancelled or the browser share sheet failed — fall through
+          // to the clipboard fallback below.
+        }
+      }
+      try {
+        await Clipboard.setStringAsync(message);
+        setCopyFeedback(t('shareCreate.linkCopiedFeedback'));
+      } catch {
+        // Nothing actionable left to try — the QR code on screen remains a valid fallback.
+      }
+      return;
+    }
+
     try {
-      await Share.share({
-        message: t('shareCreate.shareMessage', { patientName: patient.nome, url }),
-      });
+      await Share.share({ message });
     } catch {
       // User cancelled or the native share sheet failed to open — nothing
       // actionable to show; the QR code on screen remains a valid fallback.
+    }
+  };
+
+  const handleCopyCode = async () => {
+    if (!created) return;
+    try {
+      await Clipboard.setStringAsync(created.rawToken);
+      setCopyFeedback(t('shareCreate.codeCopiedFeedback'));
+    } catch {
+      // Nothing actionable left to try — the QR code on screen remains a valid fallback.
     }
   };
 
@@ -116,7 +161,17 @@ export function CreateShareScreen() {
               </Text>
             </AppCard>
 
+            {created.invitationType === 'VETERINARIO' ? (
+              <AppButton title={t('shareCreate.copyCodeButton')} variant="outline" onPress={handleCopyCode} />
+            ) : null}
+
             <AppButton title={t('shareCreate.shareLinkButton')} onPress={handleShareLink} />
+
+            {copyFeedback ? (
+              <Text style={{ color: colors.primary, textAlign: 'center', marginTop: spacing.xs }}>
+                {copyFeedback}
+              </Text>
+            ) : null}
 
             <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm }}>
               {t('shareCreate.doneHelper')}
