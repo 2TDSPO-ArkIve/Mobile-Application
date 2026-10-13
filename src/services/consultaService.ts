@@ -139,6 +139,8 @@ export interface AtualizarNarrativaRequest {
  * above, the AI's severity vocabulary is not confirmed.
  */
 export interface ClinicalSupportResponse {
+  /** The underlying `Diagnostico` record id — the target of `PATCH /api/diagnosticos/{diagnosticoId}/validacao-veterinaria` (see `avaliarInsightIa` in diagnosticoService.ts). */
+  diagnosticoId: number;
   consultaId: number;
   statusConsulta: ConsultaStatus;
   statusDescricao: string;
@@ -146,6 +148,13 @@ export interface ClinicalSupportResponse {
   severidadeSugerida: string;
   insightClinico: string;
   confianca: number | null;
+  /**
+   * null = the veterinarian has not evaluated this AI insight yet; 'S'/'N' =
+   * marked useful/not useful via `avaliarInsightIa`. NOT the same concept as
+   * a confirmed diagnosis (`DiagnosticoDto.confirmado`) — this is feedback on
+   * the AI's analysis, never a diagnosis confirmation/rejection.
+   */
+  validacaoVet: 'S' | 'N' | null;
   /**
    * V4 addition — external research sources the clinical engine consulted,
    * persisted server-side (survives AP/FI/reopen). Optional because a
@@ -155,6 +164,14 @@ export interface ClinicalSupportResponse {
    * engine's decision — never derive it from `confianca` on the client.
    */
   fontesPesquisadas?: string[];
+  /**
+   * Human-readable titles from the local RAG knowledge base (never literal
+   * `.md` filenames — Java returns the real document title). Same defensive
+   * optionality as `fontesPesquisadas` for a backend predating this field;
+   * normalize with `support.referenciasRag ?? []`. A distinct concept from
+   * `fontesPesquisadas` (external web sources) — never merge the two lists.
+   */
+  referenciasRag?: string[];
 }
 
 /** `FinalizarConsultaRequest.java` — the veterinarian's conclusion, confirmed, not called yet. */

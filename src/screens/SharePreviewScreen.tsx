@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Alert, Platform, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
@@ -29,12 +29,20 @@ import { spacing, fontSize } from '../styles/theme';
  * `PendingShareContext.pendingToken`. This is what lets a future deep-link/QR
  * entry point simply call `setPendingToken(token)` then navigate here,
  * without this screen changing at all.
+ *
+ * `MainTabs`/`MeusAnimais` are each a DIFFERENT stack's root screen name
+ * (`AppStackParamList`'s and `ResponsavelAppStackParamList`'s respectively) —
+ * both are listed here (rather than only whichever one matches the stack
+ * actually hosting this screen at runtime) because this single component is
+ * reused by both, and `handleAccept` picks the right one dynamically via
+ * `isVeterinario`/`isResponsavel`.
  */
 type SharePreviewNavigationParamList = {
   Login: { prefillIdentifier?: string } | undefined;
   Cadastro: undefined;
   CadastroResponsavel: undefined;
-  PacienteDetalhe: { patientId: number };
+  MainTabs: undefined;
+  MeusAnimais: undefined;
 };
 
 const STATUS_MESSAGE_KEY: Record<PatientShareStatus, TranslationKey> = {
@@ -70,24 +78,29 @@ export function SharePreviewScreen() {
   /**
    * Navigation must NOT depend on an Alert button's `onPress` —
    * `react-native-web`'s `Alert.alert` is a no-op (it never shows anything
-   * and never invokes a button callback), so gating navigation behind it
-   * left the browser flow stuck on this screen after a successful redeem
-   * (redemption, `clearPendingToken()`, and the mutation's own cache
-   * invalidation all ran fine; only the navigation call, buried in the never
-   * -called `onPress`, didn't). `Alert.alert` is still called here as
-   * fire-and-forget feedback (a real modal on native, nothing on web) — it
-   * neither blocks nor gates the `replace` below.
+   * and never invokes a button callback). `Alert.alert` is still called here
+   * as fire-and-forget feedback (a real modal on native, nothing on web) —
+   * it neither blocks nor gates the reset below.
    *
-   * `replace` (not `navigate`) so the consumed invitation is removed from
-   * the stack entirely — pressing Back from the patient detail screen must
-   * land on Meus Animais/the veterinarian's patient flow, never back onto an
-   * already-redeemed "Convite de compartilhamento" screen.
+   * Product decision: after a successful redeem, leave the sharing flow
+   * entirely and land on the role's own patient list — NOT on
+   * `PacienteDetalhe`. A plain `navigate`/`replace` would still leave this
+   * now-consumed `ConvitePaciente` screen reachable via Back (replace only
+   * swaps the top of the stack, it doesn't drop what's underneath), so this
+   * uses `CommonActions.reset` to rebuild the stack from scratch with only
+   * the role's root screen in it — there is nothing left in history to go
+   * back to.
+   *
+   * `isVeterinario`/`isResponsavel` pick which stack's root to reset to,
+   * since this one component is mounted in both `AppStack` (root:
+   * `MainTabs`, needs its `Pacientes` tab selected via nested state) and
+   * `ResponsavelAppStack` (root: `MeusAnimais`, no tabs).
    */
   const handleAccept = async () => {
     if (!pendingToken) return;
     setRedeemError('');
     try {
-      const access = await redeemMutation.mutateAsync(pendingToken);
+      await redeemMutation.mutateAsync(pendingToken);
       clearPendingToken();
       // The address bar was pointed at /convite by DeepLinkHandler back when
       // the invitation was first ingested; this app never syncs routes to
@@ -98,7 +111,16 @@ export function SharePreviewScreen() {
       if (Platform.OS === 'web' && typeof window !== 'undefined' && window.history?.replaceState) {
         window.history.replaceState(null, '', '/');
       }
-      navigation.replace('PacienteDetalhe', { patientId: access.animalId });
+      if (isVeterinario) {
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'MainTabs', state: { routes: [{ name: 'Pacientes' }] } }],
+          })
+        );
+      } else {
+        navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'MeusAnimais' }] }));
+      }
       Alert.alert(t('sharePreview.redeemSuccessTitle'), t('sharePreview.redeemSuccessMessage'));
     } catch (err) {
       setRedeemError(describeRedeemShareError(err));
