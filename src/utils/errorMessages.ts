@@ -196,6 +196,29 @@ export function describePatientHistoryError(error: unknown): string {
   return t('errors.historyGeneric');
 }
 
+/**
+ * Translates a `GET /api/animais/arkive/{id}` failure into one of the
+ * product's three deliberately DISTINCT outcomes — 403 ("found, but you
+ * don't have access" — an access-control result, never worded as a failed
+ * "import") and 404 ("no such patient") are NEVER collapsed into the same
+ * message; conflating them would blur whether the id itself was wrong or
+ * whether sharing is what's actually missing.
+ */
+export function describeArkiveLookupForbidden(): string {
+  return t('arkiveLookup.forbiddenMessage');
+}
+
+export function describeArkiveLookupNotFound(): string {
+  return t('arkiveLookup.notFoundMessage');
+}
+
+export function describeArkiveLookupOtherError(error: unknown): string {
+  if (isNetworkError(error)) {
+    return t('arkiveLookup.networkError');
+  }
+  return t('arkiveLookup.genericError');
+}
+
 /** Translates a `GET /api/notificacoes*` failure — a plain authenticated read with no special-case status to distinguish beyond network vs. generic. */
 export function describeNotificationsError(error: unknown): string {
   if (isNetworkError(error)) {

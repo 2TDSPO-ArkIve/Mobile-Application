@@ -6,6 +6,7 @@ import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { SearchBar } from '../components/SearchBar';
 import { AppCard } from '../components/AppCard';
+import { AppButton } from '../components/AppButton';
 import { EmptyState } from '../components/EmptyState';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
@@ -80,6 +81,16 @@ export function MeusAnimaisScreen() {
       <ScreenContainer>
         <SearchBar value={search} onChangeText={setSearch} placeholder={t('myAnimals.searchPlaceholder')} />
 
+        {/* Useful for verifying/opening an already-authorized shared patient
+            — retrieval only, never a path to registering a new patient
+            (RESPONSAVEL has no create flow in this app). */}
+        <AppButton
+          title={t('myAnimals.lookupByArkiveId')}
+          variant="outline"
+          onPress={() => navigation.navigate('BuscarPacienteArkive')}
+          style={styles.lookupButton}
+        />
+
         {isPending ? (
           <Text style={{ color: colors.textSecondary, textAlign: 'center' }}>
             {t('myAnimals.loading')}
@@ -115,4 +126,5 @@ export function MeusAnimaisScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  lookupButton: { marginBottom: spacing.sm },
 });

@@ -103,6 +103,7 @@ export const en = {
     emptySearchMessage: 'No animals found for this search.',
     searchPlaceholder: 'Search animal...',
     accountAccessibilityLabel: 'My account',
+    lookupByArkiveId: 'Find by ArkIve ID',
   },
   account: {
     title: 'My Account',
@@ -396,6 +397,25 @@ export const en = {
     emptySearchMessage: 'No patients found for this search.',
     registerButton: 'Register patient',
     addAccessibilityLabel: 'Register patient',
+    lookupByArkiveId: 'Find by ArkIve ID',
+  },
+  arkiveLookup: {
+    title: 'Find by ArkIve ID',
+    label: "Patient's ArkIve ID",
+    placeholder: 'ARK-PET-XXXXX-XXXXX-XXXXX-XXXXX-XXXXXX',
+    helper: "Use the patient's permanent identifier. The ID isn't secret, but it alone doesn't grant access.",
+    submit: 'Find patient',
+    invalidId: 'Enter a valid ArkIve ID (starts with ARK-PET-).',
+    forbiddenTitle: "You don't have access to this patient",
+    forbiddenMessage:
+      "The ArkIve ID identifies the patient, but it doesn't grant access. Ask the guardian or veterinarian to share the patient with you.",
+    forbiddenGuidance: 'Sharing can be done via link, QR code, or, for veterinarians, an invitation code.',
+    enterShareCodeButton: 'Enter invitation code',
+    notFoundTitle: 'Patient not found',
+    notFoundMessage: 'Check that the ArkIve ID was typed correctly.',
+    errorTitle: 'Could not search',
+    networkError: 'No connection to the server. Check your internet and try again.',
+    genericError: 'Could not find the patient right now. Try again.',
   },
   patientDisplay: {
     fallbackId: 'Patient #{{id}}',

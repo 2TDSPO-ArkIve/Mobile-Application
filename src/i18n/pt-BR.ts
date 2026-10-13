@@ -105,6 +105,7 @@ export const pt = {
     emptySearchMessage: 'Nenhum animal encontrado para essa busca.',
     searchPlaceholder: 'Buscar animal...',
     accountAccessibilityLabel: 'Minha conta',
+    lookupByArkiveId: 'Buscar por ID ArkIve',
   },
   account: {
     title: 'Minha Conta',
@@ -398,6 +399,25 @@ export const pt = {
     emptySearchMessage: 'Nenhum paciente encontrado para essa busca.',
     registerButton: 'Cadastrar paciente',
     addAccessibilityLabel: 'Cadastrar paciente',
+    lookupByArkiveId: 'Buscar por ID ArkIve',
+  },
+  arkiveLookup: {
+    title: 'Buscar por ID ArkIve',
+    label: 'ID ArkIve do paciente',
+    placeholder: 'ARK-PET-XXXXX-XXXXX-XXXXX-XXXXX-XXXXXX',
+    helper: 'Use o identificador permanente do paciente. O ID não é secreto, mas por si só não concede acesso.',
+    submit: 'Buscar paciente',
+    invalidId: 'Informe um ID ArkIve válido (começa com ARK-PET-).',
+    forbiddenTitle: 'Você não possui acesso a este paciente',
+    forbiddenMessage:
+      'O ID ArkIve identifica o paciente, mas não concede acesso. Peça ao responsável ou veterinário que compartilhe o paciente com você.',
+    forbiddenGuidance: 'O compartilhamento pode ser feito por link, QR Code ou, para veterinários, por código de convite.',
+    enterShareCodeButton: 'Inserir código de convite',
+    notFoundTitle: 'Paciente não encontrado',
+    notFoundMessage: 'Verifique se o ID ArkIve foi digitado corretamente.',
+    errorTitle: 'Não foi possível buscar',
+    networkError: 'Sem conexão com o servidor. Verifique sua internet e tente novamente.',
+    genericError: 'Não foi possível buscar o paciente agora. Tente novamente.',
   },
   patientDisplay: {
     fallbackId: 'Paciente #{{id}}',

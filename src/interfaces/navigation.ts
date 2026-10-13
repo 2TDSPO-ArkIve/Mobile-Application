@@ -40,6 +40,8 @@ export type ResponsavelAppStackParamList = {
   CompartilharPaciente: { patientId: number };
   ConvitePaciente: undefined;
   EscanearConvite: undefined;
+  /** Explicit ArkIve-ID lookup — retrieval only, same read-authorization rule as every other patient fetch; never creates/imports a patient. */
+  BuscarPacienteArkive: undefined;
   MinhaConta: undefined;
   Configuracoes: undefined;
   AlterarSenha: undefined;
@@ -65,6 +67,8 @@ export type AppStackParamList = {
   EscanearConvite: undefined;
   /** Manual invitation-code entry — VETERINARIO-only fallback transport alongside QR/link; no route params (reads/writes `PendingShareContext` directly, same as `EscanearConvite`). */
   InserirCodigoConvite: undefined;
+  /** Explicit ArkIve-ID lookup — retrieval only, same read-authorization rule as every other patient fetch; never creates/imports a patient. */
+  BuscarPacienteArkive: undefined;
   Prescricoes: { consultaId: number };
   NovaPrescricao: { consultaId: number };
   PrescricaoDetalhe: { prescricaoId: number; consultaId: number };

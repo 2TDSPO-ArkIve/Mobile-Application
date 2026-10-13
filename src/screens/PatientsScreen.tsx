@@ -6,6 +6,7 @@ import { HomeHeader } from '../components/HomeHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { SearchBar } from '../components/SearchBar';
 import { AppCard } from '../components/AppCard';
+import { AppButton } from '../components/AppButton';
 import { HeaderIconButton } from '../components/HeaderIconButton';
 import { EmptyState } from '../components/EmptyState';
 import { useThemeColors } from '../hooks/useThemeColors';
@@ -63,6 +64,16 @@ export function PatientsScreen() {
 
         <SearchBar value={search} onChangeText={setSearch} placeholder={t('patientsList.searchPlaceholder')} />
 
+        {/* Visible secondary action, not tucked behind an icon — retrieval
+            only (same read-authorization rule as any other patient fetch),
+            never a shortcut to create/import a patient. */}
+        <AppButton
+          title={t('patientsList.lookupByArkiveId')}
+          variant="outline"
+          onPress={() => navigation.navigate('BuscarPacienteArkive')}
+          style={styles.lookupButton}
+        />
+
         {isPending ? (
           <Text style={{ color: colors.textSecondary, textAlign: 'center' }}>
             {t('patientsList.loading')}
@@ -110,4 +121,5 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xl,
     fontWeight: '800',
   },
+  lookupButton: { marginBottom: spacing.sm },
 });
