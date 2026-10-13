@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Alert, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, Alert, Platform, StyleSheet } from 'react-native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
@@ -29,12 +29,20 @@ import { spacing, fontSize } from '../styles/theme';
  * `PendingShareContext.pendingToken`. This is what lets a future deep-link/QR
  * entry point simply call `setPendingToken(token)` then navigate here,
  * without this screen changing at all.
+ *
+ * `MainTabs`/`MeusAnimais` are each a DIFFERENT stack's root screen name
+ * (`AppStackParamList`'s and `ResponsavelAppStackParamList`'s respectively) —
+ * both are listed here (rather than only whichever one matches the stack
+ * actually hosting this screen at runtime) because this single component is
+ * reused by both, and `handleAccept` picks the right one dynamically via
+ * `isVeterinario`/`isResponsavel`.
  */
 type SharePreviewNavigationParamList = {
   Login: { prefillIdentifier?: string } | undefined;
   Cadastro: undefined;
   CadastroResponsavel: undefined;
-  PacienteDetalhe: { patientId: number };
+  MainTabs: undefined;
+  MeusAnimais: undefined;
 };
 
 const STATUS_MESSAGE_KEY: Record<PatientShareStatus, TranslationKey> = {
@@ -67,18 +75,53 @@ export function SharePreviewScreen() {
     navigation.goBack();
   };
 
+  /**
+   * Navigation must NOT depend on an Alert button's `onPress` —
+   * `react-native-web`'s `Alert.alert` is a no-op (it never shows anything
+   * and never invokes a button callback). `Alert.alert` is still called here
+   * as fire-and-forget feedback (a real modal on native, nothing on web) —
+   * it neither blocks nor gates the reset below.
+   *
+   * Product decision: after a successful redeem, leave the sharing flow
+   * entirely and land on the role's own patient list — NOT on
+   * `PacienteDetalhe`. A plain `navigate`/`replace` would still leave this
+   * now-consumed `ConvitePaciente` screen reachable via Back (replace only
+   * swaps the top of the stack, it doesn't drop what's underneath), so this
+   * uses `CommonActions.reset` to rebuild the stack from scratch with only
+   * the role's root screen in it — there is nothing left in history to go
+   * back to.
+   *
+   * `isVeterinario`/`isResponsavel` pick which stack's root to reset to,
+   * since this one component is mounted in both `AppStack` (root:
+   * `MainTabs`, needs its `Pacientes` tab selected via nested state) and
+   * `ResponsavelAppStack` (root: `MeusAnimais`, no tabs).
+   */
   const handleAccept = async () => {
     if (!pendingToken) return;
     setRedeemError('');
     try {
-      const access = await redeemMutation.mutateAsync(pendingToken);
+      await redeemMutation.mutateAsync(pendingToken);
       clearPendingToken();
-      Alert.alert(t('sharePreview.redeemSuccessTitle'), t('sharePreview.redeemSuccessMessage'), [
-        {
-          text: t('common.done'),
-          onPress: () => navigation.navigate('PacienteDetalhe', { patientId: access.animalId }),
-        },
-      ]);
+      // The address bar was pointed at /convite by DeepLinkHandler back when
+      // the invitation was first ingested; this app never syncs routes to
+      // the URL afterward, so nothing else would update it. Scrub it back to
+      // a clean root now that the invitation is consumed — same
+      // history.replaceState technique DeepLinkHandler already uses, no new
+      // patient ID/token ever goes into the URL.
+      if (Platform.OS === 'web' && typeof window !== 'undefined' && window.history?.replaceState) {
+        window.history.replaceState(null, '', '/');
+      }
+      if (isVeterinario) {
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'MainTabs', state: { routes: [{ name: 'Pacientes' }] } }],
+          })
+        );
+      } else {
+        navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'MeusAnimais' }] }));
+      }
+      Alert.alert(t('sharePreview.redeemSuccessTitle'), t('sharePreview.redeemSuccessMessage'));
     } catch (err) {
       setRedeemError(describeRedeemShareError(err));
     }

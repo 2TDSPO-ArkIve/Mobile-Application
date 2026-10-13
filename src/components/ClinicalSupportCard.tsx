@@ -1,12 +1,15 @@
-import React from 'react';
-import { Text, View, Pressable, Linking, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { Text, View, Pressable, Linking, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppCard } from './AppCard';
+import { useAuth } from '../hooks/useAuth';
+import { useAvaliarInsightIa } from '../hooks/useDiagnosticos';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import type { ClinicalSupportResponse } from '../services/consultaService';
 import { parseSourceUrl } from '../utils/sourceUrl';
-import { spacing, fontSize } from '../styles/theme';
+import { describeInsightFeedbackError } from '../utils/errorMessages';
+import { spacing, fontSize, radius } from '../styles/theme';
 
 interface Props {
   support: ClinicalSupportResponse;
@@ -19,15 +22,46 @@ interface Props {
  * card must stay read-only — nothing here becomes editable into a
  * conclusion field without a deliberate, separate action from the
  * veterinarian (a later phase).
+ *
+ * The ONE presentation source for AI-support content — `ArkiveInsightScreen`
+ * and `ConsultaDetailScreen` both just render this component rather than
+ * each building their own copy of hypothesis/severity/references/feedback.
+ *
+ * Feedback controls (👍/👎) are gated to `isVeterinario` — RESPONSAVEL has no
+ * navigator path to a screen that renders this card at all today, but the
+ * check lives here too (not just relying on that navigator-level fact, and
+ * not just on the backend's own authorization) since this is the one
+ * component every current and future caller shares.
  */
 export function ClinicalSupportCard({ support }: Props) {
   const colors = useThemeColors();
   const { t } = useTranslation();
+  const { isVeterinario } = useAuth();
+  const feedbackMutation = useAvaliarInsightIa(support.consultaId);
+  const [feedbackError, setFeedbackError] = useState('');
+
   // Normalized, never derived from `confianca` — whether external research
   // happened is entirely the clinical engine's call, not something this
   // component infers from another field. Optional on the type because a
   // currently-deployed backend may predate this field (V4).
   const fontes = support.fontesPesquisadas ?? [];
+  // Same defensive normalization for the RAG reference titles (a separate,
+  // later-added field) — never merged with `fontes` above, they are
+  // distinct concepts (local knowledge-base titles vs. external web
+  // research) and are rendered as two clearly separate sections.
+  const referencias = support.referenciasRag ?? [];
+
+  const handleFeedback = (util: boolean) => {
+    if (feedbackMutation.isPending) return;
+    setFeedbackError('');
+    feedbackMutation.mutate(
+      { diagnosticoId: support.diagnosticoId, util },
+      { onError: (err) => setFeedbackError(describeInsightFeedbackError(err)) }
+    );
+  };
+
+  const isUseful = support.validacaoVet === 'S';
+  const isNotUseful = support.validacaoVet === 'N';
 
   return (
     <AppCard>
@@ -52,10 +86,24 @@ export function ClinicalSupportCard({ support }: Props) {
       <Text style={[styles.label, { color: colors.textSecondary }]}>{t('clinicalSupportCard.insight')}</Text>
       <Text style={[styles.value, { color: colors.text }]}>{support.insightClinico}</Text>
 
+      {referencias.length > 0 ? (
+        <View style={styles.sourcesSection}>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
+            {t('clinicalSupportCard.ragReferencesTitle')}
+          </Text>
+          {referencias.map((titulo, index) => (
+            <View key={`${index}-${titulo}`} style={styles.sourceRow}>
+              <Text style={[styles.bullet, { color: colors.textSecondary }]}>{'•'}</Text>
+              <Text style={[styles.sourceText, { color: colors.textSecondary }]}>{titulo}</Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
+
       {fontes.length > 0 ? (
         <View style={styles.sourcesSection}>
           <Text style={[styles.label, { color: colors.textSecondary }]}>
-            {t('clinicalSupportCard.sourcesTitle')}
+            {t('clinicalSupportCard.externalSourcesTitle')}
           </Text>
           {fontes.map((fonte, index) => {
             const parsed = parseSourceUrl(fonte);
@@ -89,6 +137,61 @@ export function ClinicalSupportCard({ support }: Props) {
           })}
         </View>
       ) : null}
+
+      {isVeterinario ? (
+        <View style={styles.feedbackSection}>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
+            {t('clinicalSupportCard.feedbackQuestion')}
+          </Text>
+          <View style={styles.feedbackButtons}>
+            <Pressable
+              onPress={() => handleFeedback(true)}
+              disabled={feedbackMutation.isPending}
+              accessibilityRole="button"
+              accessibilityLabel={t('clinicalSupportCard.feedbackUsefulLabel')}
+              accessibilityState={{ selected: isUseful, disabled: feedbackMutation.isPending }}
+              style={({ pressed }) => [
+                styles.feedbackButton,
+                { borderColor: colors.border },
+                isUseful ? { borderColor: colors.success, backgroundColor: colors.successTint } : null,
+                pressed && !feedbackMutation.isPending ? styles.feedbackButtonPressed : null,
+              ]}
+            >
+              <Ionicons
+                name={isUseful ? 'thumbs-up' : 'thumbs-up-outline'}
+                size={22}
+                color={isUseful ? colors.success : colors.textSecondary}
+              />
+            </Pressable>
+
+            <Pressable
+              onPress={() => handleFeedback(false)}
+              disabled={feedbackMutation.isPending}
+              accessibilityRole="button"
+              accessibilityLabel={t('clinicalSupportCard.feedbackNotUsefulLabel')}
+              accessibilityState={{ selected: isNotUseful, disabled: feedbackMutation.isPending }}
+              style={({ pressed }) => [
+                styles.feedbackButton,
+                { borderColor: colors.border },
+                isNotUseful ? { borderColor: colors.error, backgroundColor: colors.errorTint } : null,
+                pressed && !feedbackMutation.isPending ? styles.feedbackButtonPressed : null,
+              ]}
+            >
+              <Ionicons
+                name={isNotUseful ? 'thumbs-down' : 'thumbs-down-outline'}
+                size={22}
+                color={isNotUseful ? colors.error : colors.textSecondary}
+              />
+            </Pressable>
+
+            {feedbackMutation.isPending ? <ActivityIndicator size="small" color={colors.primary} /> : null}
+          </View>
+
+          {feedbackError ? (
+            <Text style={[styles.feedbackErrorText, { color: colors.error }]}>{feedbackError}</Text>
+          ) : null}
+        </View>
+      ) : null}
     </AppCard>
   );
 }
@@ -114,5 +217,23 @@ const styles = StyleSheet.create({
     minHeight: 36,
     paddingVertical: spacing.xs,
   },
+  bullet: { fontSize: fontSize.sm },
   sourceText: { fontSize: fontSize.sm, flexShrink: 1 },
+  feedbackSection: { marginTop: spacing.md },
+  feedbackButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  feedbackButton: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  feedbackButtonPressed: { opacity: 0.7 },
+  feedbackErrorText: { fontSize: fontSize.xs, marginTop: spacing.xs },
 });

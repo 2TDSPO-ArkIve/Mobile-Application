@@ -340,3 +340,23 @@ export function describeRedeemShareError(error: unknown): string {
   }
   return t('errors.shareRedeemGeneric');
 }
+
+/** Translates a `PATCH /api/diagnosticos/{id}/validacao-veterinaria` failure (veterinarian feedback on an AI insight). */
+export function describeInsightFeedbackError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 403) {
+      return t('errors.insightFeedbackForbidden');
+    }
+    if (error.status === 404) {
+      return t('errors.insightFeedbackNotFound');
+    }
+    if (error.status >= 500) {
+      return t('errors.insightFeedbackUnavailable');
+    }
+    return t('errors.insightFeedbackGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.insightFeedbackNetwork');
+  }
+  return t('errors.insightFeedbackGeneric');
+}
