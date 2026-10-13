@@ -7,6 +7,7 @@ import { AuthProvider } from './src/context/AuthContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { PendingShareProvider } from './src/context/PendingShareContext';
 import { DeepLinkHandler } from './src/navigation/DeepLinkHandler';
+import { NotificationBridge } from './src/components/NotificationBridge';
 import { I18nProvider } from './src/i18n/I18nContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
 
@@ -15,6 +16,10 @@ function AppContent() {
   return (
     <>
       <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
+      {/* Inside AuthProvider (unlike DeepLinkHandler, which must sit above
+          it) — this needs useAuth() to gate notification polling to an
+          authenticated session. */}
+      <NotificationBridge />
       <RootNavigator />
     </>
   );

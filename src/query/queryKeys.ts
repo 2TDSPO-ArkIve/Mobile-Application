@@ -57,4 +57,21 @@ export const queryKeys = {
       [...queryKeys.prescricoes.all, 'by-consulta', consultaId] as const,
     detail: (id: string | number) => [...queryKeys.prescricoes.all, 'detail', id] as const,
   },
+  notifications: {
+    all: ['notifications'] as const,
+    /**
+     * A STABLE prefix covering every list-shaped query (any `naoLidas`/
+     * paging combination) and ONLY list-shaped queries — deliberately
+     * separate from `unreadCount` below, which caches a plain `number`, not
+     * a `NotificationDto[]`. `useNotifications.ts`'s cache-patching mutations
+     * (`setQueriesData` with an array-mapping updater) must target THIS key,
+     * never `all` — matching against `all` would also hit the unread-count
+     * cache entry and call `.map` on a number, throwing at runtime.
+     */
+    lists: () => [...queryKeys.notifications.all, 'list'] as const,
+    list: (params?: { naoLidas?: boolean; page?: number; size?: number }) =>
+      [...queryKeys.notifications.lists(), params ?? {}] as const,
+    /** `GET /api/notificacoes/nao-lidas/contagem` — the header bell badge's own polled query. Caches a plain `number`, never patched via an array-shaped updater. */
+    unreadCount: () => [...queryKeys.notifications.all, 'unread-count'] as const,
+  },
 };

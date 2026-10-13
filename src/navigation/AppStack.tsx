@@ -13,6 +13,7 @@ import { PatientDetailScreen } from '../screens/PatientDetailScreen';
 import { EditPatientScreen } from '../screens/EditPatientScreen';
 import { PatientHistoryScreen } from '../screens/PatientHistoryScreen';
 import { PatientCostScreen } from '../screens/PatientCostScreen';
+import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { PrescricoesScreen } from '../screens/PrescricoesScreen';
 import { NewPrescricaoScreen } from '../screens/NewPrescricaoScreen';
 import { PrescricaoDetailScreen } from '../screens/PrescricaoDetailScreen';
@@ -61,6 +62,7 @@ export function AppStack() {
       <Stack.Screen name="Perfil" component={ProfileScreen} />
       <Stack.Screen name="Configuracoes" component={SettingsScreen} />
       <Stack.Screen name="AlterarSenha" component={ChangePasswordScreen} />
+      <Stack.Screen name="Notificacoes" component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }

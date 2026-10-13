@@ -11,6 +11,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useMyAnimals } from '../hooks/usePatients';
 import { usePendingShareAutoReturn } from '../hooks/useShares';
+import { useUnreadNotificationCount } from '../hooks/useNotifications';
 import { patientSummaryLine, patientFallbackId } from '../utils/patientDisplay';
 import type { ResponsavelAppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize } from '../styles/theme';
@@ -38,6 +39,7 @@ export function MeusAnimaisScreen() {
   usePendingShareAutoReturn(navigation);
 
   const { data, isPending, isError, error } = useMyAnimals();
+  const { data: unreadCount } = useUnreadNotificationCount();
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -58,6 +60,15 @@ export function MeusAnimaisScreen() {
         title={t('myAnimals.title')}
         showBack={false}
         actions={[
+          {
+            icon: unreadCount && unreadCount > 0 ? 'notifications' : 'notifications-outline',
+            onPress: () => navigation.navigate('Notificacoes'),
+            accessibilityLabel:
+              unreadCount && unreadCount > 0
+                ? t('notifications.bellLabelUnread', { count: unreadCount })
+                : t('notifications.bellLabel'),
+            badgeCount: unreadCount,
+          },
           {
             icon: 'person-circle-outline',
             onPress: () => navigation.navigate('MinhaConta'),

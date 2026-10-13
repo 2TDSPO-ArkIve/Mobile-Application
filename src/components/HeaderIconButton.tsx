@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { NotificationBadge } from './NotificationBadge';
 
 const ICON_SIZE = 22;
 const TOUCH_TARGET = 44;
@@ -12,6 +13,8 @@ interface Props {
   accessibilityLabel: string;
   disabled?: boolean;
   loading?: boolean;
+  /** Optional unread-count overlay (e.g. the notifications action) — omitted entirely for every other existing action, which keeps rendering exactly as before. */
+  badgeCount?: number;
 }
 
 /**
@@ -26,7 +29,7 @@ interface Props {
  * A visually small icon (22px) still gets a full 44px touch target — the
  * padding is invisible, not a drawn circle.
  */
-export function HeaderIconButton({ icon, onPress, accessibilityLabel, disabled, loading }: Props) {
+export function HeaderIconButton({ icon, onPress, accessibilityLabel, disabled, loading, badgeCount }: Props) {
   const colors = useThemeColors();
 
   return (
@@ -43,6 +46,7 @@ export function HeaderIconButton({ icon, onPress, accessibilityLabel, disabled, 
       ) : (
         <Ionicons name={icon} size={ICON_SIZE} color={disabled ? colors.textSecondary : colors.primary} />
       )}
+      {badgeCount != null ? <NotificationBadge count={badgeCount} /> : null}
     </Pressable>
   );
 }

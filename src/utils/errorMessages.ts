@@ -196,6 +196,14 @@ export function describePatientHistoryError(error: unknown): string {
   return t('errors.historyGeneric');
 }
 
+/** Translates a `GET /api/notificacoes*` failure — a plain authenticated read with no special-case status to distinguish beyond network vs. generic. */
+export function describeNotificationsError(error: unknown): string {
+  if (isNetworkError(error)) {
+    return t('errors.notificationsNetwork');
+  }
+  return t('errors.notificationsGeneric');
+}
+
 /** Translates a `GET /api/animais/{id}/custos` failure — same shape as `describePatientHistoryError`, a plain authenticated/authorized read. */
 export function describePatientCostsError(error: unknown): string {
   if (error instanceof ApiError) {

@@ -43,6 +43,7 @@ export type ResponsavelAppStackParamList = {
   MinhaConta: undefined;
   Configuracoes: undefined;
   AlterarSenha: undefined;
+  Notificacoes: undefined;
 };
 
 export type AppStackParamList = {
@@ -71,6 +72,7 @@ export type AppStackParamList = {
   Perfil: undefined;
   Configuracoes: undefined;
   AlterarSenha: undefined;
+  Notificacoes: undefined;
 };
 
 export type RootStackParamList = {
