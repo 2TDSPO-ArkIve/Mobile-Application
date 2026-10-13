@@ -24,6 +24,8 @@ export interface AnimalHistoryPrescription {
   dataInicio: string | null;
   dataFim: string | null;
   instrucoes: string | null;
+  /** V13 additive field — `null` means no cost was recorded; never render that as `R$ 0,00`. */
+  valorMedicamento: number | null;
 }
 
 /**
@@ -50,6 +52,8 @@ export interface AnimalHistoryConsultation {
   severidadeFinal: string | null;
   conclusao: string | null;
   prescricoes: AnimalHistoryPrescription[];
+  /** V13 additive field (`ConsultaHistorico.valorConsulta`) — `null` means no cost was recorded; never render that as `R$ 0,00`. */
+  valorConsulta: number | null;
 }
 
 /** `AnimalHistoricoResponse.java` — confirmed: `consultas` is always newest-first, already scoped to what the authenticated caller may read. */

@@ -196,6 +196,23 @@ export function describePatientHistoryError(error: unknown): string {
   return t('errors.historyGeneric');
 }
 
+/** Translates a `GET /api/animais/{id}/custos` failure — same shape as `describePatientHistoryError`, a plain authenticated/authorized read. */
+export function describePatientCostsError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 403) {
+      return t('errors.patientCostsForbidden');
+    }
+    if (error.status === 404) {
+      return t('errors.patientCostsNotFound');
+    }
+    return t('errors.patientCostsGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.patientCostsNetwork');
+  }
+  return t('errors.patientCostsGeneric');
+}
+
 /** Translates a `GET /api/animais/{id}/historico-pdf` failure. Same `InvalidPdfError` class as the consultation-summary PDF (see consultaPdfService.ts) — a malformed/empty body is the same failure mode regardless of which PDF endpoint produced it. */
 export function describePatientHistoryPdfError(error: unknown): string {
   if (error instanceof InvalidPdfError) {

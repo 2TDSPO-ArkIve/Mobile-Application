@@ -14,7 +14,7 @@ import { usePatientHistoryPdf } from '../hooks/usePatientHistoryPdf';
 import { consultaStatusPresentation } from '../utils/statusPresentation';
 import { severidadeLabel } from '../utils/severidade';
 import { viaAdministracaoLabel } from '../utils/viaAdministracao';
-import { formatDate, formatTime } from '../utils/localeFormat';
+import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
 import { toDisplayDate } from '../utils/isoDate';
 import { describePatientHistoryError } from '../utils/errorMessages';
 import type { AnimalHistoryConsultation, AnimalHistoryPrescription } from '../services/patientHistoryService';
@@ -67,6 +67,12 @@ function PrescriptionRow({ prescricao }: { prescricao: AnimalHistoryPrescription
       ) : null}
       {prescricao.instrucoes ? (
         <Text style={[styles.prescriptionDetail, { color: colors.textSecondary }]}>{prescricao.instrucoes}</Text>
+      ) : null}
+      {/* `null` means no cost was recorded — omitted, never R$ 0,00. */}
+      {prescricao.valorMedicamento != null ? (
+        <Text style={[styles.prescriptionDetail, { color: colors.textSecondary }]}>
+          {t('patientHistory.prescriptionCostLabel')}: {formatCurrency(prescricao.valorMedicamento)}
+        </Text>
       ) : null}
     </View>
   );
@@ -132,6 +138,14 @@ function ConsultationCard({ consulta }: { consulta: AnimalHistoryConsultation })
         <View style={styles.section}>
           <Text style={[styles.label, { color: colors.textSecondary }]}>{t('patientHistory.conclusionLabel')}</Text>
           <Text style={[styles.value, { color: colors.text }]}>{consulta.conclusao}</Text>
+        </View>
+      ) : null}
+
+      {/* `null` means no cost was recorded — omitted, never R$ 0,00. An explicit 0 IS a real recorded value. */}
+      {consulta.valorConsulta != null ? (
+        <View style={styles.section}>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>{t('patientHistory.valueLabel')}</Text>
+          <Text style={[styles.value, { color: colors.text }]}>{formatCurrency(consulta.valorConsulta)}</Text>
         </View>
       ) : null}
 

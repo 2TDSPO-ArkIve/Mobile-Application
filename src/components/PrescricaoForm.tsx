@@ -4,10 +4,12 @@ import { AppCard } from './AppCard';
 import { AppInput } from './AppInput';
 import { AppButton } from './AppButton';
 import { DateField } from './DateField';
+import { MoneyField } from './MoneyField';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import type { PrescricaoRequestInput, ViaAdministracao } from '../services/prescricaoService';
 import { VIA_ADMINISTRACAO_OPTIONS, viaAdministracaoLabel } from '../utils/viaAdministracao';
+import { parseMoneyInput, moneyToInputValue } from '../utils/money';
 import { spacing, fontSize, radius } from '../styles/theme';
 
 export interface PrescricaoFormValues {
@@ -20,6 +22,8 @@ export interface PrescricaoFormValues {
   /** ISO YYYY-MM-DD, or empty when not set. */
   dataFim: string;
   instrucoes: string;
+  /** TOTAL treatment cost — never a per-unit medicine price. `null` means no value recorded. */
+  valorMedicamento: number | null;
 }
 
 /**
@@ -83,6 +87,9 @@ export function PrescricaoForm({
   );
   const [dataFim, setDataFim] = useState<Date | null>(parseIsoDateLocal(initialValues?.dataFim));
   const [instrucoes, setInstrucoes] = useState(initialValues?.instrucoes ?? '');
+  const [valorMedicamentoInput, setValorMedicamentoInput] = useState(
+    moneyToInputValue(initialValues?.valorMedicamento)
+  );
   const [validationError, setValidationError] = useState('');
 
   const handleSubmit = () => {
@@ -109,6 +116,12 @@ export function PrescricaoForm({
       return;
     }
 
+    const valorResult = parseMoneyInput(valorMedicamentoInput);
+    if (!valorResult.ok) {
+      setValidationError(valorResult.errorMessage);
+      return;
+    }
+
     onSubmit({
       medicamento: medicamento.trim(),
       dosagem: dosagem.trim(),
@@ -117,6 +130,7 @@ export function PrescricaoForm({
       dataInicio: isoInicio,
       dataFim: isoFim,
       instrucoes: instrucoes.trim() || undefined,
+      valorMedicamento: valorResult.value,
     });
   };
 
@@ -184,6 +198,14 @@ export function PrescricaoForm({
         onChangeText={setInstrucoes}
         editable={!isSubmitting}
         multiline
+      />
+
+      <MoneyField
+        label={t('prescricaoForm.treatmentCostLabel')}
+        helperText={t('prescricaoForm.treatmentCostHelper')}
+        value={valorMedicamentoInput}
+        onChangeText={setValorMedicamentoInput}
+        editable={!isSubmitting}
       />
 
       {validationError || errorMessage ? (

@@ -23,6 +23,18 @@ export function formatDateTime(date: Date): string {
   });
 }
 
+/**
+ * Display-only BRL currency formatting (`R$ 180,00` pt-BR / `R$180.00`
+ * en-US, via `Intl.NumberFormat`) — ArkIve currently only records
+ * Brazilian patient-care costs, so the currency itself is fixed regardless
+ * of UI language; only the number formatting follows the current locale.
+ * NEVER send this formatted string to Java — only the raw number
+ * (`parseMoneyInput` in `utils/money.ts` owns that direction).
+ */
+export function formatCurrency(value: number): string {
+  return new Intl.NumberFormat(getLanguage(), { style: 'currency', currency: 'BRL' }).format(value);
+}
+
 /** `YYYY-MM-DD` -> local `Date` at midnight — never via `new Date(iso)`, which parses a bare date as UTC and can shift a day off in a negative-UTC-offset timezone. */
 export function parseISODate(iso: string): Date {
   const [y, m, d] = iso.split('-').map(Number);

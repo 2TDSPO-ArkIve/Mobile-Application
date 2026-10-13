@@ -23,6 +23,8 @@ export const queryKeys = {
     detail: (id: string | number) => [...queryKeys.patients.all, 'detail', id] as const,
     /** `GET /api/animais/{id}/historico` — includes `id` so one patient's cached history can never leak into another's. */
     history: (id: string | number) => [...queryKeys.patients.all, 'history', id] as const,
+    /** `GET /api/animais/{id}/custos` — same per-patient scoping as `history`. */
+    costs: (id: string | number) => [...queryKeys.patients.all, 'costs', id] as const,
   },
   especies: {
     all: ['especies'] as const,

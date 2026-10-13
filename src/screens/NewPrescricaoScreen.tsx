@@ -31,7 +31,7 @@ export function NewPrescricaoScreen() {
   const { consultaId } = route.params;
 
   const { data: consulta, isPending } = useConsulta(consultaId);
-  const createMutation = useCreatePrescricao(consultaId);
+  const createMutation = useCreatePrescricao(consultaId, consulta?.animalId);
 
   const handleSubmit = async (input: Omit<PrescricaoRequestInput, 'consultaId'>) => {
     try {

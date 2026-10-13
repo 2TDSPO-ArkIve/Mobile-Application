@@ -35,6 +35,8 @@ export type ResponsavelAppStackParamList = {
   PacienteDetalhe: { patientId: number };
   /** Read-only clinical timeline — Java authorizes RESPONSAVEL access the same as VETERINARIO (`GET /api/animais/{id}/historico`), so this is not gated client-side by role. */
   HistoricoPaciente: { patientId: number };
+  /** Read-only cost dashboard — same cross-role authorization note as `HistoricoPaciente`. */
+  CustosPaciente: { patientId: number };
   CompartilharPaciente: { patientId: number };
   ConvitePaciente: undefined;
   EscanearConvite: undefined;
@@ -56,6 +58,7 @@ export type AppStackParamList = {
   PacienteDetalhe: { patientId: number };
   EditarPaciente: { patientId: number };
   HistoricoPaciente: { patientId: number };
+  CustosPaciente: { patientId: number };
   CompartilharPaciente: { patientId: number };
   ConvitePaciente: undefined;
   EscanearConvite: undefined;

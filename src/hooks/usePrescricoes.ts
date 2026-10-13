@@ -36,8 +36,21 @@ export function usePrescricao(id: number, consultaId: number) {
  * `consultaId` is a hook parameter, not a form field — the veterinarian
  * never types or edits it. `mutationFn` merges it in, so the caller only
  * ever supplies the fields an actual prescription form has.
+ *
+ * `animalId` (optional) additionally invalidates that patient's cost
+ * dashboard (`GET /api/animais/{id}/custos`) AND history timeline
+ * (`GET /api/animais/{id}/historico`) — prescriptions only ever belong to an
+ * already-`FI` consultation (`exigirConsultaFinalizada`), so a
+ * new/changed/deleted `valorMedicamento` (and the prescription itself) can
+ * immediately affect both an already-cached cost query and an already-cached
+ * history query, unlike editing an AG consultation's own `valorConsulta`
+ * (see `useUpdateConsulta`'s note on why that case doesn't need the cost
+ * one). Callers pass it from `consulta.animalId`, which is already fetched
+ * at every call site (`NewPrescricaoScreen`/`EditPrescricaoScreen`/
+ * `PrescricaoDetailScreen` all load the parent consultation for display) —
+ * no extra lookup invented just for this invalidation.
  */
-export function useCreatePrescricao(consultaId: number) {
+export function useCreatePrescricao(consultaId: number, animalId?: number) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -46,11 +59,15 @@ export function useCreatePrescricao(consultaId: number) {
     retry: false,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.prescricoes.byConsulta(consultaId) });
+      if (animalId != null) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.patients.costs(animalId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.patients.history(animalId) });
+      }
     },
   });
 }
 
-export function useUpdatePrescricao(id: number, consultaId: number) {
+export function useUpdatePrescricao(id: number, consultaId: number, animalId?: number) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -60,11 +77,15 @@ export function useUpdatePrescricao(id: number, consultaId: number) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.prescricoes.detail(id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.prescricoes.byConsulta(consultaId) });
+      if (animalId != null) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.patients.costs(animalId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.patients.history(animalId) });
+      }
     },
   });
 }
 
-export function useDeletePrescricao(consultaId: number) {
+export function useDeletePrescricao(consultaId: number, animalId?: number) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -73,6 +94,10 @@ export function useDeletePrescricao(consultaId: number) {
     onSuccess: (_result, id) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.prescricoes.byConsulta(consultaId) });
       queryClient.removeQueries({ queryKey: queryKeys.prescricoes.detail(id) });
+      if (animalId != null) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.patients.costs(animalId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.patients.history(animalId) });
+      }
     },
   });
 }

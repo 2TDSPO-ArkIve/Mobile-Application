@@ -9,9 +9,11 @@ import { AppButton } from '../components/AppButton';
 import { EmptyState } from '../components/EmptyState';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
+import { useConsulta } from '../hooks/useConsultas';
 import { usePrescricao, useDeletePrescricao } from '../hooks/usePrescricoes';
 import { viaAdministracaoLabel } from '../utils/viaAdministracao';
 import { toDisplayDate } from '../utils/isoDate';
+import { formatCurrency } from '../utils/localeFormat';
 import { describePrescricaoError } from '../utils/errorMessages';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize } from '../styles/theme';
@@ -27,7 +29,8 @@ export function PrescricaoDetailScreen() {
     prescricaoId,
     consultaId
   );
-  const deleteMutation = useDeletePrescricao(consultaId);
+  const { data: consulta } = useConsulta(consultaId);
+  const deleteMutation = useDeletePrescricao(consultaId, consulta?.animalId);
   const [actionError, setActionError] = useState('');
 
   const handleDelete = () => {
@@ -103,6 +106,17 @@ export function PrescricaoDetailScreen() {
               {t('prescricaoDetail.instructionsLabel', { value: prescricao.instrucoes })}
             </Text>
           ) : null}
+          {/* `null` means no cost was recorded — omitted entirely, never shown as R$ 0,00. An explicit 0 IS a real value and must still render. */}
+          {prescricao.valorMedicamento != null ? (
+            <View style={styles.costBlock}>
+              <Text style={[styles.costLabel, { color: colors.textSecondary }]}>
+                {t('prescricaoDetail.costLabel')}
+              </Text>
+              <Text style={[styles.field, { color: colors.text }]}>
+                {formatCurrency(prescricao.valorMedicamento)}
+              </Text>
+            </View>
+          ) : null}
         </AppCard>
 
         {actionError ? (
@@ -130,4 +144,11 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   title: { fontSize: fontSize.lg, fontWeight: '700', marginBottom: spacing.xs },
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
+  costBlock: { marginTop: spacing.sm },
+  costLabel: {
+    fontSize: fontSize.xs,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
 });

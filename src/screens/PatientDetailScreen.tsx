@@ -42,6 +42,7 @@ type PatientDetailNavigationParamList = {
   EditarPaciente: { patientId: number };
   CompartilharPaciente: { patientId: number };
   HistoricoPaciente: { patientId: number };
+  CustosPaciente: { patientId: number };
 };
 
 export function PatientDetailScreen() {
@@ -160,6 +161,13 @@ export function PatientDetailScreen() {
           title={t('patientDetail.historyButton')}
           variant="outline"
           onPress={() => navigation.navigate('HistoricoPaciente', { patientId: patient.id })}
+        />
+
+        {/* Same cross-role read-only dashboard — `GET /api/animais/{id}/custos` is authorized identically for VETERINARIO/RESPONSAVEL; price EDITING stays exclusive to the veterinarian's own consultation/prescription forms, never here. */}
+        <AppButton
+          title={t('patientDetail.costsButton')}
+          variant="outline"
+          onPress={() => navigation.navigate('CustosPaciente', { patientId: patient.id })}
         />
       </ScreenContainer>
     </View>

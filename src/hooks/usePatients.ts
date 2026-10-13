@@ -9,6 +9,7 @@ import {
   type MyPatientsFilters,
 } from '../services/patientService';
 import { getPatientHistory } from '../services/patientHistoryService';
+import { getPatientCosts } from '../services/patientCostService';
 import { queryKeys } from '../query/queryKeys';
 
 /** This veterinarian's own patient registry (`GET /api/animais/me`) — registered by them, previously consulted, or same-clinic if they have one; no prior-consultation requirement, no clinic requirement. */
@@ -55,6 +56,22 @@ export function usePatientHistory(animalId: number) {
   return useQuery({
     queryKey: queryKeys.patients.history(animalId),
     queryFn: () => getPatientHistory(animalId),
+    enabled: Number.isFinite(animalId),
+  });
+}
+
+/**
+ * Read-only cost dashboard (`GET /api/animais/{id}/custos`) — same scoping/
+ * authorization notes as `usePatientHistory` above. No polling; a point-in-
+ * time read, refetched normally (focus/mount) and additionally invalidated
+ * by prescription create/update/delete and consultation finalization (see
+ * `usePrescricoes.ts`/`useConsultas.ts` — both are the only mutations that
+ * can change what this endpoint aggregates).
+ */
+export function usePatientCosts(animalId: number) {
+  return useQuery({
+    queryKey: queryKeys.patients.costs(animalId),
+    queryFn: () => getPatientCosts(animalId),
     enabled: Number.isFinite(animalId),
   });
 }

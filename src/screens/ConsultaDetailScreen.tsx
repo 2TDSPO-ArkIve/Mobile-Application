@@ -24,7 +24,7 @@ import { useConsultaDiagnosticos } from '../hooks/useDiagnosticos';
 import { findConfirmedDiagnosis } from '../services/diagnosticoService';
 import { consultaStatusPresentation } from '../utils/statusPresentation';
 import { describeNarrativeSaveError } from '../utils/errorMessages';
-import { formatDate, formatTime } from '../utils/localeFormat';
+import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
 import { t } from '../i18n/store';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize } from '../styles/theme';
@@ -227,6 +227,16 @@ export function ConsultaDetailScreen() {
               {t('consultaDetail.addressLabel', { address: consulta.endereco })}
             </Text>
           ) : null}
+
+          {/* `null` means no cost was recorded — omitted entirely, never R$ 0,00. An explicit 0 IS a real recorded value and must still render. */}
+          {consulta.valorConsulta != null ? (
+            <View style={styles.valueBlock}>
+              <Text style={[styles.valueLabel, { color: colors.textSecondary }]}>
+                {t('consultaDetail.valueLabel')}
+              </Text>
+              <Text style={[styles.field, { color: colors.text }]}>{formatCurrency(consulta.valorConsulta)}</Text>
+            </View>
+          ) : null}
         </AppCard>
 
         {isFinalizada ? (
@@ -309,4 +319,11 @@ const styles = StyleSheet.create({
   },
   label: { fontSize: fontSize.md, fontWeight: '700' },
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
+  valueBlock: { marginTop: spacing.sm },
+  valueLabel: {
+    fontSize: fontSize.xs,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
 });
