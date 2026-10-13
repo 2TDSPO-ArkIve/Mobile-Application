@@ -179,6 +179,40 @@ export function describeConsultaPdfError(error: unknown): string {
   return t('errors.pdfUnavailable');
 }
 
+/** Translates a `GET /api/animais/{id}/historico` failure — a plain authenticated/authorized read, no transient-retry nuance to classify beyond network vs. generic. */
+export function describePatientHistoryError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 403) {
+      return t('errors.historyForbidden');
+    }
+    if (error.status === 404) {
+      return t('errors.historyNotFound');
+    }
+    return t('errors.historyGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.historyNetwork');
+  }
+  return t('errors.historyGeneric');
+}
+
+/** Translates a `GET /api/animais/{id}/historico-pdf` failure. Same `InvalidPdfError` class as the consultation-summary PDF (see consultaPdfService.ts) — a malformed/empty body is the same failure mode regardless of which PDF endpoint produced it. */
+export function describePatientHistoryPdfError(error: unknown): string {
+  if (error instanceof InvalidPdfError) {
+    return t('errors.pdfInvalid');
+  }
+  if (error instanceof ApiError) {
+    if (error.status === 403) {
+      return t('errors.historyPdfForbidden');
+    }
+    if (error.status === 404) {
+      return t('errors.historyNotFound');
+    }
+    return t('errors.historyPdfUnavailable');
+  }
+  return t('errors.historyPdfUnavailable');
+}
+
 /**
  * Translates a `POST /api/auth/change-password` failure. Confirmed against
  * `PasswordLifecycleService`/`PasswordPolicy.java`: a policy violation (too

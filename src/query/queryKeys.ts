@@ -21,6 +21,8 @@ export const queryKeys = {
     accessible: (filters?: { nome?: string; especieId?: number; racaId?: number }) =>
       [...queryKeys.patients.all, 'accessible', filters ?? {}] as const,
     detail: (id: string | number) => [...queryKeys.patients.all, 'detail', id] as const,
+    /** `GET /api/animais/{id}/historico` — includes `id` so one patient's cached history can never leak into another's. */
+    history: (id: string | number) => [...queryKeys.patients.all, 'history', id] as const,
   },
   especies: {
     all: ['especies'] as const,

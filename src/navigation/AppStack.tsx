@@ -11,6 +11,7 @@ import { EditConsultaScreen } from '../screens/EditConsultaScreen';
 import { NewPatientScreen } from '../screens/NewPatientScreen';
 import { PatientDetailScreen } from '../screens/PatientDetailScreen';
 import { EditPatientScreen } from '../screens/EditPatientScreen';
+import { PatientHistoryScreen } from '../screens/PatientHistoryScreen';
 import { PrescricoesScreen } from '../screens/PrescricoesScreen';
 import { NewPrescricaoScreen } from '../screens/NewPrescricaoScreen';
 import { PrescricaoDetailScreen } from '../screens/PrescricaoDetailScreen';
@@ -46,6 +47,7 @@ export function AppStack() {
       <Stack.Screen name="NovoPaciente" component={NewPatientScreen} />
       <Stack.Screen name="PacienteDetalhe" component={PatientDetailScreen} />
       <Stack.Screen name="EditarPaciente" component={EditPatientScreen} />
+      <Stack.Screen name="HistoricoPaciente" component={PatientHistoryScreen} />
       <Stack.Screen name="CompartilharPaciente" component={CreateShareScreen} />
       <Stack.Screen name="ConvitePaciente" component={SharePreviewScreen} />
       <Stack.Screen name="EscanearConvite" component={ScanShareQrScreen} />

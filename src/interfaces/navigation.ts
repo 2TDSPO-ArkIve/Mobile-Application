@@ -33,6 +33,8 @@ export type BottomTabParamList = {
 export type ResponsavelAppStackParamList = {
   MeusAnimais: undefined;
   PacienteDetalhe: { patientId: number };
+  /** Read-only clinical timeline — Java authorizes RESPONSAVEL access the same as VETERINARIO (`GET /api/animais/{id}/historico`), so this is not gated client-side by role. */
+  HistoricoPaciente: { patientId: number };
   CompartilharPaciente: { patientId: number };
   ConvitePaciente: undefined;
   EscanearConvite: undefined;
@@ -53,6 +55,7 @@ export type AppStackParamList = {
   NovoPaciente: { returnToConsulta?: boolean } | undefined;
   PacienteDetalhe: { patientId: number };
   EditarPaciente: { patientId: number };
+  HistoricoPaciente: { patientId: number };
   CompartilharPaciente: { patientId: number };
   ConvitePaciente: undefined;
   EscanearConvite: undefined;
