@@ -9,11 +9,13 @@ import { AppButton } from '../components/AppButton';
 import { AppCard } from '../components/AppCard';
 import { DateField } from '../components/DateField';
 import { TimeField } from '../components/TimeField';
+import { MoneyField } from '../components/MoneyField';
 import { EmptyState } from '../components/EmptyState';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useConsulta, useUpdateConsulta } from '../hooks/useConsultas';
 import { isScheduleInPast, startOfToday, toLocalDateTimeString } from '../utils/consultaScheduling';
+import { parseMoneyInput, moneyToInputValue } from '../utils/money';
 import type { Modalidade, UpdateConsultaInput } from '../services/consultaService';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, radius } from '../styles/theme';
@@ -57,6 +59,7 @@ export function EditConsultaScreen() {
   const [time, setTime] = useState<Date | null>(null);
   const [motivo, setMotivo] = useState('');
   const [endereco, setEndereco] = useState('');
+  const [valorConsultaInput, setValorConsultaInput] = useState('');
   const [formError, setFormError] = useState('');
 
   useEffect(() => {
@@ -67,6 +70,7 @@ export function EditConsultaScreen() {
     setTime(parsed);
     setMotivo(consulta.motivo ?? '');
     setEndereco(consulta.endereco ?? '');
+    setValorConsultaInput(moneyToInputValue(consulta.valorConsulta));
     setHydrated(true);
   }, [consulta, hydrated]);
 
@@ -107,6 +111,12 @@ export function EditConsultaScreen() {
       return;
     }
 
+    const valorResult = parseMoneyInput(valorConsultaInput);
+    if (!valorResult.ok) {
+      setFormError(valorResult.errorMessage);
+      return;
+    }
+
     const payload: UpdateConsultaInput = {
       animalId: consulta.animalId,
       modalidade,
@@ -117,6 +127,7 @@ export function EditConsultaScreen() {
       peso: consulta.peso ?? undefined,
       transcricao: consulta.transcricao ?? undefined,
       endereco: modalidade === 'PRESENCIAL' && endereco.trim() ? endereco.trim() : undefined,
+      valorConsulta: valorResult.value,
     };
 
     try {
@@ -246,6 +257,16 @@ export function EditConsultaScreen() {
           value={motivo}
           onChangeText={setMotivo}
           multiline
+        />
+
+        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
+          {t('newConsulta.valueSection')}
+        </Text>
+        <MoneyField
+          label={t('newConsulta.consultationValueLabel')}
+          helperText={t('newConsulta.consultationValueHelper')}
+          value={valorConsultaInput}
+          onChangeText={setValorConsultaInput}
         />
 
         {formError ? <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{formError}</Text> : null}

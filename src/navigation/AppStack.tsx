@@ -11,6 +11,10 @@ import { EditConsultaScreen } from '../screens/EditConsultaScreen';
 import { NewPatientScreen } from '../screens/NewPatientScreen';
 import { PatientDetailScreen } from '../screens/PatientDetailScreen';
 import { EditPatientScreen } from '../screens/EditPatientScreen';
+import { PatientHistoryScreen } from '../screens/PatientHistoryScreen';
+import { PatientCostScreen } from '../screens/PatientCostScreen';
+import { NotificationsScreen } from '../screens/NotificationsScreen';
+import { ArkiveIdLookupScreen } from '../screens/ArkiveIdLookupScreen';
 import { PrescricoesScreen } from '../screens/PrescricoesScreen';
 import { NewPrescricaoScreen } from '../screens/NewPrescricaoScreen';
 import { PrescricaoDetailScreen } from '../screens/PrescricaoDetailScreen';
@@ -46,10 +50,13 @@ export function AppStack() {
       <Stack.Screen name="NovoPaciente" component={NewPatientScreen} />
       <Stack.Screen name="PacienteDetalhe" component={PatientDetailScreen} />
       <Stack.Screen name="EditarPaciente" component={EditPatientScreen} />
+      <Stack.Screen name="HistoricoPaciente" component={PatientHistoryScreen} />
+      <Stack.Screen name="CustosPaciente" component={PatientCostScreen} />
       <Stack.Screen name="CompartilharPaciente" component={CreateShareScreen} />
       <Stack.Screen name="ConvitePaciente" component={SharePreviewScreen} />
       <Stack.Screen name="EscanearConvite" component={ScanShareQrScreen} />
       <Stack.Screen name="InserirCodigoConvite" component={EnterShareCodeScreen} />
+      <Stack.Screen name="BuscarPacienteArkive" component={ArkiveIdLookupScreen} />
       <Stack.Screen name="Prescricoes" component={PrescricoesScreen} />
       <Stack.Screen name="NovaPrescricao" component={NewPrescricaoScreen} />
       <Stack.Screen name="PrescricaoDetalhe" component={PrescricaoDetailScreen} />
@@ -57,6 +64,7 @@ export function AppStack() {
       <Stack.Screen name="Perfil" component={ProfileScreen} />
       <Stack.Screen name="Configuracoes" component={SettingsScreen} />
       <Stack.Screen name="AlterarSenha" component={ChangePasswordScreen} />
+      <Stack.Screen name="Notificacoes" component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }

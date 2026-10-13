@@ -58,6 +58,15 @@ export interface ConsultaDto {
   clinicaNome: string | null;
   /** `ConsultaResponse.endereco` — Batch 2 addition, nullable. */
   endereco: string | null;
+  /**
+   * V13 addition (`Consulta.valorConsulta`). `null` means no cost was
+   * recorded — NEVER render that as `R$ 0,00` (an explicitly recorded `0` is
+   * a real, distinct value). Only ever meaningfully aggregated server-side
+   * for `FI` consultations (see `patientCostService.ts`), but the field
+   * itself can be present on any status since it's set at creation/edit time
+   * (AG), before finalization.
+   */
+  valorConsulta: number | null;
 }
 
 /** `ConsultaWorkflowResponse.java` — same fields as ConsultaDto plus the diagnosis created by `finalizar`, when applicable. */
@@ -102,6 +111,15 @@ export interface ConsultaRequestInput {
    * note for why that is NOT safe on a PUT.
    */
   endereco?: string;
+  /**
+   * V13 addition. Omitting this key (or sending explicit `null`) both mean
+   * "no recorded cost" to Jackson — either is a safe way to clear a
+   * previously-recorded value on a full-replace PUT. `EditConsultaScreen`'s
+   * form field is always hydrated from the existing `valorConsulta` first, so
+   * an untouched edit naturally round-trips the same number back rather than
+   * ever accidentally omitting/clearing it.
+   */
+  valorConsulta?: number | null;
 }
 
 export type CreateConsultaInput = ConsultaRequestInput;

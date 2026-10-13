@@ -41,6 +41,8 @@ type PatientDetailRouteParamList = { PacienteDetalhe: { patientId: number } };
 type PatientDetailNavigationParamList = {
   EditarPaciente: { patientId: number };
   CompartilharPaciente: { patientId: number };
+  HistoricoPaciente: { patientId: number };
+  CustosPaciente: { patientId: number };
 };
 
 export function PatientDetailScreen() {
@@ -150,6 +152,22 @@ export function PatientDetailScreen() {
           title={t('patientDetail.shareButton')}
           variant="outline"
           onPress={() => navigation.navigate('CompartilharPaciente', { patientId: patient.id })}
+        />
+
+        {/* Same shared action for both roles — Java authorizes RESPONSAVEL
+            read access to `GET /api/animais/{id}/historico` identically to
+            VETERINARIO; this button is not gated by `isVeterinario`. */}
+        <AppButton
+          title={t('patientDetail.historyButton')}
+          variant="outline"
+          onPress={() => navigation.navigate('HistoricoPaciente', { patientId: patient.id })}
+        />
+
+        {/* Same cross-role read-only dashboard — `GET /api/animais/{id}/custos` is authorized identically for VETERINARIO/RESPONSAVEL; price EDITING stays exclusive to the veterinarian's own consultation/prescription forms, never here. */}
+        <AppButton
+          title={t('patientDetail.costsButton')}
+          variant="outline"
+          onPress={() => navigation.navigate('CustosPaciente', { patientId: patient.id })}
         />
       </ScreenContainer>
     </View>

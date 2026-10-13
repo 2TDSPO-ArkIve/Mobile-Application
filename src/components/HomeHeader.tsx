@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { NotificationBell } from './NotificationBell';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTheme } from '../context/ThemeContext';
 import { spacing, fontSize, radius } from '../styles/theme';
@@ -46,6 +47,8 @@ export function HomeHeader() {
         <Text style={[styles.brand, { color: colors.text }]} numberOfLines={1}>
           ArkIve
         </Text>
+
+        <NotificationBell onPress={() => navigation.navigate('Notificacoes')} />
 
         <Pressable
           onPress={() => navigation.navigate('Perfil')}

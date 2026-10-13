@@ -3,6 +3,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { ResponsavelAppStackParamList } from '../interfaces/navigation';
 import { MeusAnimaisScreen } from '../screens/MeusAnimaisScreen';
 import { PatientDetailScreen } from '../screens/PatientDetailScreen';
+import { PatientHistoryScreen } from '../screens/PatientHistoryScreen';
+import { PatientCostScreen } from '../screens/PatientCostScreen';
+import { NotificationsScreen } from '../screens/NotificationsScreen';
+import { ArkiveIdLookupScreen } from '../screens/ArkiveIdLookupScreen';
 import { ResponsavelAccountScreen } from '../screens/ResponsavelAccountScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { ChangePasswordScreen } from '../screens/ChangePasswordScreen';
@@ -39,12 +43,16 @@ export function ResponsavelAppStack() {
     >
       <Stack.Screen name="MeusAnimais" component={MeusAnimaisScreen} />
       <Stack.Screen name="PacienteDetalhe" component={PatientDetailScreen} />
+      <Stack.Screen name="HistoricoPaciente" component={PatientHistoryScreen} />
+      <Stack.Screen name="CustosPaciente" component={PatientCostScreen} />
       <Stack.Screen name="CompartilharPaciente" component={CreateShareScreen} />
       <Stack.Screen name="ConvitePaciente" component={SharePreviewScreen} />
       <Stack.Screen name="EscanearConvite" component={ScanShareQrScreen} />
       <Stack.Screen name="MinhaConta" component={ResponsavelAccountScreen} />
       <Stack.Screen name="Configuracoes" component={SettingsScreen} />
       <Stack.Screen name="AlterarSenha" component={ChangePasswordScreen} />
+      <Stack.Screen name="Notificacoes" component={NotificationsScreen} />
+      <Stack.Screen name="BuscarPacienteArkive" component={ArkiveIdLookupScreen} />
     </Stack.Navigator>
   );
 }

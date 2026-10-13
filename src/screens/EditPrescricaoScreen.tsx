@@ -28,7 +28,7 @@ export function EditPrescricaoScreen() {
 
   const { data: prescricao, isPending } = usePrescricao(prescricaoId, consultaId);
   const { data: consulta } = useConsulta(consultaId);
-  const updateMutation = useUpdatePrescricao(prescricaoId, consultaId);
+  const updateMutation = useUpdatePrescricao(prescricaoId, consultaId, consulta?.animalId);
 
   const handleSubmit = async (input: Omit<PrescricaoRequestInput, 'consultaId'>) => {
     try {
@@ -65,6 +65,7 @@ export function EditPrescricaoScreen() {
             dataInicio: prescricao.dataInicio,
             dataFim: prescricao.dataFim ?? '',
             instrucoes: prescricao.instrucoes ?? '',
+            valorMedicamento: prescricao.valorMedicamento,
           }}
           onSubmit={handleSubmit}
           isSubmitting={updateMutation.isPending}

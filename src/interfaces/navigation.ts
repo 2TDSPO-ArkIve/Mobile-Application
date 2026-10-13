@@ -33,12 +33,19 @@ export type BottomTabParamList = {
 export type ResponsavelAppStackParamList = {
   MeusAnimais: undefined;
   PacienteDetalhe: { patientId: number };
+  /** Read-only clinical timeline — Java authorizes RESPONSAVEL access the same as VETERINARIO (`GET /api/animais/{id}/historico`), so this is not gated client-side by role. */
+  HistoricoPaciente: { patientId: number };
+  /** Read-only cost dashboard — same cross-role authorization note as `HistoricoPaciente`. */
+  CustosPaciente: { patientId: number };
   CompartilharPaciente: { patientId: number };
   ConvitePaciente: undefined;
   EscanearConvite: undefined;
+  /** Explicit ArkIve-ID lookup — retrieval only, same read-authorization rule as every other patient fetch; never creates/imports a patient. */
+  BuscarPacienteArkive: undefined;
   MinhaConta: undefined;
   Configuracoes: undefined;
   AlterarSenha: undefined;
+  Notificacoes: undefined;
 };
 
 export type AppStackParamList = {
@@ -53,11 +60,15 @@ export type AppStackParamList = {
   NovoPaciente: { returnToConsulta?: boolean } | undefined;
   PacienteDetalhe: { patientId: number };
   EditarPaciente: { patientId: number };
+  HistoricoPaciente: { patientId: number };
+  CustosPaciente: { patientId: number };
   CompartilharPaciente: { patientId: number };
   ConvitePaciente: undefined;
   EscanearConvite: undefined;
   /** Manual invitation-code entry — VETERINARIO-only fallback transport alongside QR/link; no route params (reads/writes `PendingShareContext` directly, same as `EscanearConvite`). */
   InserirCodigoConvite: undefined;
+  /** Explicit ArkIve-ID lookup — retrieval only, same read-authorization rule as every other patient fetch; never creates/imports a patient. */
+  BuscarPacienteArkive: undefined;
   Prescricoes: { consultaId: number };
   NovaPrescricao: { consultaId: number };
   PrescricaoDetalhe: { prescricaoId: number; consultaId: number };
@@ -65,6 +76,7 @@ export type AppStackParamList = {
   Perfil: undefined;
   Configuracoes: undefined;
   AlterarSenha: undefined;
+  Notificacoes: undefined;
 };
 
 export type RootStackParamList = {

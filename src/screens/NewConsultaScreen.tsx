@@ -11,6 +11,7 @@ import { AppCard } from '../components/AppCard';
 import { SearchBar } from '../components/SearchBar';
 import { DateField } from '../components/DateField';
 import { TimeField } from '../components/TimeField';
+import { MoneyField } from '../components/MoneyField';
 import { EmptyState } from '../components/EmptyState';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
@@ -18,6 +19,7 @@ import { useMyPatients } from '../hooks/usePatients';
 import { useCreateConsulta } from '../hooks/useConsultas';
 import { patientSummaryLine, patientFallbackId } from '../utils/patientDisplay';
 import { isScheduleInPast, startOfToday, toLocalDateTimeString } from '../utils/consultaScheduling';
+import { parseMoneyInput } from '../utils/money';
 import type { AnimalDto } from '../services/patientService';
 import type { Modalidade } from '../services/consultaService';
 import type { AppStackParamList } from '../interfaces/navigation';
@@ -49,6 +51,7 @@ export function NewConsultaScreen() {
   const [time, setTime] = useState<Date | null>(null);
   const [motivo, setMotivo] = useState('');
   const [endereco, setEndereco] = useState('');
+  const [valorConsultaInput, setValorConsultaInput] = useState('');
   const [error, setError] = useState('');
 
   // REMOTA never carries an address — clearing it here (rather than just
@@ -124,6 +127,12 @@ export function NewConsultaScreen() {
       return;
     }
 
+    const valorResult = parseMoneyInput(valorConsultaInput);
+    if (!valorResult.ok) {
+      setError(valorResult.errorMessage);
+      return;
+    }
+
     try {
       const created = await createMutation.mutateAsync({
         animalId: selectedAnimal.id,
@@ -131,6 +140,7 @@ export function NewConsultaScreen() {
         dataHora: toLocalDateTimeString(date, time),
         motivo: motivo.trim(),
         endereco: modalidade === 'PRESENCIAL' && endereco.trim() ? endereco.trim() : undefined,
+        valorConsulta: valorResult.value,
       });
 
       navigation.replace('ConsultaDetalhe', { consultaId: created.id });
@@ -309,6 +319,17 @@ export function NewConsultaScreen() {
               value={motivo}
               onChangeText={setMotivo}
               multiline
+            />
+
+            {/* VALOR */}
+            <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
+              {t('newConsulta.valueSection')}
+            </Text>
+            <MoneyField
+              label={t('newConsulta.consultationValueLabel')}
+              helperText={t('newConsulta.consultationValueHelper')}
+              value={valorConsultaInput}
+              onChangeText={setValorConsultaInput}
             />
 
             {error ? <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{error}</Text> : null}

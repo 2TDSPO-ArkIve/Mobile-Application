@@ -14,6 +14,12 @@ export interface PrescricaoDto {
   dataFim: string | null;
   instrucoes: string | null;
   consultaId: number;
+  /**
+   * V13 addition (`Prescricao.valorMedicamento`) — the TOTAL cost associated
+   * with this prescription/treatment, never a per-unit price. `null` means
+   * no cost was recorded; never render that as `R$ 0,00`.
+   */
+  valorMedicamento: number | null;
 }
 
 /**
@@ -33,6 +39,8 @@ export interface PrescricaoRequestInput {
   dataFim?: string;
   instrucoes?: string;
   consultaId: number;
+  /** V13 addition — same omit-or-null-to-clear semantics as `ConsultaRequestInput.valorConsulta`; `PrescricaoForm` always hydrates its field from the existing value, so an untouched edit round-trips it unchanged. */
+  valorMedicamento?: number | null;
 }
 
 /**

@@ -1,10 +1,11 @@
-import React from 'react';
-import { View, Text, Pressable, Switch, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable, Switch, Platform, StyleSheet } from 'react-native';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { useTheme } from '../context/ThemeContext';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
+import { requestNotificationPermission } from '../utils/localNotifications';
 import type { Language } from '../i18n/store';
 import { spacing, fontSize, radius } from '../styles/theme';
 
@@ -25,6 +26,28 @@ export function SettingsScreen() {
   const colors = useThemeColors();
   const { t, language, setLanguage } = useTranslation();
   const rowStyle = [styles.row, { borderBottomColor: colors.border }];
+  const [permissionDenied, setPermissionDenied] = useState(false);
+
+  /**
+   * Deliberately contextual, not automatic: the OS permission prompt is only
+   * ever requested here, in direct response to the veterinarian/tutor
+   * turning this existing toggle ON — never at login or app startup. Turning
+   * it OFF never calls the native API (apps cannot revoke their own
+   * notification permission); it only updates the stored preference, which
+   * `NotificationBridge` already respects before presenting anything.
+   */
+  const handleTogglePush = async (value: boolean) => {
+    setPermissionDenied(false);
+    if (value && Platform.OS !== 'web') {
+      const granted = await requestNotificationPermission();
+      if (!granted) {
+        setPermissionDenied(true);
+        updatePreferences({ pushEnabled: false });
+        return;
+      }
+    }
+    updatePreferences({ pushEnabled: value });
+  };
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -46,10 +69,20 @@ export function SettingsScreen() {
           <Text style={{ color: colors.text }}>{t('settings.push')}</Text>
           <Switch
             value={preferences.pushEnabled}
-            onValueChange={(value) => updatePreferences({ pushEnabled: value })}
+            onValueChange={handleTogglePush}
             trackColor={{ true: colors.primary }}
           />
         </View>
+        {Platform.OS !== 'web' ? (
+          <Text style={[styles.fieldLabel, { color: colors.textSecondary, fontWeight: '400' }]}>
+            {t('settings.pushHelper')}
+          </Text>
+        ) : null}
+        {permissionDenied ? (
+          <Text style={[styles.fieldLabel, { color: colors.error, fontWeight: '400' }]}>
+            {t('notifications.permissionDenied')}
+          </Text>
+        ) : null}
 
         <View style={rowStyle}>
           <Text style={{ color: colors.text }}>{t('settings.email')}</Text>

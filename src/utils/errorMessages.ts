@@ -179,6 +179,88 @@ export function describeConsultaPdfError(error: unknown): string {
   return t('errors.pdfUnavailable');
 }
 
+/** Translates a `GET /api/animais/{id}/historico` failure — a plain authenticated/authorized read, no transient-retry nuance to classify beyond network vs. generic. */
+export function describePatientHistoryError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 403) {
+      return t('errors.historyForbidden');
+    }
+    if (error.status === 404) {
+      return t('errors.historyNotFound');
+    }
+    return t('errors.historyGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.historyNetwork');
+  }
+  return t('errors.historyGeneric');
+}
+
+/**
+ * Translates a `GET /api/animais/arkive/{id}` failure into one of the
+ * product's three deliberately DISTINCT outcomes — 403 ("found, but you
+ * don't have access" — an access-control result, never worded as a failed
+ * "import") and 404 ("no such patient") are NEVER collapsed into the same
+ * message; conflating them would blur whether the id itself was wrong or
+ * whether sharing is what's actually missing.
+ */
+export function describeArkiveLookupForbidden(): string {
+  return t('arkiveLookup.forbiddenMessage');
+}
+
+export function describeArkiveLookupNotFound(): string {
+  return t('arkiveLookup.notFoundMessage');
+}
+
+export function describeArkiveLookupOtherError(error: unknown): string {
+  if (isNetworkError(error)) {
+    return t('arkiveLookup.networkError');
+  }
+  return t('arkiveLookup.genericError');
+}
+
+/** Translates a `GET /api/notificacoes*` failure — a plain authenticated read with no special-case status to distinguish beyond network vs. generic. */
+export function describeNotificationsError(error: unknown): string {
+  if (isNetworkError(error)) {
+    return t('errors.notificationsNetwork');
+  }
+  return t('errors.notificationsGeneric');
+}
+
+/** Translates a `GET /api/animais/{id}/custos` failure — same shape as `describePatientHistoryError`, a plain authenticated/authorized read. */
+export function describePatientCostsError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 403) {
+      return t('errors.patientCostsForbidden');
+    }
+    if (error.status === 404) {
+      return t('errors.patientCostsNotFound');
+    }
+    return t('errors.patientCostsGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.patientCostsNetwork');
+  }
+  return t('errors.patientCostsGeneric');
+}
+
+/** Translates a `GET /api/animais/{id}/historico-pdf` failure. Same `InvalidPdfError` class as the consultation-summary PDF (see consultaPdfService.ts) — a malformed/empty body is the same failure mode regardless of which PDF endpoint produced it. */
+export function describePatientHistoryPdfError(error: unknown): string {
+  if (error instanceof InvalidPdfError) {
+    return t('errors.pdfInvalid');
+  }
+  if (error instanceof ApiError) {
+    if (error.status === 403) {
+      return t('errors.historyPdfForbidden');
+    }
+    if (error.status === 404) {
+      return t('errors.historyNotFound');
+    }
+    return t('errors.historyPdfUnavailable');
+  }
+  return t('errors.historyPdfUnavailable');
+}
+
 /**
  * Translates a `POST /api/auth/change-password` failure. Confirmed against
  * `PasswordLifecycleService`/`PasswordPolicy.java`: a policy violation (too

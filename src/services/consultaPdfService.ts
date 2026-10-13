@@ -1,4 +1,5 @@
 import { apiGetBinary } from './apiClient';
+import { slugifyFilenamePart } from '../utils/pdfHandoff';
 
 /**
  * Thrown when the server responded 2xx but the body isn't actually a usable
@@ -45,22 +46,12 @@ export async function downloadConsultaResumoPdf(consultaId: number): Promise<Con
   return { bytes: new Uint8Array(data), contentType };
 }
 
-// eslint-disable-next-line no-misleading-character-class -- intentional: matches NFD combining diacritics (U+0300-U+036F) to strip accents below.
-const COMBINING_DIACRITICS_PATTERN = /[̀-ͯ]/g;
-const FILENAME_UNSAFE_PATTERN = /[^a-z0-9]+/g;
-
 /**
  * `arkive-thor-65.pdf` when a safe patient name is available, falling back to
  * `arkive-consulta-65.pdf` otherwise (no name, or it normalizes to nothing —
  * e.g. a name that's only punctuation/emoji).
  */
 export function buildConsultaPdfFilename(consultaId: number, animalNome?: string | null): string {
-  const slug = animalNome
-    ?.normalize('NFD')
-    .replace(COMBINING_DIACRITICS_PATTERN, '') // strip accents (e.g. "Thór" -> "Thor") before the safety filter below
-    .toLowerCase()
-    .replace(FILENAME_UNSAFE_PATTERN, '-')
-    .replace(/^-+|-+$/g, '');
-
+  const slug = slugifyFilenamePart(animalNome);
   return slug ? `arkive-${slug}-${consultaId}.pdf` : `arkive-consulta-${consultaId}.pdf`;
 }

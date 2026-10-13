@@ -45,13 +45,20 @@ export function useConsulta(id: number) {
   });
 }
 
+/**
+ * Also invalidates `queryKeys.patients.history(created.animalId)` — a newly
+ * created (AG) consultation can now appear in that patient's history
+ * timeline. `created.animalId` comes straight from the mutation's own
+ * response, no extra lookup needed.
+ */
 export function useCreateConsulta() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (input: CreateConsultaInput) => createConsulta(input),
-    onSuccess: () => {
+    onSuccess: (created) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.consultas.list() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.patients.history(created.animalId) });
     },
   });
 }
@@ -61,15 +68,32 @@ export function useCreateConsulta() {
  * why). The mutation hydrates every field the form doesn't expose from the
  * already-fetched `ConsultaDto` before sending, since Spring's PUT is a
  * full replace (`ConsultaService.aplicarDados`), never a partial patch.
+ *
+ * Deliberately does NOT invalidate `queryKeys.patients.costs` even though
+ * this PUT can change `valorConsulta`: the cost dashboard
+ * (`GET /api/animais/{id}/custos`) only ever includes `FI` consultations,
+ * and this screen only ever edits `AG` ones (re-checked in
+ * EditConsultaScreen itself) — an AG consultation's cost can't possibly be
+ * reflected in an already-cached cost query yet, so there is nothing stale
+ * to invalidate here. See `useFinalizeConsulta` below for the actual
+ * transition point where a consultation's recorded value starts mattering
+ * to that dashboard.
+ *
+ * DOES invalidate `queryKeys.patients.history(updated.animalId)`, unlike
+ * costs: an AG consultation (and its `valorConsulta`/metadata) CAN already
+ * appear in that patient's history timeline, so an edit here can make an
+ * already-cached history query stale. `updated.animalId` comes straight from
+ * the mutation's own response.
  */
 export function useUpdateConsulta(id: number) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (patch: UpdateConsultaInput) => updateConsulta(id, patch),
-    onSuccess: () => {
+    onSuccess: (updated) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.consultas.detail(id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.consultas.list() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.patients.history(updated.animalId) });
     },
   });
 }
@@ -188,6 +212,17 @@ export function useRequestClinicalSupport(id: number) {
  * the stale AP row and redirects to InsightArkive before the refetch
  * resolves (confirmed physical bug: the "bounce back to AP" race). By the
  * time `mutateAsync` resolves, the cache must already say FI.
+ *
+ * Also invalidates `queryKeys.patients.costs(finalized.animalId)` — this is
+ * the actual point where a consultation's `valorConsulta` (recorded back
+ * when it was still AG) starts contributing to the cost dashboard, since
+ * that endpoint only aggregates `FI` consultations. `finalized.animalId`
+ * comes straight from the mutation's own response, no extra lookup needed.
+ *
+ * Also invalidates `queryKeys.patients.history(finalized.animalId)` for the
+ * same reason: finalization is what first exposes the confirmed diagnosis/
+ * conclusion/final severity (and makes prescriptions creatable at all) in
+ * that patient's history timeline.
  */
 export function useFinalizeConsulta(id: number) {
   const queryClient = useQueryClient();
@@ -209,6 +244,8 @@ export function useFinalizeConsulta(id: number) {
       queryClient.invalidateQueries({ queryKey: queryKeys.consultas.list() });
       queryClient.invalidateQueries({ queryKey: queryKeys.consultas.clinicalSupport(id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.diagnosticos.byConsulta(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.patients.costs(finalized.animalId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.patients.history(finalized.animalId) });
     },
   });
 }

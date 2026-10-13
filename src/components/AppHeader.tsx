@@ -15,6 +15,8 @@ export interface HeaderAction {
   accessibilityLabel: string;
   disabled?: boolean;
   loading?: boolean;
+  /** Optional unread-count overlay — see `HeaderIconButton`. */
+  badgeCount?: number;
 }
 
 interface Props {
@@ -76,6 +78,7 @@ export function AppHeader({ title, showBack = true, actions }: Props) {
                 accessibilityLabel={action.accessibilityLabel}
                 disabled={action.disabled}
                 loading={action.loading}
+                badgeCount={action.badgeCount}
               />
             ))}
           </View>

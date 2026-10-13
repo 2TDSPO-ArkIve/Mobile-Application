@@ -136,3 +136,21 @@ export async function createPatient(input: AnimalRequestInput): Promise<AnimalDt
 export async function updatePatient(id: number, input: AnimalRequestInput): Promise<AnimalDto> {
   return apiPut<AnimalDto>(`/api/animais/${id}`, input);
 }
+
+/**
+ * CONFIRMED: `AnimalController.buscarPorArkivePatientId` →
+ * `AnimalService.buscarPorArkivePatientIdAutorizado` — loads the animal by
+ * its permanent `arkivePatientId` first (404 `ResourceNotFoundException` if
+ * no such patient exists at all), THEN runs the exact same
+ * `ClinicalAccessService.exigirLeituraAnimal` read-authorization check used
+ * by `getPatientById` (403 if the caller has no legitimate access). This is
+ * deliberately the SAME authorization rule as every other patient read —
+ * knowing the ArkIve ID is never, by itself, sufficient to see the record.
+ *
+ * `encodeURIComponent` on the path segment: the id itself only ever contains
+ * `[A-Z0-9-]` in practice, but this guards against any future generator
+ * change without this app needing to assume a fixed character set.
+ */
+export async function getPatientByArkiveId(arkivePatientId: string): Promise<AnimalDto> {
+  return apiGet<AnimalDto>(`/api/animais/arkive/${encodeURIComponent(arkivePatientId)}`);
+}
