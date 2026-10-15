@@ -341,6 +341,103 @@ export function describeResponsavelRegistrationError(error: unknown): string {
   return t('errors.registrationResponsavelGeneric');
 }
 
+/** Field-attributed registration error outcome — `fieldErrors` keys match the request DTO's own field/record-component names exactly, so a caller can assign them straight into a form's per-field error state. `formError` is set only when no specific field could be safely identified. */
+export interface RegistrationFieldErrors {
+  fieldErrors: Partial<Record<string, string>>;
+  formError: string | null;
+}
+
+/**
+ * Stable `BusinessException` messages from `VeterinarioService`/
+ * `AccountProvisioningService`/`UsuarioService`/`PasswordPolicy` (Chunk 2
+ * correction) — exact-matched, never fuzzy-substring-matched against
+ * arbitrary text. These are messages THIS codebase controls and the local
+ * Java source confirms verbatim, not guesses about an unrelated system's
+ * wording.
+ *
+ * `AuthService.registrarVeterinario` now calls `passwordPolicy.validar`/
+ * `validarConfirmacao` on the veterinarian's OWN chosen password (same
+ * `PasswordPolicy` component used by Responsável registration) before
+ * `VeterinarioService.criarAutocadastro`, so the same password/confirmation
+ * messages mapped for Responsável below can also surface here.
+ */
+const VETERINARIO_MESSAGE_FIELD: Record<string, string> = {
+  'CRMV ja cadastrado.': 'crmv',
+  'Login de usuario ja cadastrado.': 'email',
+  'E-mail do veterinario e obrigatorio para criar a conta de acesso.': 'email',
+  'E-mail/login e obrigatorio para criar a conta de acesso.': 'email',
+  'E-mail/login deve ter formato valido.': 'email',
+  'E-mail/login deve ter no maximo 72 bytes para uso como credencial inicial.': 'email',
+  'A senha deve ter pelo menos 8 caracteres.': 'senha',
+  'A senha deve ter no maximo 72 caracteres.': 'senha',
+  'A senha deve conter pelo menos uma letra maiuscula.': 'senha',
+  'A senha deve conter pelo menos uma letra minuscula.': 'senha',
+  'A senha deve conter pelo menos um numero.': 'senha',
+  'A confirmacao da senha nao confere.': 'confirmacaoSenha',
+};
+
+/**
+ * `POST /api/auth/register` field-error mapping. Two sources, in priority
+ * order: (1) `error.fields` — present on a bean-validation 400
+ * (`@NotBlank`/`@Size`/`@Email` on `RegistroVeterinarioRequest`), Spring's
+ * own authoritative field names (`nome`/`crmv`/`email`), no guessing; (2) an
+ * exact match against `VETERINARIO_MESSAGE_FIELD` for a `BusinessException`
+ * (duplicate CRMV/login), which carries only a flat message. Anything else
+ * (network, 5xx, an unrecognized message) falls back to the existing
+ * generic `describeRegistrationError` as a form-level message.
+ */
+export function mapVeterinarioRegistrationError(error: unknown): RegistrationFieldErrors {
+  if (error instanceof ApiError) {
+    if (error.fields) {
+      return { fieldErrors: error.fields, formError: null };
+    }
+    const field = VETERINARIO_MESSAGE_FIELD[error.message];
+    if (field) {
+      return { fieldErrors: { [field]: error.message }, formError: null };
+    }
+  }
+  return { fieldErrors: {}, formError: describeRegistrationError(error) };
+}
+
+/**
+ * Stable `BusinessException` messages from `ResponsavelRegistrationService`/
+ * `PasswordPolicy` (Chunk 2) — same exact-match discipline as
+ * `VETERINARIO_MESSAGE_FIELD`. The generic race-condition fallback
+ * (`"Já existe uma conta com o e-mail ou documento informado."`, thrown only
+ * if a `DataIntegrityViolationException` slips past the explicit
+ * email/document availability pre-checks) is deliberately NOT mapped here —
+ * it cannot be safely attributed to one field, so it always falls through to
+ * the generic form-level message instead.
+ */
+const RESPONSAVEL_MESSAGE_FIELD: Record<string, string> = {
+  'Tipo de documento é obrigatório.': 'tipoDocumento',
+  'Tipo de documento inválido.': 'tipoDocumento',
+  'CPF inválido.': 'documento',
+  'RG inválido.': 'documento',
+  'E-mail já cadastrado.': 'email',
+  'Documento já cadastrado.': 'documento',
+  'A senha deve ter pelo menos 8 caracteres.': 'senha',
+  'A senha deve ter no maximo 72 caracteres.': 'senha',
+  'A senha deve conter pelo menos uma letra maiuscula.': 'senha',
+  'A senha deve conter pelo menos uma letra minuscula.': 'senha',
+  'A senha deve conter pelo menos um numero.': 'senha',
+  'A confirmacao da senha nao confere.': 'confirmacaoSenha',
+};
+
+/** `POST /api/auth/register/responsavel` field-error mapping — same two-source priority as `mapVeterinarioRegistrationError`. */
+export function mapResponsavelRegistrationError(error: unknown): RegistrationFieldErrors {
+  if (error instanceof ApiError) {
+    if (error.fields) {
+      return { fieldErrors: error.fields, formError: null };
+    }
+    const field = RESPONSAVEL_MESSAGE_FIELD[error.message];
+    if (field) {
+      return { fieldErrors: { [field]: error.message }, formError: null };
+    }
+  }
+  return { fieldErrors: {}, formError: describeResponsavelRegistrationError(error) };
+}
+
 /**
  * Translates a `POST /api/animais/{id}/compartilhamentos` failure. Confirmed
  * against `ClinicalAccessService.exigirCriacaoCompartilhamentoAnimal`: 403

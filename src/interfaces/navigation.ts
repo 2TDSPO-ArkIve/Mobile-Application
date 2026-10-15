@@ -2,9 +2,20 @@ import type { AnimalDto } from '../services/patientService';
 import type { AuthMeResponse } from '../services/authService';
 
 export type AuthStackParamList = {
-  /** `prefillIdentifier` — set by RegisterScreen/RegisterResponsavelScreen after a successful cadastro, so the user doesn't have to retype the e-mail they just registered with. */
+  /** `prefillIdentifier` — set by the unified `RegisterScreen` after a successful cadastro, so the user doesn't have to retype the e-mail they just registered with. */
   Login: { prefillIdentifier?: string } | undefined;
-  Cadastro: undefined;
+  /**
+   * Chunk 2: ONE unified registration screen — a `Veterinário | Responsável`
+   * segmented selector up top decides which fields render. `initialRole` is
+   * optional (the `LoginScreen`'s single "Criar conta" entry point omits it,
+   * defaulting to VETERINARIO); `CadastroResponsavel` below is kept as a
+   * route-name ALIAS of this exact same screen for backward compatibility —
+   * `SharePreviewScreen`'s existing `navigate('CadastroResponsavel')` call
+   * (and any other stale reference) still lands here with RESPONSAVEL
+   * preselected, with no change needed at the call site.
+   */
+  Cadastro: { initialRole?: 'VETERINARIO' | 'RESPONSAVEL' } | undefined;
+  /** Alias route for `Cadastro` — registered against the SAME `RegisterScreen` component (see `AuthStack.tsx`), which reads `useRoute().name` to preselect RESPONSAVEL when entered through this name. No separate screen/component exists for this anymore. */
   CadastroResponsavel: undefined;
   /**
    * No params — the screen always reads `PendingShareContext.pendingToken`

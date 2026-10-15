@@ -118,10 +118,31 @@ export interface VeterinarioRegistrationResponse {
   ativo: string;
 }
 
+/**
+ * Chunk 2 correction, re-confirmed by reading the CURRENT committed Java
+ * source directly: `AuthService.registrarVeterinario` now validates the
+ * supplied password (`PasswordPolicy.validar`/`validarConfirmacao`) and
+ * calls `VeterinarioService.criarAutocadastro(request, request.senha())` →
+ * `AccountProvisioningService.provisionarComSenhaDefinida` →
+ * `UsuarioService.criar` (NOT `criarProvisionado`) — the veterinarian's own
+ * chosen password is BCrypt-hashed and persisted, and the account is created
+ * with `trocaSenha='N'` (no mandatory first-login password change).
+ *
+ * This supersedes an earlier, now-incorrect read of this file from before
+ * Java's self-registration-with-chosen-password feature was committed, which
+ * had assumed the password fields were validated-then-discarded. They are
+ * not: this is the veterinarian's REAL password, sent and stored exactly
+ * like the Responsável's. Administrator-created veterinarian accounts are a
+ * separate path (`VeterinarioService.criar` → `AccountProvisioningService
+ * .provisionar` → `UsuarioService.criarProvisionado`, temporary
+ * email-as-password + `trocaSenha='S'`) and are unaffected by this.
+ */
 export interface VeterinarioRegistrationInput {
   nome: string;
   crmv: string;
   email: string;
+  senha: string;
+  confirmacaoSenha: string;
 }
 
 /**
@@ -131,12 +152,9 @@ export interface VeterinarioRegistrationInput {
  * from the unauthenticated Cadastro screen, where `apiClient` already has no
  * stored credential to attach.
  *
- * There is no password field here on purpose — the backend provisions the
- * account with the e-mail itself as a temporary password (BCrypt-hashed,
- * `trocaSenha=S`), exactly like the existing SysAdmin-created-veterinarian
- * flow. The veterinarian sets their real password on first login via the
- * app's existing mandatory-password-change screen — this call never accepts
- * or transmits a client-chosen password.
+ * `senha`/`confirmacaoSenha` are the veterinarian's own chosen password —
+ * see `VeterinarioRegistrationInput`'s note. Unlike administrator-created
+ * accounts, there is no mandatory password change on first login here.
  */
 export async function registerVeterinario(
   input: VeterinarioRegistrationInput
@@ -144,7 +162,7 @@ export async function registerVeterinario(
   return apiPost<VeterinarioRegistrationResponse>('/api/auth/register', input);
 }
 
-/** Confirmed against `RegistroResponsavelResponse.java`. `trocaSenhaObrigatoria` is always `false` here — unlike veterinarian provisioning, the responsible person chose their own password at registration. */
+/** Confirmed against `RegistroResponsavelResponse.java`. `trocaSenhaObrigatoria` is always `false` here — unlike veterinarian provisioning, the responsible person chose their own password at registration. `tipoDocumento` (Chunk 2) echoes back which document type was recorded. */
 export interface ResponsavelRegistrationResponse {
   usuarioId: number;
   responsavelId: number;
@@ -153,13 +171,23 @@ export interface ResponsavelRegistrationResponse {
   tipo: string;
   ativo: string;
   trocaSenhaObrigatoria: boolean;
+  tipoDocumento: 'CPF' | 'RG';
 }
 
+/**
+ * Chunk 2: `tipoDocumento` is now REQUIRED (`RegistroResponsavelRequest.tipoDocumento`,
+ * `@NotNull`) — confirmed against the current local Java contract. `documento`
+ * must already be the NORMALIZED value for the selected type (11-digit CPF,
+ * or uppercased/punctuation-stripped RG — see `utils/cpf.ts`/`utils/rg.ts`);
+ * Java re-normalizes/re-validates it regardless, but this app never relies on
+ * that as its own validation.
+ */
 export interface ResponsavelRegistrationInput {
   nome: string;
+  tipoDocumento: 'CPF' | 'RG';
   documento: string;
   email: string;
-  /** Omitted entirely (not sent as an empty string) when left blank — matches `RegistroResponsavelRequest.telefone`'s optional, nullable contract. */
+  /** Omitted entirely (not sent as an empty string) when left blank — matches `RegistroResponsavelRequest.telefone`'s optional, nullable contract. Sent in its FORMATTED display form (e.g. "(11) 99999-9999") — confirmed Java only trims this field, it does not strip punctuation itself. */
   telefone?: string;
   senha: string;
   confirmacaoSenha: string;
