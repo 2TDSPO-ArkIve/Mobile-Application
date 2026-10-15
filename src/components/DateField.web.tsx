@@ -4,6 +4,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { spacing, radius, fontSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { formatDate } from '../utils/localeFormat';
 
 interface Props {
   label: string;
@@ -32,6 +33,16 @@ function toInputValue(date: Date | null): string {
  * DOM, and lowercase JSX tags map straight to host elements — is the
  * smallest way to get a real, ArkIve-styled date picker on Expo Web without
  * pulling in a calendar UI library.
+ *
+ * The native `<input type="date">` is a browser-controlled widget: its OWN
+ * displayed text (and the calendar popup it opens) renders according to the
+ * browser/OS locale, which this app cannot override without replacing it
+ * with an unreliable free-text field — explicitly not done here. Its
+ * machine `value`/`min`/`max` stay ISO (`YYYY-MM-DD`) either way, same as
+ * every other date this app sends to Java. To still give a consistent,
+ * ALWAYS-`dd-MM-yyyy` presentation (the one thing this app DOES control),
+ * an app-rendered `formatDate(value)` line is shown alongside it — the same
+ * text `DateField.native.tsx` shows as its own trigger label.
  */
 export function DateField({ label, value, onChange, error, minimumDate, maximumDate, onClear }: Props) {
   const colors = useThemeColors();
@@ -68,6 +79,9 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
           boxSizing: 'border-box',
         }}
       />
+      {value ? (
+        <Text style={[styles.resolvedDate, { color: colors.textSecondary }]}>{formatDate(value)}</Text>
+      ) : null}
       {value && onClear ? (
         <Pressable onPress={onClear} style={styles.clearBtn} accessibilityRole="button">
           <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>{t('common.clearDate')}</Text>
@@ -81,4 +95,5 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
 const styles = StyleSheet.create({
   wrap: { marginBottom: spacing.sm },
   clearBtn: { alignSelf: 'flex-start', marginTop: spacing.xs },
+  resolvedDate: { fontSize: fontSize.xs, marginTop: spacing.xs },
 });

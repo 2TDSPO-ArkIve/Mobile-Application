@@ -244,6 +244,32 @@ export function describePatientCostsError(error: unknown): string {
   return t('errors.patientCostsGeneric');
 }
 
+/**
+ * Translates a `GET`/`PATCH /api/animais/{id}/observacao-responsavel`
+ * failure. 403 here specifically means "not the active/current responsible
+ * person for this animal" (`AnimalService.exigirResponsavelVinculado`), not
+ * a generic permission problem — worded accordingly rather than reused from
+ * `describePatientError`'s "cadastrar pacientes" copy, which wouldn't fit.
+ */
+export function describeAnimalObservationError(error: unknown, isSave = false): string {
+  if (error instanceof ApiError) {
+    if (error.status === 403) {
+      return t('errors.animalObservationForbidden');
+    }
+    if (error.status === 404) {
+      return t('errors.animalObservationNotFound');
+    }
+    if (error.status >= 500) {
+      return isSave ? t('errors.animalObservationSaveUnavailable') : t('errors.animalObservationGeneric');
+    }
+    return isSave ? t('errors.animalObservationSaveGeneric') : t('errors.animalObservationGeneric');
+  }
+  if (isNetworkError(error)) {
+    return isSave ? t('errors.animalObservationSaveNetwork') : t('errors.animalObservationNetwork');
+  }
+  return isSave ? t('errors.animalObservationSaveGeneric') : t('errors.animalObservationGeneric');
+}
+
 /** Translates a `GET /api/animais/{id}/historico-pdf` failure. Same `InvalidPdfError` class as the consultation-summary PDF (see consultaPdfService.ts) — a malformed/empty body is the same failure mode regardless of which PDF endpoint produced it. */
 export function describePatientHistoryPdfError(error: unknown): string {
   if (error instanceof InvalidPdfError) {

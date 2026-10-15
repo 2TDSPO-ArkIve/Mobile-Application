@@ -129,6 +129,7 @@ export const pt = {
     searchPlaceholder: 'Buscar por nome ou ID ArkIve',
     accountAccessibilityLabel: 'Minha conta',
     lookupByArkiveId: 'Buscar por ID ArkIve',
+    createButton: 'Cadastrar animal',
   },
   account: {
     title: 'Minha Conta',
@@ -315,6 +316,8 @@ export const pt = {
     narrativeLabel: 'Narrativa clínica',
     loadingConclusion: 'Carregando conclusão do veterinário...',
     prescricoesButton: 'Gerenciar prescrições',
+    /** Per-consultation SNAPSHOT (`observacaoResponsavel`) — never the animal's current/still-pending note. See `AnimalObservationCard`'s own doc comment. */
+    responsavelObservationLabel: 'Observação do responsável',
     closedReadOnly: 'Consulta encerrada — registro somente leitura.',
     startConsulta: 'Iniciar consulta',
     startError: 'Não foi possível iniciar a consulta.',
@@ -462,9 +465,11 @@ export const pt = {
     tutorNone: 'Sem responsável',
     arkiveIdLabel: 'ID ArkIve',
     editButton: 'Editar paciente',
+    editAnimalButton: 'Editar animal',
     shareButton: 'Compartilhar paciente',
     historyButton: 'Ver histórico',
-    costsButton: 'Ver custos',
+    /** Neutral wording — describes recorded care values, not a characterization of the animal as a financial burden. Applies to both VETERINARIO and RESPONSAVEL, since both navigate here via this same key. */
+    costsButton: 'Valores dos atendimentos',
   },
   patientCosts: {
     title: 'Custos do paciente',
@@ -564,6 +569,23 @@ export const pt = {
     portePEQUENO: 'Pequeno',
     porteMEDIO: 'Médio',
     porteGRANDE: 'Grande',
+  },
+  /** RESPONSAVEL's own animal registration/editing (Chunk 3) — a separate domain from `patientForm` (the field labels/validation/breed-creation keys above are still reused verbatim by these screens; only the screen chrome/submit copy differs). */
+  animalForm: {
+    newTitle: 'Cadastrar Animal',
+    editTitle: 'Editar Animal',
+    createSubmit: 'Cadastrar animal',
+  },
+  animalObservation: {
+    sectionTitle: 'Observações para a próxima consulta',
+    sectionHelp:
+      'Registre informações importantes sobre seu animal. Elas serão disponibilizadas ao veterinário quando a próxima consulta for iniciada.',
+    placeholder: 'Ex.: O animal apresentou falta de apetite nos últimos dois dias.',
+    loading: 'Carregando observação...',
+    saveButton: 'Salvar observação',
+    saving: 'Salvando...',
+    saveSuccess: 'Observação salva.',
+    clearButton: 'Limpar observação',
   },
   prescricoesList: {
     title: 'Prescrições',
@@ -752,6 +774,13 @@ export const pt = {
     patientCostsNotFound: 'Não foi possível encontrar os custos deste paciente.',
     patientCostsGeneric: 'Não foi possível carregar os custos agora.',
     patientCostsNetwork: 'Sem conexão com o servidor. Verifique sua internet e tente novamente.',
+    animalObservationForbidden: 'Você não é o responsável ativo deste animal.',
+    animalObservationNotFound: 'Não foi possível encontrar este animal.',
+    animalObservationGeneric: 'Não foi possível carregar a observação agora.',
+    animalObservationNetwork: 'Sem conexão com o servidor. Verifique sua internet e tente novamente.',
+    animalObservationSaveGeneric: 'Não foi possível salvar a observação agora.',
+    animalObservationSaveUnavailable: 'Não foi possível salvar a observação agora. Tente novamente em instantes.',
+    animalObservationSaveNetwork: 'Sem conexão com o servidor. A observação não foi salva — tente novamente.',
     notificationsGeneric: 'Não foi possível carregar as notificações agora.',
     notificationsNetwork: 'Sem conexão com o servidor. Verifique sua internet e tente novamente.',
     passwordChangeInvalidCurrent: 'Não foi possível confirmar suas credenciais. Faça login novamente.',

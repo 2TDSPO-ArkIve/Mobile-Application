@@ -25,6 +25,8 @@ export const queryKeys = {
     history: (id: string | number) => [...queryKeys.patients.all, 'history', id] as const,
     /** `GET /api/animais/{id}/custos` — same per-patient scoping as `history`. */
     costs: (id: string | number) => [...queryKeys.patients.all, 'costs', id] as const,
+    /** `GET /api/animais/{id}/observacao-responsavel` — the RESPONSAVEL's pending note for this one animal; never shared across animal ids. */
+    observacao: (id: string | number) => [...queryKeys.patients.all, 'observacao', id] as const,
   },
   especies: {
     all: ['especies'] as const,

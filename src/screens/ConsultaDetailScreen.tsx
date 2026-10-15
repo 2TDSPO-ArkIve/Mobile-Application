@@ -243,6 +243,22 @@ export function ConsultaDetailScreen() {
           ) : null}
         </AppCard>
 
+        {/* `consulta.observacaoResponsavel` is a per-consultation SNAPSHOT
+            (`DS_OBS_RESPONSAVEL`) Java copies from the animal's pending note
+            the moment THIS consultation transitioned AG→EP — never the
+            animal's current/still-pending note (`observacao-responsavel`
+            endpoint), and never repeated onto any other consultation. Shown
+            regardless of status (AG/EP/FI/CA) since it's an immutable
+            historical fact once set, not something tied to being finalized. */}
+        {consulta.observacaoResponsavel ? (
+          <AppCard>
+            <Text style={[styles.label, { color: colors.text }]}>
+              {t('consultaDetail.responsavelObservationLabel')}
+            </Text>
+            <Text style={[styles.field, { color: colors.text }]}>{consulta.observacaoResponsavel}</Text>
+          </AppCard>
+        ) : null}
+
         {isFinalizada ? (
           <>
             {consulta.transcricao ? (

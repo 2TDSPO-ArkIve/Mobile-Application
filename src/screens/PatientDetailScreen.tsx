@@ -12,6 +12,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { usePatient } from '../hooks/usePatients';
 import { useAnimalTutores } from '../hooks/useTutores';
+import { AnimalObservationCard } from '../components/AnimalObservationCard';
 import { formatAge } from '../utils/localeFormat';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { spacing, fontSize } from '../styles/theme';
@@ -41,6 +42,8 @@ import { commonStyles } from '../styles/common';
 type PatientDetailRouteParamList = { PacienteDetalhe: { patientId: number } };
 type PatientDetailNavigationParamList = {
   EditarPaciente: { patientId: number };
+  /** RESPONSAVEL's own edit route (`EditAnimalScreen`, registered only in `ResponsavelAppStack`) — see that screen's own doc comment for why it's separate from `EditarPaciente`. */
+  EditarAnimal: { patientId: number };
   CompartilharPaciente: { patientId: number };
   HistoricoPaciente: { patientId: number };
   CustosPaciente: { patientId: number };
@@ -51,7 +54,7 @@ export function PatientDetailScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<PatientDetailNavigationParamList>>();
   const colors = useThemeColors();
   const { t } = useTranslation();
-  const { isVeterinario } = useAuth();
+  const { isVeterinario, isResponsavel } = useAuth();
   const { data: patient, isPending, isError, error, refetch } = usePatient(route.params.patientId);
   const { data: tutores } = useAnimalTutores(patient?.id ?? null);
   const currentTutor = tutores?.find((rel) => rel.principal === 'S') ?? tutores?.[0] ?? null;
@@ -144,6 +147,20 @@ export function PatientDetailScreen() {
           />
         ) : null}
 
+        {/* Shown to every RESPONSAVEL regardless of whether THIS specific
+            animal is one they're actively linked to (e.g. vs. one shared
+            with them read-only) — Java alone decides via
+            `exigirResponsavelVinculado` (403 if not linked), same pattern as
+            every other button below. Never inferred client-side from the
+            numeric id alone. */}
+        {isResponsavel ? (
+          <AppButton
+            title={t('patientDetail.editAnimalButton')}
+            variant="outline"
+            onPress={() => navigation.navigate('EditarAnimal', { patientId: patient.id })}
+          />
+        ) : null}
+
         {/* Both VETERINARIO and RESPONSAVEL may share a patient they
             legitimately have access to — confirmed against
             `ClinicalAccessService.exigirCriacaoCompartilhamentoAnimal`. */}
@@ -168,6 +185,13 @@ export function PatientDetailScreen() {
           variant="outline"
           onPress={() => navigation.navigate('CustosPaciente', { patientId: patient.id })}
         />
+
+        {/* RESPONSAVEL-only pending note for the NEXT consultation — see
+            AnimalObservationCard's own doc comment for the pending-vs-snapshot
+            distinction. Never rendered for VETERINARIO (the endpoint itself
+            is RESPONSAVEL-only server-side; this gate just avoids an
+            inevitable 403 request). */}
+        {isResponsavel ? <AnimalObservationCard animalId={patient.id} /> : null}
       </ScreenContainer>
     </View>
   );

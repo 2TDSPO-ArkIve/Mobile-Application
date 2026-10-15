@@ -35,14 +35,22 @@ export type BottomTabParamList = {
 };
 
 /**
- * The RESPONSAVEL application shell — deliberately small (Sprint "RESPONSAVEL
- * Phase 1/2"): read-only patient access only, no clinical write screens, no
- * sharing yet. `PacienteDetalhe` here is the exact same `PatientDetailScreen`
- * component `AppStackParamList` uses (shared, role-neutral display), typed
- * independently in each param list rather than sharing one big union.
+ * The RESPONSAVEL application shell. `PacienteDetalhe` here is the exact
+ * same `PatientDetailScreen` component `AppStackParamList` uses (shared,
+ * role-neutral display), typed independently in each param list rather than
+ * sharing one big union.
+ *
+ * Chunk 3: `CadastrarAnimal`/`EditarAnimal` give RESPONSAVEL its own
+ * write path, backed by `NewAnimalScreen`/`EditAnimalScreen` — deliberately
+ * NOT `NovoPaciente`/`EditarPaciente` (the VETERINARIO screens embed
+ * tutor-linking logic that doesn't apply to a RESPONSAVEL managing their own
+ * animal). Clinical write screens (consultations, prescriptions, veterinary
+ * administration) remain entirely absent from this stack.
  */
 export type ResponsavelAppStackParamList = {
   MeusAnimais: undefined;
+  CadastrarAnimal: undefined;
+  EditarAnimal: { patientId: number };
   PacienteDetalhe: { patientId: number };
   /** Read-only clinical timeline — Java authorizes RESPONSAVEL access the same as VETERINARIO (`GET /api/animais/{id}/historico`), so this is not gated client-side by role. */
   HistoricoPaciente: { patientId: number };

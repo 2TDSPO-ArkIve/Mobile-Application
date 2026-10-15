@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut } from './apiClient';
+import { apiGet, apiPatch, apiPost, apiPut } from './apiClient';
 
 /**
  * CONFIRMED against the ArkIve Spring Boot source (sibling project
@@ -163,4 +163,49 @@ export async function updatePatient(id: number, input: AnimalRequestInput): Prom
  */
 export async function getPatientByArkiveId(arkivePatientId: string): Promise<AnimalDto> {
   return apiGet<AnimalDto>(`/api/animais/arkive/${encodeURIComponent(arkivePatientId)}`);
+}
+
+/**
+ * CONFIRMED against `ObservacaoResponsavelResponse.java` — a pending note the
+ * RESPONSAVEL keeps for the ANIMAL itself (`DS_OBS_RESP_PENDENTE`), distinct
+ * from `ConsultaDto.observacaoResponsavel`/`AnimalHistoryConsultation
+ * .observacaoResponsavel` (`DS_OBS_RESPONSAVEL`), which is a per-consultation
+ * SNAPSHOT the backend copies this pending note into — and clears here —
+ * the moment that consultation transitions AG→EP
+ * (`ConsultaWorkflowService.consumirObservacaoResponsavel`). Never conflate
+ * the two: this endpoint always reflects what is still PENDING, not what any
+ * past consultation already consumed.
+ */
+export interface AnimalObservationDto {
+  animalId: number;
+  observacao: string | null;
+}
+
+/**
+ * CONFIRMED against `AnimalController`/`AnimalService.buscarObservacaoResponsavel`
+ * (`GET /api/animais/{id}/observacao-responsavel`) — RESPONSAVEL-only at the
+ * Spring Security filter chain level, and further gated in the service by
+ * `exigirResponsavelVinculado` (the caller must have an ACTIVE, currently-
+ * vigent `AnimalResponsavel` link to this exact animal — not merely any
+ * RESPONSAVEL, and never a generic `PatientAccess` share grant). 403 if not
+ * linked, 404 if the animal doesn't exist.
+ */
+export async function getAnimalObservation(animalId: number): Promise<AnimalObservationDto> {
+  return apiGet<AnimalObservationDto>(`/api/animais/${animalId}/observacao-responsavel`);
+}
+
+/**
+ * CONFIRMED against `ObservacaoResponsavelRequest.java`
+ * (`PATCH /api/animais/{id}/observacao-responsavel`) — body field is exactly
+ * `observacao`, `@Size(max = 2000)`, no `@NotBlank`: a blank/whitespace-only
+ * string (or `null`) is explicitly treated server-side as "clear the pending
+ * observation" (`AnimalService.atualizarObservacaoResponsavel` trims and
+ * nulls it), not an error. Same RESPONSAVEL + active-vinculo authorization
+ * as the GET above.
+ */
+export async function updateAnimalObservation(
+  animalId: number,
+  observacao: string | null
+): Promise<AnimalObservationDto> {
+  return apiPatch<AnimalObservationDto>(`/api/animais/${animalId}/observacao-responsavel`, { observacao });
 }

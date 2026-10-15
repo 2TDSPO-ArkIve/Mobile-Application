@@ -24,11 +24,15 @@ const SEARCH_DEBOUNCE_MS = 300;
  * ArkIve shell. Deliberately NOT a reskin of the veterinarian `PatientsScreen`:
  * that screen is wired to `GET /api/animais/me` (VETERINARIO-scoped); this one
  * uses `useMyAnimals` -> `GET /api/animais` (confirmed RESPONSAVEL-scoped
- * server-side — see `listAccessibleAnimals`'s own note). No create action
- * exists here (RESPONSAVEL cannot register a new patient in this phase), and
- * `AppHeader`'s single action opens the account screen rather than reusing
- * `HomeHeader` (which hardcodes a navigate to the veterinarian-only `Perfil`
- * route and would not even type-check against this stack).
+ * server-side — see `listAccessibleAnimals`'s own note). `AppHeader`'s single
+ * action opens the account screen rather than reusing `HomeHeader` (which
+ * hardcodes a navigate to the veterinarian-only `Perfil` route and would not
+ * even type-check against this stack).
+ *
+ * Chunk 3: "Cadastrar animal" navigates to `CadastrarAnimal`
+ * (`NewAnimalScreen`) — Java's `AnimalService.criar` now has a dedicated
+ * RESPONSAVEL branch that auto-links the creator as the animal's tutor, so
+ * this app's own `useCreatePatient` (already role-neutral) just works here.
  *
  * Chunk 1: search is now the backend's unified `busca` (name OR ArkIve id),
  * debounced locally, rather than filtering only the already-fetched page
@@ -85,9 +89,14 @@ export function MeusAnimaisScreen() {
       <ScreenContainer>
         <SearchBar value={searchInput} onChangeText={setSearchInput} placeholder={t('myAnimals.searchPlaceholder')} />
 
-        {/* Useful for verifying/opening an already-authorized shared patient
-            — retrieval only, never a path to registering a new patient
-            (RESPONSAVEL has no create flow in this app). */}
+        <AppButton
+          title={t('myAnimals.createButton')}
+          icon="add"
+          onPress={() => navigation.navigate('CadastrarAnimal')}
+          style={styles.lookupButton}
+        />
+
+        {/* Useful for verifying/opening an already-authorized shared patient — retrieval only, never a path to creating a new animal (that's the button above). */}
         <AppButton
           title={t('myAnimals.lookupByArkiveId')}
           variant="outline"

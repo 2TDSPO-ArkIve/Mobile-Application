@@ -127,6 +127,7 @@ export const en = {
     searchPlaceholder: 'Search by name or ArkIve ID',
     accountAccessibilityLabel: 'My account',
     lookupByArkiveId: 'Find by ArkIve ID',
+    createButton: 'Register animal',
   },
   account: {
     title: 'My Account',
@@ -313,6 +314,8 @@ export const en = {
     narrativeLabel: 'Clinical narrative',
     loadingConclusion: "Loading veterinarian's conclusion...",
     prescricoesButton: 'Manage prescriptions',
+    /** Per-consultation SNAPSHOT (`observacaoResponsavel`) — never the animal's current/still-pending note. See `AnimalObservationCard`'s own doc comment. */
+    responsavelObservationLabel: "Responsible person's observation",
     closedReadOnly: 'Visit closed — read-only record.',
     startConsulta: 'Start visit',
     startError: 'Could not start the visit.',
@@ -460,9 +463,11 @@ export const en = {
     tutorNone: 'No responsible person',
     arkiveIdLabel: 'ArkIve ID',
     editButton: 'Edit patient',
+    editAnimalButton: 'Edit animal',
     shareButton: 'Share patient',
     historyButton: 'View history',
-    costsButton: 'View costs',
+    /** Neutral wording — describes recorded care values, not a characterization of the animal as a financial burden. Applies to both VETERINARIO and RESPONSAVEL, since both navigate here via this same key. */
+    costsButton: 'Care costs and values',
   },
   patientCosts: {
     title: 'Patient costs',
@@ -562,6 +567,23 @@ export const en = {
     portePEQUENO: 'Small',
     porteMEDIO: 'Medium',
     porteGRANDE: 'Large',
+  },
+  /** RESPONSAVEL's own animal registration/editing (Chunk 3) — a separate domain from `patientForm` (the field labels/validation/breed-creation keys above are still reused verbatim by these screens; only the screen chrome/submit copy differs). */
+  animalForm: {
+    newTitle: 'Register Animal',
+    editTitle: 'Edit Animal',
+    createSubmit: 'Register animal',
+  },
+  animalObservation: {
+    sectionTitle: 'Notes for the next visit',
+    sectionHelp:
+      "Record important information about your animal. It will be made available to the veterinarian when the next visit starts.",
+    placeholder: 'E.g.: The animal has had a reduced appetite for the past two days.',
+    loading: 'Loading observation...',
+    saveButton: 'Save observation',
+    saving: 'Saving...',
+    saveSuccess: 'Observation saved.',
+    clearButton: 'Clear observation',
   },
   prescricoesList: {
     title: 'Prescriptions',
@@ -748,6 +770,13 @@ export const en = {
     patientCostsNotFound: "Could not find this patient's costs.",
     patientCostsGeneric: 'Could not load the costs right now.',
     patientCostsNetwork: 'No connection to the server. Check your internet and try again.',
+    animalObservationForbidden: "You are not this animal's active responsible person.",
+    animalObservationNotFound: 'Could not find this animal.',
+    animalObservationGeneric: 'Could not load the observation right now.',
+    animalObservationNetwork: 'No connection to the server. Check your internet and try again.',
+    animalObservationSaveGeneric: 'Could not save the observation right now.',
+    animalObservationSaveUnavailable: 'Could not save the observation right now. Try again shortly.',
+    animalObservationSaveNetwork: 'No connection to the server. The observation was not saved — try again.',
     notificationsGeneric: 'Could not load notifications right now.',
     notificationsNetwork: 'No connection to the server. Check your internet and try again.',
     passwordChangeInvalidCurrent: 'Could not confirm your credentials. Please log in again.',
