@@ -30,8 +30,8 @@ export function SettingsScreen() {
 
   /**
    * Deliberately contextual, not automatic: the OS permission prompt is only
-   * ever requested here, in direct response to the veterinarian/tutor
-   * turning this existing toggle ON — never at login or app startup. Turning
+   * ever requested here, in direct response to the veterinarian/responsible
+   * person turning this existing toggle ON — never at login or app startup. Turning
    * it OFF never calls the native API (apps cannot revoke their own
    * notification permission); it only updates the stored preference, which
    * `NotificationBridge` already respects before presenting anything.

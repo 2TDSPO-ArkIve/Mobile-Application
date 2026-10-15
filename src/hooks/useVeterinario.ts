@@ -1,32 +1,25 @@
 import { useQuery } from '@tanstack/react-query';
-import { getVeterinarioById } from '../services/veterinarioService';
+import { getOwnVeterinario } from '../services/veterinarioService';
 import { useAuth } from './useAuth';
 import { queryKeys } from '../query/queryKeys';
 
 /**
- * Resolves the authenticated veterinarian's own real profile (name, CRMV,
- * especialidade, email, clinic) for display — never fabricated.
+ * Resolves the authenticated veterinarian's own real profile (name, email,
+ * CRMV, especialidade when available, clinic name when available) for
+ * display — never fabricated, never editable here (profile editing is a
+ * later chunk).
  *
- * `veterinarioId` comes directly from `GET /api/auth/me` (via `AuthContext`'s
- * `identity`) — confirmed always resolvable for an authenticated VETERINARIO
- * regardless of consultation history. This replaces the old workaround that
- * inferred it from `GET /api/consultas[0].veterinarioId`, which left a
- * brand-new, zero-consultation veterinarian's own profile permanently
- * unresolvable.
+ * `GET /api/veterinarios/me` (Chunk 1) derives the veterinarian exclusively
+ * from the authenticated principal — no id is sent or needed, so this hook
+ * no longer depends on `AuthContext`'s `identity.veterinarioId` at all; it
+ * only needs to know the session is authenticated.
  */
 export function useOwnVeterinario() {
-  const { identity } = useAuth();
-  const veterinarioId = identity?.veterinarioId ?? null;
+  const { status } = useAuth();
 
-  const query = useQuery({
-    queryKey: queryKeys.veterinarios.detail(veterinarioId ?? -1),
-    queryFn: () => getVeterinarioById(veterinarioId as number),
-    enabled: veterinarioId != null,
+  return useQuery({
+    queryKey: queryKeys.veterinarios.me(),
+    queryFn: () => getOwnVeterinario(),
+    enabled: status === 'authenticated',
   });
-
-  return {
-    ...query,
-    isPending: veterinarioId == null || query.isPending,
-    veterinarioId,
-  };
 }

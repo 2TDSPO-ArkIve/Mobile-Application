@@ -1,26 +1,32 @@
 import { getLanguage, t } from '../i18n/store';
 
+function pad2(value: number): string {
+  return String(value).padStart(2, '0');
+}
+
 /**
- * Display-only formatting driven by the current app language — never used
- * for anything sent back to the backend (which always gets an explicit
- * ISO/`LocalDateTime` string built separately, untouched by this file).
+ * Display-only formatting — fixed `dd-MM-yyyy` (and `HH:mm` for time),
+ * deliberately NOT locale-dependent (the product's date display format is a
+ * single explicit requirement, not something that should flip with the
+ * pt-BR/en-US UI language toggle). Never used for anything sent back to the
+ * backend (which always gets an explicit ISO/`LocalDateTime` string built
+ * separately — `toISODateString`/`toLocalDateTimeString`, untouched by this
+ * file). This is the ONE place that owns this formatting; every screen
+ * displaying a date/time goes through `formatDate`/`formatTime`/
+ * `formatDateTime` here (or `toDisplayDate` in `utils/isoDate.ts` for a
+ * date-only ISO string) rather than calling `toLocaleDateString`/
+ * `Intl.DateTimeFormat` itself.
  */
 export function formatDate(date: Date): string {
-  return date.toLocaleDateString(getLanguage());
+  return `${pad2(date.getDate())}-${pad2(date.getMonth() + 1)}-${date.getFullYear()}`;
 }
 
 export function formatTime(date: Date): string {
-  return date.toLocaleTimeString(getLanguage(), { hour: '2-digit', minute: '2-digit' });
+  return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 }
 
 export function formatDateTime(date: Date): string {
-  return date.toLocaleString(getLanguage(), {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  return `${formatDate(date)} ${formatTime(date)}`;
 }
 
 /**

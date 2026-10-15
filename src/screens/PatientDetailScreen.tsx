@@ -13,6 +13,7 @@ import { useTranslation } from '../i18n/useTranslation';
 import { usePatient } from '../hooks/usePatients';
 import { useAnimalTutores } from '../hooks/useTutores';
 import { formatAge } from '../utils/localeFormat';
+import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { spacing, fontSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
@@ -32,10 +33,10 @@ import { commonStyles } from '../styles/common';
  * gets a write action here at all — only `isVeterinario` sees Editar.
  *
  * The one extra request this screen pays for (beyond the patient itself) is
- * its own active tutor relationships — cheap here because it's exactly one
- * patient, unlike a list/selector card where the same fetch per row would be
- * an unbounded N+1 (see `patientDisplay.ts`'s note on why list cards don't
- * show the tutor's name).
+ * its own active responsible-person relationships — cheap here because it's
+ * exactly one patient, unlike a list/selector card where the same fetch per
+ * row would be an unbounded N+1 (see `patientDisplay.ts`'s note on why list
+ * cards don't show the responsible person's name).
  */
 type PatientDetailRouteParamList = { PacienteDetalhe: { patientId: number } };
 type PatientDetailNavigationParamList = {
@@ -124,17 +125,15 @@ export function PatientDetailScreen() {
               {t('patientDetail.clinicLabel', { clinic: patient.clinicaNome })}
             </Text>
           ) : null}
-          {patient.arkivePatientId ? (
-            <View style={styles.arkiveIdWrap}>
-              <Text style={[styles.arkiveIdLabel, { color: colors.textSecondary }]}>
-                {t('patientDetail.arkiveIdLabel')}
-              </Text>
-              {/* Permanent, opaque, NOT secret — selectable/readable text, never masked or treated as a credential. */}
-              <Text style={[styles.arkiveIdValue, { color: colors.text }]} selectable>
-                {patient.arkivePatientId}
-              </Text>
-            </View>
-          ) : null}
+          <View style={styles.arkiveIdWrap}>
+            <Text style={[styles.arkiveIdLabel, { color: colors.textSecondary }]}>
+              {t('patientDetail.arkiveIdLabel')}
+            </Text>
+            {/* Permanent, opaque, NOT secret — selectable/readable text, never masked or treated as a credential. A neutral message (never the database id) is shown if the ArkIve id is unexpectedly missing. */}
+            <Text style={[styles.arkiveIdValue, { color: colors.text }]} selectable>
+              {patientArkiveIdLine(patient)}
+            </Text>
+          </View>
         </AppCard>
 
         {isVeterinario ? (

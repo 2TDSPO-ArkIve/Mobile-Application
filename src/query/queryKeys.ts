@@ -50,6 +50,8 @@ export const queryKeys = {
   veterinarios: {
     all: ['veterinarios'] as const,
     detail: (id: string | number) => [...queryKeys.veterinarios.all, 'detail', id] as const,
+    /** `GET /api/veterinarios/me` — the authenticated veterinarian's own profile, no id involved. */
+    me: () => [...queryKeys.veterinarios.all, 'me'] as const,
   },
   prescricoes: {
     all: ['prescricoes'] as const,

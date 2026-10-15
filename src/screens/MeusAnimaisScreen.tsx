@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -13,9 +13,11 @@ import { useTranslation } from '../i18n/useTranslation';
 import { useMyAnimals } from '../hooks/usePatients';
 import { usePendingShareAutoReturn } from '../hooks/useShares';
 import { useUnreadNotificationCount } from '../hooks/useNotifications';
-import { patientSummaryLine, patientFallbackId } from '../utils/patientDisplay';
+import { patientSummaryLine, patientArkiveIdLine } from '../utils/patientDisplay';
 import type { ResponsavelAppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize } from '../styles/theme';
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 /**
  * The RESPONSAVEL root screen — the entry point to the responsible person's
@@ -27,33 +29,35 @@ import { spacing, fontSize } from '../styles/theme';
  * `AppHeader`'s single action opens the account screen rather than reusing
  * `HomeHeader` (which hardcodes a navigate to the veterinarian-only `Perfil`
  * route and would not even type-check against this stack).
+ *
+ * Chunk 1: search is now the backend's unified `busca` (name OR ArkIve id),
+ * debounced locally, rather than filtering only the already-fetched page
+ * client-side — see `PatientsScreen`'s own note on the same change; an
+ * animal this responsible person cannot access is never returned just
+ * because its ArkIve id matches.
  */
 export function MeusAnimaisScreen() {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<ResponsavelAppStackParamList>>();
-  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   // MeusAnimais is ResponsavelAppStack's root screen, so it's the reliable
   // single mount point to guide a RESPONSAVEL back to a still-pending share
   // invitation once authenticated — see usePendingShareAutoReturn's own note.
   usePendingShareAutoReturn(navigation);
 
-  const { data, isPending, isError, error } = useMyAnimals();
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedSearch(searchInput), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+  }, [searchInput]);
+
+  const trimmedSearch = debouncedSearch.trim();
+  const { data, isPending, isError, error } = useMyAnimals({ busca: trimmedSearch || undefined });
   const { data: unreadCount } = useUnreadNotificationCount();
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q || !data) return data ?? [];
-    return data.filter(
-      (animal) =>
-        animal.nome.toLowerCase().includes(q) ||
-        animal.especieNome.toLowerCase().includes(q) ||
-        (animal.racaNome?.toLowerCase().includes(q) ?? false)
-    );
-  }, [data, search]);
-
-  const hasSearch = search.trim().length > 0;
+  const hasSearch = trimmedSearch.length > 0;
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -79,7 +83,7 @@ export function MeusAnimaisScreen() {
       />
 
       <ScreenContainer>
-        <SearchBar value={search} onChangeText={setSearch} placeholder={t('myAnimals.searchPlaceholder')} />
+        <SearchBar value={searchInput} onChangeText={setSearchInput} placeholder={t('myAnimals.searchPlaceholder')} />
 
         {/* Useful for verifying/opening an already-authorized shared patient
             — retrieval only, never a path to registering a new patient
@@ -100,13 +104,13 @@ export function MeusAnimaisScreen() {
             title={t('myAnimals.loadErrorTitle')}
             message={error instanceof Error ? error.message : t('myAnimals.genericServerError')}
           />
-        ) : filtered.length === 0 ? (
+        ) : !data || data.length === 0 ? (
           <EmptyState
             title={t('myAnimals.emptyTitle')}
             message={hasSearch ? t('myAnimals.emptySearchMessage') : t('myAnimals.emptyMessage')}
           />
         ) : (
-          filtered.map((animal) => (
+          data.map((animal) => (
             <AppCard
               key={animal.id}
               onPress={() => navigation.navigate('PacienteDetalhe', { patientId: animal.id })}
@@ -114,7 +118,7 @@ export function MeusAnimaisScreen() {
               <Text style={{ color: colors.text, fontWeight: '700' }}>{animal.nome}</Text>
               <Text style={{ color: colors.textSecondary }}>{patientSummaryLine(animal)}</Text>
               <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, marginTop: spacing.xs }}>
-                {patientFallbackId(animal)}
+                {patientArkiveIdLine(animal)}
               </Text>
             </AppCard>
           ))

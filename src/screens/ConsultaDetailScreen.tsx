@@ -25,6 +25,7 @@ import { findConfirmedDiagnosis } from '../services/diagnosticoService';
 import { consultaStatusPresentation } from '../utils/statusPresentation';
 import { describeNarrativeSaveError } from '../utils/errorMessages';
 import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
+import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { t } from '../i18n/store';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize } from '../styles/theme';
@@ -199,6 +200,9 @@ export function ConsultaDetailScreen() {
           <Text style={[styles.field, { color: colors.text }]}>
             {t('consultaDetail.patientLabel', { name: consulta.animalNome })}
           </Text>
+          <Text style={[styles.field, styles.arkiveIdField, { color: colors.textSecondary }]} selectable>
+            {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
+          </Text>
           <Text style={[styles.field, { color: colors.textSecondary }]}>
             {consulta.modalidade === 'PRESENCIAL' ? t('home.presencial') : t('home.remota')} ·{' '}
             {formatDate(new Date(consulta.dataHora))} {formatTime(new Date(consulta.dataHora))}
@@ -319,6 +323,7 @@ const styles = StyleSheet.create({
   },
   label: { fontSize: fontSize.md, fontWeight: '700' },
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
+  arkiveIdField: { fontFamily: 'monospace', fontSize: fontSize.xs },
   valueBlock: { marginTop: spacing.sm },
   valueLabel: {
     fontSize: fontSize.xs,

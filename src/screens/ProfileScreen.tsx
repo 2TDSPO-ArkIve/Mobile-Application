@@ -17,7 +17,7 @@ import { spacing, fontSize } from '../styles/theme';
 /**
  * Real identity, not the old `useAuth().user` compatibility shim (which
  * just mirrored the Basic Auth login username/email — see AuthContext.tsx's
- * `toLegacyUser`). Backend contract confirmed: `GET /api/veterinarios/{id}`
+ * `toLegacyUser`). Backend contract confirmed: `GET /api/veterinarios/me`
  * (`VeterinarioResponse.java`) has no `telefone` field at all, so this
  * screen never shows a phone number — showing one would mean inventing data
  * the backend doesn't have.

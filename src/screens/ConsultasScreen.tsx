@@ -14,6 +14,7 @@ import { useTranslation } from '../i18n/useTranslation';
 import { useConsultas } from '../hooks/useConsultas';
 import { consultaStatusPresentation } from '../utils/statusPresentation';
 import { formatDate, formatTime } from '../utils/localeFormat';
+import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize } from '../styles/theme';
 
@@ -94,6 +95,9 @@ export function ConsultasScreen() {
                       tone={consultaStatusPresentation(consulta.status).tone}
                     />
                   </View>
+                  <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, fontFamily: 'monospace' }}>
+                    {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
+                  </Text>
                   <View style={styles.dateTimeRow}>
                     <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
                     <Text style={[styles.dateTimeText, { color: colors.text }]}>{formatDate(dataHora)}</Text>

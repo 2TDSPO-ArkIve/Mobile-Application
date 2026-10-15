@@ -14,14 +14,14 @@ import { spacing, fontSize } from '../styles/theme';
 
 /**
  * The RESPONSAVEL counterpart to `ProfileScreen` — deliberately not a shared
- * component: `ProfileScreen` fetches `GET /api/veterinarios/{id}` via
- * `useOwnVeterinario`, which non-null-asserts `identity.veterinarioId` (always
- * null for a RESPONSAVEL) and would crash/404 here. There is no equivalent
- * "fetch my own responsavel profile" endpoint established yet, so this screen
+ * component: `ProfileScreen` fetches the veterinarian's own profile via
+ * `GET /api/veterinarios/me` (role-restricted to VETERINARIO in
+ * `SecurityConfig`), which would 403 here. There is no equivalent "fetch my
+ * own responsavel profile" endpoint established yet, so this screen
  * deliberately shows only what's already in `AuthContext.identity` (name,
  * login/e-mail) from the last `GET /api/auth/me`, rather than inventing a new
  * backend call. Minimal by design — this phase intentionally doesn't build a
- * tutor profile editor.
+ * responsible-person profile editor.
  */
 export function ResponsavelAccountScreen() {
   const { identity, logout } = useAuth();

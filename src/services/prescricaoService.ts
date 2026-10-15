@@ -17,7 +17,9 @@ export interface PrescricaoDto {
   /**
    * V13 addition (`Prescricao.valorMedicamento`) — the TOTAL cost associated
    * with this prescription/treatment, never a per-unit price. `null` means
-   * no cost was recorded; never render that as `R$ 0,00`.
+   * no cost was recorded, OR (Chunk 1) that Java redacted it for financial-
+   * privacy reasons (another veterinarian's record) — this app never tries
+   * to distinguish the two; either way, never render `null` as `R$ 0,00`.
    */
   valorMedicamento: number | null;
 }

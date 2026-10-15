@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -12,9 +12,11 @@ import { EmptyState } from '../components/EmptyState';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useMyPatients } from '../hooks/usePatients';
-import { patientSummaryLine, patientFallbackId } from '../utils/patientDisplay';
+import { patientSummaryLine, patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize } from '../styles/theme';
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 /**
  * One canonical list, sourced from `GET /api/animais/me` — this
@@ -24,27 +26,30 @@ import { spacing, fontSize } from '../styles/theme';
  * toggle called two endpoints that no longer represent distinct concepts
  * now that Animal isn't clinic-owned — removed rather than kept as a broken
  * client-side approximation of an authorization split Java already owns.
+ *
+ * Chunk 1: search is now the backend's unified `busca` (name OR ArkIve id,
+ * same pattern as `NewConsultaScreen`'s own patient search), debounced
+ * locally, rather than filtering only the already-fetched page client-side —
+ * an animal whose ArkIve id matches but this veterinarian cannot access is
+ * never returned, since `busca` is applied on top of the same
+ * role-authorized query Java already runs for this endpoint.
  */
 export function PatientsScreen() {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
-  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
-  const { data, isPending, isError, error } = useMyPatients();
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedSearch(searchInput), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+  }, [searchInput]);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q || !data) return data ?? [];
-    return data.filter(
-      (animal) =>
-        animal.nome.toLowerCase().includes(q) ||
-        animal.especieNome.toLowerCase().includes(q) ||
-        (animal.racaNome?.toLowerCase().includes(q) ?? false)
-    );
-  }, [data, search]);
+  const trimmedSearch = debouncedSearch.trim();
+  const { data, isPending, isError, error } = useMyPatients({ busca: trimmedSearch || undefined });
 
-  const hasSearch = search.trim().length > 0;
+  const hasSearch = trimmedSearch.length > 0;
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -62,7 +67,7 @@ export function PatientsScreen() {
           />
         </View>
 
-        <SearchBar value={search} onChangeText={setSearch} placeholder={t('patientsList.searchPlaceholder')} />
+        <SearchBar value={searchInput} onChangeText={setSearchInput} placeholder={t('patientsList.searchPlaceholder')} />
 
         {/* Visible secondary action, not tucked behind an icon — retrieval
             only (same read-authorization rule as any other patient fetch),
@@ -83,7 +88,7 @@ export function PatientsScreen() {
             title={t('patientsList.loadErrorTitle')}
             message={error instanceof Error ? error.message : t('patientsList.genericServerError')}
           />
-        ) : filtered.length === 0 ? (
+        ) : !data || data.length === 0 ? (
           <EmptyState
             title={t('patientsList.emptyTitle')}
             message={hasSearch ? t('patientsList.emptySearchMessage') : t('patientsList.emptyMessage')}
@@ -91,7 +96,7 @@ export function PatientsScreen() {
             onAction={hasSearch ? undefined : () => navigation.navigate('NovoPaciente')}
           />
         ) : (
-          filtered.map((animal) => (
+          data.map((animal) => (
             <AppCard
               key={animal.id}
               onPress={() => navigation.navigate('PacienteDetalhe', { patientId: animal.id })}
@@ -99,7 +104,7 @@ export function PatientsScreen() {
               <Text style={{ color: colors.text, fontWeight: '700' }}>{animal.nome}</Text>
               <Text style={{ color: colors.textSecondary }}>{patientSummaryLine(animal)}</Text>
               <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, marginTop: spacing.xs }}>
-                {patientFallbackId(animal)}
+                {patientArkiveIdLine(animal)}
               </Text>
             </AppCard>
           ))

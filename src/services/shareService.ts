@@ -4,9 +4,9 @@ import { apiGet, apiPost, apiDelete } from './apiClient';
  * CONFIRMED against the ArkIve Spring Boot source (sibling project
  * `SPRINT-3/java-advanced`, `entity/PatientAccessRole.java`) — exactly these
  * two values. This is the backend/security role for a sharing invitation,
- * never "TUTOR" — the UI may label the RESPONSAVEL option "Tutor /
- * Responsável", but the wire value sent to the backend is always the enum
- * name.
+ * never "TUTOR" — the UI labels the RESPONSAVEL option "Responsável" (the
+ * product no longer uses "Tutor" as user-facing terminology), but the wire
+ * value sent to the backend is always the enum name.
  */
 export type PatientAccessRole = 'VETERINARIO' | 'RESPONSAVEL';
 

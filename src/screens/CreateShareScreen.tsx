@@ -14,6 +14,7 @@ import { usePatient } from '../hooks/usePatients';
 import { useCreatePatientShare } from '../hooks/useShares';
 import { describeCreateShareError } from '../utils/errorMessages';
 import { formatDateTime } from '../utils/localeFormat';
+import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { buildPatientShareUrl } from '../utils/shareLink';
 import type { PatientAccessRole, PatientShareCreatedDto } from '../services/shareService';
 import { spacing, fontSize, radius } from '../styles/theme';
@@ -143,6 +144,10 @@ export function CreateShareScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('shareCreate.title', { name: patient.nome })} />
       <ScreenContainer>
+        <Text style={[styles.arkiveIdSubtitle, { color: colors.textSecondary }]} selectable>
+          {patientArkiveIdLine(patient)}
+        </Text>
+
         {created ? (
           <>
             <ShareQrCode value={buildPatientShareUrl(created.rawToken)} />
@@ -219,6 +224,7 @@ export function CreateShareScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  arkiveIdSubtitle: { fontSize: fontSize.xs, fontFamily: 'monospace', textAlign: 'center', marginBottom: spacing.sm },
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
   detailsCard: { marginTop: spacing.md, alignItems: 'center' },
   optionRow: {

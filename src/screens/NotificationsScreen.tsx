@@ -30,11 +30,13 @@ import { spacing, fontSize, radius } from '../styles/theme';
  *
  * Polling-based, not real-time push: this screen (and the header bell) are
  * the one authoritative "notification center" for the browser-first
- * product. The current backend notification type (`CONSULTA_FINALIZADA`) is
- * only ever created for RESPONSAVEL users, so a VETERINARIO session will
- * typically see this screen stay empty — that's expected, not a bug, and
- * the bell/center exist for both roles regardless (future-compatible with
- * a VETERINARIO-facing notification type later).
+ * product. Chunk 1 synchronized the full backend notification type set
+ * (`CONSULTA_AGENDADA`/`LEMBRETE_CONSULTA`/`CONSULTA_FINALIZADA`/
+ * `SOLICITACAO_ACESSO`) — every type renders using the backend's own
+ * title/message like any other notification, but only `CONSULTA`-resource
+ * types navigate anywhere; `SOLICITACAO_ACESSO` deliberately navigates
+ * nowhere yet (its approval/rejection UI is a later chunk — see
+ * `handlePress`'s own note on why that's safe rather than a missing feature).
  */
 type NotificationsNavigationParamList = {
   ConsultaDetalhe: { consultaId: number };
@@ -107,12 +109,28 @@ export function NotificationsScreen() {
       }
     }
 
+    // `SOLICITACAO_ACESSO` is excluded from navigation entirely, for BOTH
+    // roles, checked BEFORE any role branch below: Chunk 1 confirmed
+    // (`NotificacaoService.criarParaSolicitacaoAcesso`) that this
+    // notification type ALSO populates `animalId` (it's created with the
+    // target animal attached), so the RESPONSAVEL branch below would
+    // otherwise incorrectly route an access-request notification straight
+    // into that patient's clinical history — a resource that exists, but is
+    // the wrong destination for "approve/reject this access request". There
+    // is no access-request UI yet (a later chunk), so this type is marked
+    // read (already done above) and simply never navigates anywhere.
+    if (notification.type === 'SOLICITACAO_ACESSO') {
+      return;
+    }
+
     // Role-safe navigation: a VETERINARIO's own consultation detail route
     // doesn't exist in ResponsavelAppStack, and a RESPONSAVEL has no
     // authorized path to it — never attempt it there. For RESPONSAVEL,
     // HistoricoPaciente (not PacienteDetalhe) is preferred: a finalized-
     // consultation notification naturally points at the patient's updated
-    // clinical history, not just its static profile.
+    // clinical history, not just its static profile. This also covers the
+    // new `CONSULTA_AGENDADA`/`LEMBRETE_CONSULTA` types identically — both
+    // are schedule-related events on the same consultation resource.
     if (isVeterinario) {
       if (notification.resourceType === 'CONSULTA' && notification.resourceId != null) {
         navigation.navigate('ConsultaDetalhe', { consultaId: notification.resourceId });

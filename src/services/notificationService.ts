@@ -1,8 +1,18 @@
 import { apiGet, apiPatch } from './apiClient';
 
-/** Only backend-confirmed value — do not invent additional types/resource types client-side. */
-export type NotificationType = 'CONSULTA_FINALIZADA';
-export type NotificationResourceType = 'CONSULTA';
+/**
+ * Confirmed against `entity/TipoNotificacao.java`/`TipoRecursoNotificacao.java`
+ * (Chunk 1) — exactly these values, nothing invented client-side.
+ * `CONSULTA_AGENDADA`/`LEMBRETE_CONSULTA`/`SOLICITACAO_ACESSO` are new;
+ * `CONSULTA_FINALIZADA` is the only one this app currently generates UI
+ * copy/navigation around — the others render using the backend's own
+ * title/message like any other notification, but `SOLICITACAO_ACESSO`
+ * deliberately has NO navigation action yet (its approval/rejection UI is a
+ * later chunk) — see `NotificationsScreen.tsx`'s own note on why that's safe
+ * rather than a missing feature.
+ */
+export type NotificationType = 'CONSULTA_AGENDADA' | 'LEMBRETE_CONSULTA' | 'CONSULTA_FINALIZADA' | 'SOLICITACAO_ACESSO';
+export type NotificationResourceType = 'CONSULTA' | 'SOLICITACAO_ACESSO';
 
 /** `NotificacaoResponse.java`, confirmed field-for-field. */
 export interface NotificationDto {

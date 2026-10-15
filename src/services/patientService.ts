@@ -56,10 +56,30 @@ export interface AnimalRequestInput {
   dataNascimento?: string | null;
 }
 
+/**
+ * `busca` (Chunk 1) is the unified search term — confirmed against
+ * `AnimalController`/`AnimalRepository`: it matches partial/full animal name
+ * OR partial/full ArkIve id (`lower(a.nome) like ... or
+ * lower(a.arkivePatientId) like ...`), applied server-side ON TOP OF the
+ * existing role-scoped authorization query for each endpoint — an animal the
+ * caller cannot access is never returned just because its ArkIve id matches.
+ * The backend still accepts the older `nome` param as a fallback
+ * (`buscaEfetiva(busca, nome)` — `busca` wins when both are sent), but this
+ * app only ever sends `busca` now.
+ */
 export interface MyPatientsFilters {
-  nome?: string;
+  busca?: string;
   especieId?: number;
   racaId?: number;
+}
+
+function buildAnimalListQuery(filters?: MyPatientsFilters): string {
+  const params = new URLSearchParams();
+  if (filters?.busca) params.set('busca', filters.busca);
+  if (filters?.especieId != null) params.set('especieId', String(filters.especieId));
+  if (filters?.racaId != null) params.set('racaId', String(filters.racaId));
+  const query = params.toString();
+  return query ? `?${query}` : '';
 }
 
 /**
@@ -79,12 +99,7 @@ export interface MyPatientsFilters {
  * is no longer the operative concept.
  */
 export async function listMyPatients(filters?: MyPatientsFilters): Promise<AnimalDto[]> {
-  const params = new URLSearchParams();
-  if (filters?.nome) params.set('nome', filters.nome);
-  if (filters?.especieId != null) params.set('especieId', String(filters.especieId));
-  if (filters?.racaId != null) params.set('racaId', String(filters.racaId));
-  const query = params.toString() ? `?${params.toString()}` : '';
-  const page = await apiGet<{ content: AnimalDto[] }>(`/api/animais/me${query}`);
+  const page = await apiGet<{ content: AnimalDto[] }>(`/api/animais/me${buildAnimalListQuery(filters)}`);
   return page.content;
 }
 
@@ -100,12 +115,7 @@ export async function listMyPatients(filters?: MyPatientsFilters): Promise<Anima
  * endpoints, kept as two separate functions so neither name's meaning is diluted.
  */
 export async function listAccessibleAnimals(filters?: MyPatientsFilters): Promise<AnimalDto[]> {
-  const params = new URLSearchParams();
-  if (filters?.nome) params.set('nome', filters.nome);
-  if (filters?.especieId != null) params.set('especieId', String(filters.especieId));
-  if (filters?.racaId != null) params.set('racaId', String(filters.racaId));
-  const query = params.toString() ? `?${params.toString()}` : '';
-  const page = await apiGet<{ content: AnimalDto[] }>(`/api/animais${query}`);
+  const page = await apiGet<{ content: AnimalDto[] }>(`/api/animais${buildAnimalListQuery(filters)}`);
   return page.content;
 }
 
