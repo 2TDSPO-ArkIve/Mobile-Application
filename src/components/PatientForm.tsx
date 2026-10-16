@@ -81,13 +81,21 @@ export function PatientForm({
   const { data: especies, isPending: especiesLoading } = useEspecies();
   const { data: racas, isPending: racasLoading } = useRacas(especieId);
 
+  // Only active species/breeds are offered — except the patient's own saved
+  // value on edit, which stays visible even if it was deactivated later.
   const especieOptions = useMemo(
-    () => (especies ?? []).map((e) => ({ value: String(e.id), label: e.nome })),
-    [especies]
+    () =>
+      (especies ?? [])
+        .filter((e) => e.ativo === 'S' || e.id === initialValues?.especieId)
+        .map((e) => ({ value: String(e.id), label: e.nome })),
+    [especies, initialValues?.especieId]
   );
   const racaOptions = useMemo(
-    () => (racas ?? []).map((r) => ({ value: String(r.id), label: r.nome })),
-    [racas]
+    () =>
+      (racas ?? [])
+        .filter((r) => r.ativo === 'S' || r.id === initialValues?.racaId)
+        .map((r) => ({ value: String(r.id), label: r.nome })),
+    [racas, initialValues?.racaId]
   );
   const selectedEspecieNome = useMemo(
     () => especies?.find((e) => e.id === especieId)?.nome ?? '',
