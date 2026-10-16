@@ -5,7 +5,7 @@ function pad2(value: number): string {
 }
 
 /**
- * Display-only formatting — fixed `dd-MM-yyyy` (and `HH:mm` for time),
+ * Display-only formatting — fixed `dd/MM/yyyy` (and `HH:mm` for time),
  * deliberately NOT locale-dependent (the product's date display format is a
  * single explicit requirement, not something that should flip with the
  * pt-BR/en-US UI language toggle). Never used for anything sent back to the
@@ -18,7 +18,7 @@ function pad2(value: number): string {
  * `Intl.DateTimeFormat` itself.
  */
 export function formatDate(date: Date): string {
-  return `${pad2(date.getDate())}-${pad2(date.getMonth() + 1)}-${date.getFullYear()}`;
+  return `${pad2(date.getDate())}/${pad2(date.getMonth() + 1)}/${date.getFullYear()}`;
 }
 
 export function formatTime(date: Date): string {

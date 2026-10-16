@@ -40,7 +40,7 @@ function toInputValue(date: Date | null): string {
  * with an unreliable free-text field — explicitly not done here. Its
  * machine `value`/`min`/`max` stay ISO (`YYYY-MM-DD`) either way, same as
  * every other date this app sends to Java. To still give a consistent,
- * ALWAYS-`dd-MM-yyyy` presentation (the one thing this app DOES control),
+ * ALWAYS-`dd/MM/yyyy` presentation (the one thing this app DOES control),
  * an app-rendered `formatDate(value)` line is shown alongside it — the same
  * text `DateField.native.tsx` shows as its own trigger label.
  */

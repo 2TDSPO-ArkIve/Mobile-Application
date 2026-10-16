@@ -7,13 +7,13 @@
  *
  * The backend contract (`toIsoDate`'s output, and every `dataInicio`/
  * `dataFim` sent in a request body) is unaffected by display formatting —
- * `toDisplayDate` always renders `dd-MM-yyyy` (fixed, not locale-dependent —
+ * `toDisplayDate` always renders `dd/MM/yyyy` (fixed, not locale-dependent —
  * see `localeFormat.ts`'s own note on why), regardless of the app's current
  * pt-BR/en-US language.
  */
 export function toIsoDate(value: string): string {
   const trimmed = value.trim();
-  const match = trimmed.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  const match = trimmed.match(/^(\d{2})[/-](\d{2})[/-](\d{4})$/);
   if (match) return `${match[3]}-${match[2]}-${match[1]}`;
   return trimmed;
 }
@@ -23,5 +23,5 @@ export function toDisplayDate(value?: string | null): string {
   const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) return value;
   const [, y, m, d] = match;
-  return `${d}-${m}-${y}`;
+  return `${d}/${m}/${y}`;
 }
