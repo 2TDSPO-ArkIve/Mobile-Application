@@ -41,13 +41,23 @@ export function PrescricoesScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader
         title={t('prescricoesList.title')}
-        actions={[
-          {
-            icon: 'add',
-            onPress: () => navigation.navigate('NovaPrescricao', { consultaId }),
-            accessibilityLabel: t('prescricoesList.newAccessibilityLabel'),
-          },
-        ]}
+        // Chunk 8 correction — creation is only ever valid for a finalized
+        // (FI) consultation (`PrescricaoService.exigirConsultaFinalizada`,
+        // also re-checked by `NewPrescricaoScreen` itself as a second
+        // safeguard). While `consulta` hasn't loaded yet, or its status is
+        // AG/EP/AP/CA, this shortcut must not be offered at all — not even
+        // disabled, since AppHeader's icon actions have no disabled state.
+        actions={
+          isFinalizada
+            ? [
+                {
+                  icon: 'add',
+                  onPress: () => navigation.navigate('NovaPrescricao', { consultaId }),
+                  accessibilityLabel: t('prescricoesList.newAccessibilityLabel'),
+                },
+              ]
+            : []
+        }
       />
 
       <ScreenContainer>
@@ -65,15 +75,20 @@ export function PrescricoesScreen() {
         {/* Chunk 8 — the header "+" icon alone wasn't discoverable enough;
             this content button is the one visually prominent create action
             (the header icon remains only as a small secondary shortcut, so
-            there's no competing primary action). Always visible regardless
-            of list state, same NovaPrescricao/consultaId target the header
-            icon already uses. */}
-        <AppButton
-          title={t('prescricoesList.newButton')}
-          icon="add"
-          onPress={() => navigation.navigate('NovaPrescricao', { consultaId })}
-          style={styles.newButton}
-        />
+            there's no competing primary action). Chunk 8 correction — gated
+            on `isFinalizada`, same as the header shortcut above: creation is
+            only ever valid for a finalized (FI) consultation, so this must
+            not be shown while `consulta` is still loading or its status is
+            AG/EP/AP/CA. `NewPrescricaoScreen` itself still re-validates FI
+            independently as a second safeguard. */}
+        {isFinalizada ? (
+          <AppButton
+            title={t('prescricoesList.newButton')}
+            icon="add"
+            onPress={() => navigation.navigate('NovaPrescricao', { consultaId })}
+            style={styles.newButton}
+          />
+        ) : null}
 
         {isPending ? (
           <Text style={{ color: colors.textSecondary, textAlign: 'center' }}>
