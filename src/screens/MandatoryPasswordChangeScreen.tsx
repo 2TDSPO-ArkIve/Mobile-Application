@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, Alert, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { confirmAction } from '../utils/dialog';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { AppButton } from '../components/AppButton';
@@ -25,14 +26,14 @@ export function MandatoryPasswordChangeScreen() {
   const [submitting, setSubmitting] = useState(false);
 
   const handleCancel = () => {
-    Alert.alert(
-      t('changePassword.cancelConfirmTitle'),
-      t('changePassword.cancelConfirmMessage'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        { text: t('changePassword.cancelButton'), style: 'destructive', onPress: () => logout() },
-      ]
-    );
+    confirmAction({
+      title: t('changePassword.cancelConfirmTitle'),
+      message: t('changePassword.cancelConfirmMessage'),
+      cancelText: t('common.cancel'),
+      confirmText: t('changePassword.cancelButton'),
+      destructive: true,
+      onConfirm: () => logout(),
+    });
   };
 
   return (

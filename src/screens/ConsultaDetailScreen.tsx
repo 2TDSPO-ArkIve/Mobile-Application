@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
@@ -27,6 +27,7 @@ import { findConfirmedDiagnosis } from '../services/diagnosticoService';
 import { consultaStatusPresentation } from '../utils/statusPresentation';
 import { describeNarrativeSaveError } from '../utils/errorMessages';
 import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
+import { confirmAction } from '../utils/dialog';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { t } from '../i18n/store';
 import type { AppStackParamList } from '../interfaces/navigation';
@@ -103,26 +104,22 @@ export function ConsultaDetailScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert(
-      t('consultaDetail.deleteConfirmTitle'),
-      t('consultaDetail.deleteConfirmMessage', { id: consultaId }),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            setActionError('');
-            try {
-              await deleteMutation.mutateAsync(consultaId);
-              navigation.goBack();
-            } catch (err) {
-              setActionError(err instanceof Error ? err.message : t('consultaDetail.deleteError'));
-            }
-          },
-        },
-      ]
-    );
+    confirmAction({
+      title: t('consultaDetail.deleteConfirmTitle'),
+      message: t('consultaDetail.deleteConfirmMessage', { id: consultaId }),
+      cancelText: t('common.cancel'),
+      confirmText: t('common.delete'),
+      destructive: true,
+      onConfirm: async () => {
+        setActionError('');
+        try {
+          await deleteMutation.mutateAsync(consultaId);
+          navigation.goBack();
+        } catch (err) {
+          setActionError(err instanceof Error ? err.message : t('consultaDetail.deleteError'));
+        }
+      },
+    });
   };
 
   // The critical invariant: PATCH narrativa must complete successfully

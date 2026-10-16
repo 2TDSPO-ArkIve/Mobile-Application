@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { confirmAction } from '../utils/dialog';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
@@ -34,22 +35,22 @@ export function PrescricaoDetailScreen() {
   const [actionError, setActionError] = useState('');
 
   const handleDelete = () => {
-    Alert.alert(t('prescricaoDetail.deleteConfirmTitle'), t('prescricaoDetail.deleteConfirmMessage'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('common.delete'),
-        style: 'destructive',
-        onPress: async () => {
-          setActionError('');
-          try {
-            await deleteMutation.mutateAsync(prescricaoId);
-            navigation.goBack();
-          } catch (err) {
-            setActionError(describePrescricaoError(err));
-          }
-        },
+    confirmAction({
+      title: t('prescricaoDetail.deleteConfirmTitle'),
+      message: t('prescricaoDetail.deleteConfirmMessage'),
+      cancelText: t('common.cancel'),
+      confirmText: t('common.delete'),
+      destructive: true,
+      onConfirm: async () => {
+        setActionError('');
+        try {
+          await deleteMutation.mutateAsync(prescricaoId);
+          navigation.goBack();
+        } catch (err) {
+          setActionError(describePrescricaoError(err));
+        }
       },
-    ]);
+    });
   };
 
   if (isPending) {
