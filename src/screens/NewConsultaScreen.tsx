@@ -141,12 +141,16 @@ export function NewConsultaScreen() {
   const fieldErrors: Partial<Record<Field, string>> = {};
   if (!selectedAnimal) fieldErrors.patient = t('newConsulta.errorNoPatient');
   if (!modalidade) fieldErrors.modalidade = t('newConsulta.errorNoModalidade');
+  // A past day is flagged on the date field right away — the web input's
+  // `min` doesn't stop typing one, and waiting for the time hid the error.
+  const pastDate = !!date && date < startOfToday();
   if (!date) fieldErrors.date = t('newConsulta.errorNoDate');
+  else if (pastDate) fieldErrors.date = t('newConsulta.errorPastDate');
   if (!time) fieldErrors.time = t('newConsulta.errorNoTime');
   // Date and time are checked together — "date is today, but the chosen
-  // time has already passed" depends on both. The pickers' `minimumDate`
-  // alone can't catch it, and the backend rejects a past `dataHora` outright.
-  else if (date && isScheduleInPast(date, time)) fieldErrors.time = t('newConsulta.errorPastDateTime');
+  // time has already passed" depends on both, and the backend rejects a past
+  // `dataHora` outright.
+  else if (date && !pastDate && isScheduleInPast(date, time)) fieldErrors.time = t('newConsulta.errorPastDateTime');
   if (!motivo.trim()) fieldErrors.motivo = t('newConsulta.errorNoReason');
   if (!valorResult.ok) fieldErrors.valor = valorResult.errorMessage;
   const shownError = (field: Field) => (touched[field] ? fieldErrors[field] : undefined);

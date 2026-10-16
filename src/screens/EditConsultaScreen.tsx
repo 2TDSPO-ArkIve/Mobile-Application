@@ -105,9 +105,14 @@ export function EditConsultaScreen() {
   const valorResult = parseMoneyInput(valorConsultaInput);
   const fieldErrors: Partial<Record<Field, string>> = {};
   if (!modalidade) fieldErrors.modalidade = t('newConsulta.errorNoModalidade');
+  // Same rule as NewConsulta: a past day shows on the date field without
+  // waiting for the time — but only when the day itself was changed.
+  const pastDate =
+    !!date && !!consulta && date < startOfToday() && date.toDateString() !== new Date(consulta.dataHora).toDateString();
   if (!date) fieldErrors.date = t('newConsulta.errorNoDate');
+  else if (pastDate) fieldErrors.date = t('newConsulta.errorPastDate');
   if (!time) fieldErrors.time = t('newConsulta.errorNoTime');
-  else if (date && isPastChange(date, time)) fieldErrors.time = t('newConsulta.errorPastDateTime');
+  else if (date && !pastDate && isPastChange(date, time)) fieldErrors.time = t('newConsulta.errorPastDateTime');
   if (!motivo.trim()) fieldErrors.motivo = t('newConsulta.errorNoReason');
   if (!valorResult.ok) fieldErrors.valor = valorResult.errorMessage;
   const shownError = (field: Field) => (touched[field] ? fieldErrors[field] : undefined);

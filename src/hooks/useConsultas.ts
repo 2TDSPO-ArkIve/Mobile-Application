@@ -99,14 +99,26 @@ export function useUpdateConsulta(id: number) {
   });
 }
 
+/**
+ * Drops the row from the list cache synchronously, so the screen we go back
+ * to never shows the deleted consultation while the refetch is in flight.
+ * Also invalidates the patient's history, where an AG consultation appears.
+ */
 export function useDeleteConsulta() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: number) => deleteConsulta(id),
     onSuccess: (_result, id) => {
+      const animalId = queryClient.getQueryData<ConsultaDto>(queryKeys.consultas.detail(id))?.animalId;
+      queryClient.setQueryData<ConsultaDto[] | undefined>(queryKeys.consultas.list(), (current) =>
+        current?.filter((consulta) => consulta.id !== id)
+      );
       queryClient.invalidateQueries({ queryKey: queryKeys.consultas.list() });
       queryClient.removeQueries({ queryKey: queryKeys.consultas.detail(id) });
+      if (animalId != null) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.patients.history(animalId) });
+      }
     },
   });
 }
