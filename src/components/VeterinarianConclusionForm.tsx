@@ -8,7 +8,13 @@ import type { FinalizarConsultaRequest, Severidade } from '../services/consultaS
 import { spacing, fontSize, radius } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
-const SEVERIDADE_VALUES: Severidade[] = ['LEVE', 'MODERADA', 'GRAVE'];
+/**
+ * `AUSENTE` is UI-only: routine visits / no disease identified. It submits
+ * no severity at all (`FinalizarConsultaRequest.severidade` is nullable for
+ * exactly this case), so it never reaches Java as a code.
+ */
+type SeveridadeOption = Severidade | 'AUSENTE';
+const SEVERIDADE_VALUES: SeveridadeOption[] = ['AUSENTE', 'LEVE', 'MODERADA', 'GRAVE'];
 
 interface Props {
   onSubmit: (input: FinalizarConsultaRequest) => void;
@@ -35,7 +41,7 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
   const { t } = useTranslation();
 
   const [diagnostico, setDiagnostico] = useState('');
-  const [severidade, setSeveridade] = useState<Severidade | null>(null);
+  const [severidade, setSeveridade] = useState<SeveridadeOption | null>(null);
   const [conclusao, setConclusao] = useState('');
   const [validationError, setValidationError] = useState('');
 
@@ -59,7 +65,7 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
 
     onSubmit({
       diagnostico: diagnostico.trim(),
-      severidade: severidade ?? undefined,
+      severidade: severidade && severidade !== 'AUSENTE' ? severidade : undefined,
       doencaId: null,
       conclusao: conclusao.trim() || undefined,
     });
