@@ -26,6 +26,9 @@ export const en = {
     clearDate: 'Clear date',
     close: 'Close',
     search: 'Search',
+    loadMore: 'Load more',
+    loadingMore: 'Loading more...',
+    loadMoreError: 'Could not load more items. Try again.',
   },
   nav: {
     home: 'Home',
@@ -322,7 +325,7 @@ export const en = {
     prescricoesButton: 'Manage prescriptions',
     /** Per-consultation SNAPSHOT (`observacaoResponsavel`) — never the animal's current/still-pending note. See `AnimalObservationCard`'s own doc comment. */
     responsavelObservationLabel: "Responsible person's observation",
-    closedReadOnly: 'Visit closed — read-only record.',
+    closedReadOnly: 'Visit closed. Read-only record.',
     startConsulta: 'Start visit',
     startError: 'Could not start the visit.',
     editConsulta: 'Edit visit',

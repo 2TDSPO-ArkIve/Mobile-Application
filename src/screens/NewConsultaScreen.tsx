@@ -14,6 +14,7 @@ import { DateField } from '../components/DateField';
 import { TimeField } from '../components/TimeField';
 import { MoneyField } from '../components/MoneyField';
 import { EmptyState } from '../components/EmptyState';
+import { LoadMoreButton } from '../components/LoadMoreButton';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useMyPatients } from '../hooks/usePatients';
@@ -102,15 +103,13 @@ export function NewConsultaScreen() {
   // re-queries with the typed term once the debounce settles. Same endpoint
   // either way (`GET /api/animais/me`), no client-side fake filtering,
   // server stays the source of truth.
-  const {
-    data: clinicPatients,
-    isPending: patientsPending,
-    isError: patientsError,
-  } = useMyPatients({
+  const patientsQuery = useMyPatients({
     busca: trimmedSearch || undefined,
     especieId: filterEspecieId ?? undefined,
     racaId: filterRacaId ?? undefined,
   });
+  const { isPending: patientsPending, isError: patientsError } = patientsQuery;
+  const clinicPatients = patientsQuery.data?.pages.flatMap((page) => page.content);
   const hasFilters = trimmedSearch.length > 0 || filterEspecieId != null;
 
   const [especieSearch, setEspecieSearch] = useState('');
@@ -257,42 +256,45 @@ export function NewConsultaScreen() {
                     message={t('newConsulta.loadPatientsErrorMessage')}
                   />
                 ) : clinicPatients && clinicPatients.length > 0 ? (
-                  clinicPatients.map((animal) => {
-                    const selected = selectedAnimal?.id === animal.id;
-                    return (
-                      <Pressable
-                        key={animal.id}
-                        onPress={() => handleSelectAnimal(animal)}
-                        style={[
-                          styles.patientRow,
-                          {
-                            backgroundColor: selected ? colors.primaryTint : colors.surface,
-                            borderColor: selected ? colors.primaryLight : colors.border,
-                          },
-                        ]}
-                      >
-                        <View style={styles.patientTextCol}>
-                          <Text
-                            style={{ color: colors.text, fontWeight: selected ? '700' : '600' }}
-                            numberOfLines={1}
-                          >
-                            {animal.nome}
-                          </Text>
-                          <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
-                            {patientSummaryLine(animal)}
-                          </Text>
-                          <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
-                            {patientArkiveIdLine(animal)}
-                          </Text>
-                        </View>
-                        <Ionicons
-                          name={selected ? 'checkmark-circle' : 'chevron-forward'}
-                          size={selected ? 22 : 18}
-                          color={selected ? colors.success : colors.textSecondary}
-                        />
-                      </Pressable>
-                    );
-                  })
+                  <>
+                    {clinicPatients.map((animal) => {
+                      const selected = selectedAnimal?.id === animal.id;
+                      return (
+                        <Pressable
+                          key={animal.id}
+                          onPress={() => handleSelectAnimal(animal)}
+                          style={[
+                            styles.patientRow,
+                            {
+                              backgroundColor: selected ? colors.primaryTint : colors.surface,
+                              borderColor: selected ? colors.primaryLight : colors.border,
+                            },
+                          ]}
+                        >
+                          <View style={styles.patientTextCol}>
+                            <Text
+                              style={{ color: colors.text, fontWeight: selected ? '700' : '600' }}
+                              numberOfLines={1}
+                            >
+                              {animal.nome}
+                            </Text>
+                            <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
+                              {patientSummaryLine(animal)}
+                            </Text>
+                            <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
+                              {patientArkiveIdLine(animal)}
+                            </Text>
+                          </View>
+                          <Ionicons
+                            name={selected ? 'checkmark-circle' : 'chevron-forward'}
+                            size={selected ? 22 : 18}
+                            color={selected ? colors.success : colors.textSecondary}
+                          />
+                        </Pressable>
+                      );
+                    })}
+                    <LoadMoreButton query={patientsQuery} />
+                  </>
                 ) : trimmedSearch.length > 0 ? (
                   <EmptyState
                     title={t('newConsulta.noPatientsTitle')}

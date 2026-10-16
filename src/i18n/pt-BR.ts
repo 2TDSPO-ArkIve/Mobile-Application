@@ -28,6 +28,9 @@ export const pt = {
     clearDate: 'Limpar data',
     close: 'Fechar',
     search: 'Buscar',
+    loadMore: 'Carregar mais',
+    loadingMore: 'Carregando mais...',
+    loadMoreError: 'Não foi possível carregar mais itens. Tente novamente.',
   },
   nav: {
     home: 'Início',
@@ -324,7 +327,7 @@ export const pt = {
     prescricoesButton: 'Gerenciar prescrições',
     /** Per-consultation SNAPSHOT (`observacaoResponsavel`) — never the animal's current/still-pending note. See `AnimalObservationCard`'s own doc comment. */
     responsavelObservationLabel: 'Observação do responsável',
-    closedReadOnly: 'Consulta encerrada — registro somente leitura.',
+    closedReadOnly: 'Consulta encerrada. Registro somente leitura.',
     startConsulta: 'Iniciar consulta',
     startError: 'Não foi possível iniciar a consulta.',
     editConsulta: 'Editar consulta',

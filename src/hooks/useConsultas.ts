@@ -1,4 +1,12 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+  type QueryClient,
+  type UseQueryOptions,
+} from '@tanstack/react-query';
 import { ApiError } from '../services/apiClient';
 import {
   cancelConsulta,
@@ -8,16 +16,19 @@ import {
   getClinicalSupport,
   getConsulta,
   listConsultas,
+  listConsultasByStatus,
   requestClinicalSupport,
   startConsulta,
   updateConsulta,
   updateNarrativa,
   type ConsultaDto,
+  type ConsultaStatus,
   type CreateConsultaInput,
   type FinalizarConsultaRequest,
   type UpdateConsultaInput,
 } from '../services/consultaService';
 import { queryKeys } from '../query/queryKeys';
+import { nextPageParam, type SpringPage } from '../utils/pagination';
 
 /** List — proves screen -> hook -> TanStack Query -> service -> apiClient -> Spring Boot end-to-end. */
 export function useConsultas() {
@@ -27,8 +38,25 @@ export function useConsultas() {
   });
 }
 
+/** One status group of `ConsultasScreen`, paged from the server. */
+export function useConsultasByStatus(status: ConsultaStatus) {
+  return useInfiniteQuery({
+    queryKey: queryKeys.consultas.byStatus(status),
+    queryFn: ({ pageParam }) => listConsultasByStatus(status, pageParam),
+    initialPageParam: 0,
+    getNextPageParam: nextPageParam,
+  });
+}
+
+/** Every consultation already loaded into a status group's pages. */
+function cachedStatusGroupRows(queryClient: QueryClient): ConsultaDto[] {
+  return queryClient
+    .getQueriesData<InfiniteData<SpringPage<ConsultaDto>>>({ queryKey: queryKeys.consultas.statusGroups() })
+    .flatMap(([, data]) => data?.pages.flatMap((page) => page.content) ?? []);
+}
+
 /**
- * Detail. Seeds from whatever row is already in the list cache — the
+ * Detail. Seeds from whatever row is already in a list cache — the
  * screen never flashes empty on navigation from the list, and if the
  * unconfirmed by-id GET turns out unsupported, the seeded row still renders
  * (see the confidence note on getConsulta in consultaService.ts).
@@ -40,9 +68,10 @@ export function useConsulta(id: number) {
     queryKey: queryKeys.consultas.detail(id),
     queryFn: () => getConsulta(id),
     initialData: () =>
-      queryClient
-        .getQueryData<ConsultaDto[]>(queryKeys.consultas.list())
-        ?.find((consulta) => consulta.id === id),
+      [
+        ...(queryClient.getQueryData<ConsultaDto[]>(queryKeys.consultas.list()) ?? []),
+        ...cachedStatusGroupRows(queryClient),
+      ].find((consulta) => consulta.id === id),
   });
 }
 
@@ -113,6 +142,17 @@ export function useDeleteConsulta() {
       const animalId = queryClient.getQueryData<ConsultaDto>(queryKeys.consultas.detail(id))?.animalId;
       queryClient.setQueryData<ConsultaDto[] | undefined>(queryKeys.consultas.list(), (current) =>
         current?.filter((consulta) => consulta.id !== id)
+      );
+      queryClient.setQueriesData<InfiniteData<SpringPage<ConsultaDto>>>(
+        { queryKey: queryKeys.consultas.statusGroups() },
+        (current) =>
+          current && {
+            ...current,
+            pages: current.pages.map((page) => ({
+              ...page,
+              content: page.content.filter((consulta) => consulta.id !== id),
+            })),
+          }
       );
       queryClient.invalidateQueries({ queryKey: queryKeys.consultas.list() });
       queryClient.removeQueries({ queryKey: queryKeys.consultas.detail(id) });

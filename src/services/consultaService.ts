@@ -8,6 +8,7 @@ import {
   NetworkError,
   isTransientInfraError,
 } from './apiClient';
+import { LIST_PAGE_SIZE, type SpringPage } from '../utils/pagination';
 
 /**
  * TEMPORARY diagnostic — sanitized (id, HTTP status, and the backend's own
@@ -258,6 +259,19 @@ export interface CancelarConsultaRequest {
 export async function listConsultas(): Promise<ConsultaDto[]> {
   const page = await apiGet<{ content: ConsultaDto[] }>('/api/consultas');
   return page.content;
+}
+
+/**
+ * One page of one status group (`ConsultasScreen`). `ConsultaRepository.buscar`
+ * has no `order by`, so `sort=id,desc` keeps pages stable (newest first).
+ */
+export async function listConsultasByStatus(
+  status: ConsultaStatus,
+  page: number
+): Promise<SpringPage<ConsultaDto>> {
+  return apiGet<SpringPage<ConsultaDto>>(
+    `/api/consultas?status=${status}&page=${page}&size=${LIST_PAGE_SIZE}&sort=id,desc`
+  );
 }
 
 /** Confirmed: `ConsultaController.buscarPorId`, `@GetMapping("/{id}")`. */
