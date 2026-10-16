@@ -20,6 +20,7 @@ import { NewPrescricaoScreen } from '../screens/NewPrescricaoScreen';
 import { PrescricaoDetailScreen } from '../screens/PrescricaoDetailScreen';
 import { EditPrescricaoScreen } from '../screens/EditPrescricaoScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { VeterinarianCostScreen } from '../screens/VeterinarianCostScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { ChangePasswordScreen } from '../screens/ChangePasswordScreen';
 import { CreateShareScreen } from '../screens/CreateShareScreen';
@@ -62,6 +63,7 @@ export function AppStack() {
       <Stack.Screen name="PrescricaoDetalhe" component={PrescricaoDetailScreen} />
       <Stack.Screen name="EditarPrescricao" component={EditPrescricaoScreen} />
       <Stack.Screen name="Perfil" component={ProfileScreen} />
+      <Stack.Screen name="ValoresVeterinario" component={VeterinarianCostScreen} />
       <Stack.Screen name="Configuracoes" component={SettingsScreen} />
       <Stack.Screen name="AlterarSenha" component={ChangePasswordScreen} />
       <Stack.Screen name="Notificacoes" component={NotificationsScreen} />

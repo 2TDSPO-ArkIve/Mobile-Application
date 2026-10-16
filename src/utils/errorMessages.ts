@@ -304,6 +304,24 @@ export function describeAnimalObservationError(error: unknown, isSave = false): 
   return isSave ? t('errors.animalObservationSaveGeneric') : t('errors.animalObservationGeneric');
 }
 
+/**
+ * Translates a `GET /api/veterinarios/me/custos` failure. No 404 branch —
+ * confirmed this endpoint takes no path parameter, so a 404 is structurally
+ * impossible here (unlike `describePatientCostsError`'s per-animal GET).
+ */
+export function describeOwnCostsError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 403) {
+      return t('errors.ownCostsForbidden');
+    }
+    return t('errors.ownCostsGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.ownCostsNetwork');
+  }
+  return t('errors.ownCostsGeneric');
+}
+
 /** Translates a `GET /api/animais/{id}/historico-pdf` failure. Same `InvalidPdfError` class as the consultation-summary PDF (see consultaPdfService.ts) — a malformed/empty body is the same failure mode regardless of which PDF endpoint produced it. */
 export function describePatientHistoryPdfError(error: unknown): string {
   if (error instanceof InvalidPdfError) {

@@ -73,6 +73,18 @@ export function ProfileScreen() {
           {t('profile.editUnavailable')}
         </Text>
 
+        {/* Chunk 6 — the one discoverable entry point to the veterinarian's
+            own financial dashboard. Deliberately not duplicated on the Home
+            tab (avoids overcrowding it with an unrelated card) and
+            deliberately absent from ResponsavelAppStack entirely — a
+            Responsible user has no Mobile navigation path to this screen. */}
+        <Text style={[styles.sectionLabel, { color: colors.text }]}>{t('profile.financialSection')}</Text>
+        <AppButton
+          title={t('vetCosts.entryPointButton')}
+          variant="outline"
+          onPress={() => navigation.navigate('ValoresVeterinario')}
+        />
+
         <Text style={[styles.sectionLabel, { color: colors.text }]}>{t('profile.securitySection')}</Text>
         <AppButton
           title={t('profile.changePasswordButton')}

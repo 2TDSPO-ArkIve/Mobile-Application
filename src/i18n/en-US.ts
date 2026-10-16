@@ -518,6 +518,33 @@ export const en = {
     consultationsCounted: '{{count}} consultations with a recorded value',
     prescriptionsCounted: '{{count}} prescriptions with a recorded value',
   },
+  /**
+   * Chunk 6 — the veterinarian's own financial dashboard
+   * (`GET /api/veterinarios/me/custos`). Deliberately NOT called "Revenue"/
+   * "Profit"/"Income"/"Earnings" anywhere — Java only models a recorded
+   * value per consultation/prescription, never revenue, payment, or profit.
+   * A separate domain from `patientCosts` on purpose (see
+   * `VeterinarianCostScreen`'s own doc comment on why these are two distinct
+   * concepts/endpoints, never reused).
+   */
+  vetCosts: {
+    title: 'Financial summary',
+    intro: 'Review the values recorded in your finalized visits.',
+    entryPointButton: 'Financial summary',
+    loading: 'Loading values...',
+    loadErrorTitle: 'Could not load',
+    emptyTitle: 'No values recorded',
+    emptyMessage: 'No values recorded yet.',
+    summaryConsultations: 'Consultations',
+    summaryMedications: 'Medications',
+    summaryTotal: 'Total recorded',
+    consultationsCounted: '{{count}} consultations with a recorded value',
+    prescriptionsCounted: '{{count}} prescriptions with a recorded value',
+    breakdownTitle: 'Breakdown by visit',
+    consultationValue: 'Consultation',
+    medicationsValue: 'Medications',
+    totalValue: 'Total',
+  },
   notifications: {
     title: 'Notifications',
     loading: 'Loading notifications...',
@@ -707,6 +734,7 @@ export const en = {
     crmvLabel: 'License (CRMV): {{value}}',
     editUnavailable:
       "Editing registration data isn't available in the app yet. This data is managed by the clinic's administration.",
+    financialSection: 'Financial',
     securitySection: 'Security',
     changePasswordButton: 'Change password',
     settingsButton: 'Settings',
@@ -817,6 +845,9 @@ export const en = {
     patientCostsNotFound: "Could not find this patient's costs.",
     patientCostsGeneric: 'Could not load the costs right now.',
     patientCostsNetwork: 'No connection to the server. Check your internet and try again.',
+    ownCostsForbidden: "You don't have permission to view this financial summary.",
+    ownCostsGeneric: 'Could not load the values right now.',
+    ownCostsNetwork: 'No connection to the server. Check your internet and try again.',
     animalObservationForbidden: "You are not this animal's active responsible person.",
     animalObservationNotFound: 'Could not find this animal.',
     animalObservationGeneric: 'Could not load the observation right now.',

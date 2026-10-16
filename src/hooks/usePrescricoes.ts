@@ -63,6 +63,13 @@ export function useCreatePrescricao(consultaId: number, animalId?: number) {
         queryClient.invalidateQueries({ queryKey: queryKeys.patients.costs(animalId) });
         queryClient.invalidateQueries({ queryKey: queryKeys.patients.history(animalId) });
       }
+      // Chunk 6 — a prescription only ever exists on an already-`FI`
+      // consultation (`exigirConsultaFinalizada`), so its `valorMedicamento`
+      // always counts toward the authenticated veterinarian's own financial
+      // dashboard — unlike the patient-cost/history invalidations above,
+      // this doesn't need `animalId`, since the dashboard has no per-patient
+      // scoping to target.
+      queryClient.invalidateQueries({ queryKey: queryKeys.veterinarios.ownCosts() });
     },
   });
 }
@@ -81,6 +88,8 @@ export function useUpdatePrescricao(id: number, consultaId: number, animalId?: n
         queryClient.invalidateQueries({ queryKey: queryKeys.patients.costs(animalId) });
         queryClient.invalidateQueries({ queryKey: queryKeys.patients.history(animalId) });
       }
+      // See useCreatePrescricao's own note.
+      queryClient.invalidateQueries({ queryKey: queryKeys.veterinarios.ownCosts() });
     },
   });
 }
@@ -98,6 +107,8 @@ export function useDeletePrescricao(consultaId: number, animalId?: number) {
         queryClient.invalidateQueries({ queryKey: queryKeys.patients.costs(animalId) });
         queryClient.invalidateQueries({ queryKey: queryKeys.patients.history(animalId) });
       }
+      // See useCreatePrescricao's own note.
+      queryClient.invalidateQueries({ queryKey: queryKeys.veterinarios.ownCosts() });
     },
   });
 }

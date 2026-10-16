@@ -520,6 +520,33 @@ export const pt = {
     consultationsCounted: '{{count}} consultas com valor registrado',
     prescriptionsCounted: '{{count}} prescrições com valor registrado',
   },
+  /**
+   * Chunk 6 — the veterinarian's own financial dashboard
+   * (`GET /api/veterinarios/me/custos`). Deliberately NOT called
+   * "Faturamento"/"Lucro"/"Receita"/"Ganhos" anywhere — Java only models a
+   * recorded value per consultation/prescription, never revenue, payment, or
+   * profit. A separate domain from `patientCosts` on purpose (see
+   * `VeterinarianCostScreen`'s own doc comment on why these are two distinct
+   * concepts/endpoints, never reused).
+   */
+  vetCosts: {
+    title: 'Resumo financeiro',
+    intro: 'Consulte os valores registrados nos seus atendimentos finalizados.',
+    entryPointButton: 'Resumo financeiro',
+    loading: 'Carregando valores...',
+    loadErrorTitle: 'Não foi possível carregar',
+    emptyTitle: 'Nenhum valor registrado',
+    emptyMessage: 'Nenhum valor registrado até o momento.',
+    summaryConsultations: 'Consultas',
+    summaryMedications: 'Medicamentos',
+    summaryTotal: 'Total registrado',
+    consultationsCounted: '{{count}} consultas com valor registrado',
+    prescriptionsCounted: '{{count}} prescrições com valor registrado',
+    breakdownTitle: 'Detalhamento por consulta',
+    consultationValue: 'Consulta',
+    medicationsValue: 'Medicamentos',
+    totalValue: 'Total',
+  },
   notifications: {
     title: 'Notificações',
     loading: 'Carregando notificações...',
@@ -709,6 +736,7 @@ export const pt = {
     crmvLabel: 'CRMV: {{value}}',
     editUnavailable:
       'A edição de dados cadastrais ainda não está disponível pelo aplicativo. Esses dados são gerenciados pela administração da clínica.',
+    financialSection: 'Financeiro',
     securitySection: 'Segurança',
     changePasswordButton: 'Alterar senha',
     settingsButton: 'Configurações',
@@ -821,6 +849,9 @@ export const pt = {
     patientCostsNotFound: 'Não foi possível encontrar os custos deste paciente.',
     patientCostsGeneric: 'Não foi possível carregar os custos agora.',
     patientCostsNetwork: 'Sem conexão com o servidor. Verifique sua internet e tente novamente.',
+    ownCostsForbidden: 'Você não tem permissão para ver este resumo financeiro.',
+    ownCostsGeneric: 'Não foi possível carregar os valores agora.',
+    ownCostsNetwork: 'Sem conexão com o servidor. Verifique sua internet e tente novamente.',
     animalObservationForbidden: 'Você não é o responsável ativo deste animal.',
     animalObservationNotFound: 'Não foi possível encontrar este animal.',
     animalObservationGeneric: 'Não foi possível carregar a observação agora.',

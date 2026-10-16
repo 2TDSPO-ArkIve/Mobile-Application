@@ -93,6 +93,8 @@ export type AppStackParamList = {
   PrescricaoDetalhe: { prescricaoId: number; consultaId: number };
   EditarPrescricao: { prescricaoId: number; consultaId: number };
   Perfil: undefined;
+  /** Chunk 6 — "Resumo financeiro". VETERINARIO-only: this route does not exist in `ResponsavelAppStackParamList`, and the backend endpoint it reads (`GET /api/veterinarios/me/custos`) is `hasRole("VETERINARIO")`-gated regardless. No params — always "my own" data, never a chosen veterinarianId. */
+  ValoresVeterinario: undefined;
   Configuracoes: undefined;
   AlterarSenha: undefined;
   Notificacoes: undefined;

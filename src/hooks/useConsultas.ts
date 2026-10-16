@@ -247,6 +247,11 @@ export function useFinalizeConsulta(id: number) {
       queryClient.invalidateQueries({ queryKey: queryKeys.diagnosticos.byConsulta(id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.patients.costs(finalized.animalId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.patients.history(finalized.animalId) });
+      // Chunk 6 — finalizing is the exact transition that makes a
+      // consultation start counting toward the authenticated veterinarian's
+      // own financial dashboard (`GET /api/veterinarios/me/custos` only
+      // aggregates `FI` consultations).
+      queryClient.invalidateQueries({ queryKey: queryKeys.veterinarios.ownCosts() });
     },
   });
 }

@@ -54,6 +54,8 @@ export const queryKeys = {
     detail: (id: string | number) => [...queryKeys.veterinarios.all, 'detail', id] as const,
     /** `GET /api/veterinarios/me` — the authenticated veterinarian's own profile, no id involved. */
     me: () => [...queryKeys.veterinarios.all, 'me'] as const,
+    /** `GET /api/veterinarios/me/custos` (Chunk 6) — the authenticated veterinarian's own financial dashboard. No id involved; never shared across accounts. */
+    ownCosts: () => [...queryKeys.veterinarios.all, 'own-costs'] as const,
   },
   prescricoes: {
     all: ['prescricoes'] as const,

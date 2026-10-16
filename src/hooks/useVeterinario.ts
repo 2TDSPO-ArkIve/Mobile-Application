@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { getOwnVeterinario } from '../services/veterinarioService';
+import { getOwnVeterinarianCosts } from '../services/veterinarioCustoService';
 import { useAuth } from './useAuth';
 import { queryKeys } from '../query/queryKeys';
 
@@ -20,6 +21,24 @@ export function useOwnVeterinario() {
   return useQuery({
     queryKey: queryKeys.veterinarios.me(),
     queryFn: () => getOwnVeterinario(),
+    enabled: status === 'authenticated',
+  });
+}
+
+/**
+ * Chunk 6 — the authenticated veterinarian's own financial dashboard
+ * (`GET /api/veterinarios/me/custos`). No parameters are accepted or needed:
+ * the endpoint derives the veterinarian exclusively from the authenticated
+ * principal, same invariant as `useOwnVeterinario` above — there is no way
+ * for this hook (or the screen using it) to request another veterinarian's
+ * data, by construction.
+ */
+export function useOwnVeterinarianCosts() {
+  const { status } = useAuth();
+
+  return useQuery({
+    queryKey: queryKeys.veterinarios.ownCosts(),
+    queryFn: () => getOwnVeterinarianCosts(),
     enabled: status === 'authenticated',
   });
 }
