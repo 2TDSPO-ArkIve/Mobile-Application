@@ -22,6 +22,7 @@ import {
   useStartConsulta,
 } from '../hooks/useConsultas';
 import { useConsultaDiagnosticos } from '../hooks/useDiagnosticos';
+import { useAnimalReportsPresence } from '../hooks/useAnimalReports';
 import { findConfirmedDiagnosis } from '../services/diagnosticoService';
 import { consultaStatusPresentation } from '../utils/statusPresentation';
 import { describeNarrativeSaveError } from '../utils/errorMessages';
@@ -67,6 +68,17 @@ export function ConsultaDetailScreen() {
   const diagnosticos = useConsultaDiagnosticos(consultaId, { enabled: diagnosticosEnabled });
   const confirmedDiagnosis = diagnosticos.data ? findConfirmedDiagnosis(diagnosticos.data) : undefined;
   const clinicalSupport = useConsultaClinicalSupport(consultaId, { enabled: consulta?.status === 'FI' });
+
+  /**
+   * Chunk 9 — backs the eye-icon's visibility, never its own narrative/clinical
+   * data: a cheap `page=0&size=1` presence check (see the hook's own doc
+   * comment), not the full report history. "Do not mistake an API error for
+   * zero reports" — the icon stays visible on `isPending`/`isError` too, and
+   * is hidden ONLY on a confirmed successful response with zero results, so a
+   * transient failure never hides a veterinarian's access to real reports.
+   */
+  const reportsPresence = useAnimalReportsPresence(consulta?.animalId ?? null);
+  const showReportsAction = !(reportsPresence.isSuccess && reportsPresence.data.totalElements === 0);
 
   const [actionError, setActionError] = useState('');
   const [proceeding, setProceeding] = useState(false);
@@ -180,7 +192,20 @@ export function ConsultaDetailScreen() {
   if (consulta.status === 'EP') {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
-        <AppHeader title={t('consultaDetail.title', { id: consulta.id })} />
+        <AppHeader
+          title={t('consultaDetail.title', { id: consulta.id })}
+          actions={
+            showReportsAction
+              ? [
+                  {
+                    icon: 'eye-outline',
+                    onPress: () => navigation.navigate('RelatosAnimal', { patientId: consulta.animalId }),
+                    accessibilityLabel: t('consultaDetail.viewReportsAccessibilityLabel'),
+                  },
+                ]
+              : []
+          }
+        />
         <ScreenContainer>
           <ClinicalIntake
             animalNome={consulta.animalNome}
@@ -236,7 +261,20 @@ export function ConsultaDetailScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <AppHeader title={t('consultaDetail.title', { id: consulta.id })} />
+      <AppHeader
+        title={t('consultaDetail.title', { id: consulta.id })}
+        actions={
+          showReportsAction
+            ? [
+                {
+                  icon: 'eye-outline',
+                  onPress: () => navigation.navigate('RelatosAnimal', { patientId: consulta.animalId }),
+                  accessibilityLabel: t('consultaDetail.viewReportsAccessibilityLabel'),
+                },
+              ]
+            : []
+        }
+      />
 
       <ScreenContainer>
         <AppCard>

@@ -28,6 +28,25 @@ export const queryKeys = {
     /** `GET /api/animais/{id}/observacao-responsavel` — the RESPONSAVEL's pending note for this one animal; never shared across animal ids. */
     observacao: (id: string | number) => [...queryKeys.patients.all, 'observacao', id] as const,
   },
+  /**
+   * New permanent report history (`GET`/`POST /api/animais/{id}/relatos`) —
+   * deliberately a SEPARATE top-level namespace from `patients`, not nested
+   * under it, even though both are animal-scoped: `byAnimal` is the shared
+   * prefix invalidated on a successful create (covers every paginated/
+   * searched list AND the lightweight presence check below in one call),
+   * while `list`/`presence` are kept as distinct sub-keys so a presence
+   * check's cached `{page:0,size:1}` result can never be read back as if it
+   * were a real page-0 list for the UI (they cache the same shape of data
+   * but serve different purposes and different staleness needs).
+   */
+  animalReports: {
+    all: ['animalReports'] as const,
+    byAnimal: (animalId: string | number) => [...queryKeys.animalReports.all, animalId] as const,
+    list: (animalId: string | number, busca: string) =>
+      [...queryKeys.animalReports.byAnimal(animalId), 'list', busca] as const,
+    /** `page=0&size=1`, read only for `totalElements` — backs the veterinarian's eye-icon visibility without ever loading the full history. */
+    presence: (animalId: string | number) => [...queryKeys.animalReports.byAnimal(animalId), 'presence'] as const,
+  },
   especies: {
     all: ['especies'] as const,
     list: () => [...queryKeys.especies.all, 'list'] as const,

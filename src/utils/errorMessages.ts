@@ -335,6 +335,51 @@ export function describeAccessRequestCreateError(error: unknown): string {
   return t('errors.accessRequestCreateGeneric');
 }
 
+/**
+ * Translates a `POST /api/animais/{id}/relatos` (create report) failure.
+ * Confirmed against current local Java (`RelatoAnimalService.criar`): 400
+ * covers a blank/oversized `texto` or a future `dataOcorrencia`, all with
+ * Java's own already-clear, safe PT-BR text — shown VERBATIM, same pattern
+ * as `describeAccessRequestCreateError`. 404 means the animal itself wasn't
+ * found; 409 means the animal is inactive. 403 means the caller isn't the
+ * active/currently-linked Responsible for this animal.
+ */
+export function describeAnimalReportCreateError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 400 || error.status === 404 || error.status === 409) {
+      return error.message || t('errors.animalReportCreateGeneric');
+    }
+    if (error.status === 403) {
+      return t('errors.animalReportCreateForbidden');
+    }
+    if (error.status >= 500) {
+      return t('errors.animalReportCreateUnavailable');
+    }
+    return t('errors.animalReportCreateGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.animalReportCreateNetwork');
+  }
+  return t('errors.animalReportCreateGeneric');
+}
+
+/** Translates a `GET /api/animais/{id}/relatos` (list/search) failure — read-authorized identically for VETERINARIO/RESPONSAVEL (`ClinicalAccessService.exigirLeituraAnimal`). */
+export function describeAnimalReportListError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 403) {
+      return t('errors.animalReportListForbidden');
+    }
+    if (error.status === 404) {
+      return t('errors.animalReportListNotFound');
+    }
+    return t('errors.animalReportListGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.animalReportListNetwork');
+  }
+  return t('errors.animalReportListGeneric');
+}
+
 /** Translates a `GET /api/solicitacoes-acesso` (list) failure for either role. */
 export function describeAccessRequestListError(error: unknown): string {
   if (error instanceof ApiError) {

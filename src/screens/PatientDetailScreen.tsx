@@ -47,6 +47,8 @@ type PatientDetailNavigationParamList = {
   CompartilharPaciente: { patientId: number };
   HistoricoPaciente: { patientId: number };
   CustosPaciente: { patientId: number };
+  /** New permanent report history — registered in BOTH stacks (read-only for VETERINARIO), unlike `EditarAnimal`. */
+  RelatosAnimal: { patientId: number };
 };
 
 export function PatientDetailScreen() {
@@ -185,6 +187,23 @@ export function PatientDetailScreen() {
           variant="outline"
           onPress={() => navigation.navigate('CustosPaciente', { patientId: patient.id })}
         />
+
+        {/* New permanent report history (Java V18) — RESPONSAVEL-only entry
+            point here, deliberately distinct from the pending-observation
+            card below: "Relatos e observações" (this button) is a growing,
+            permanent history; "Observações para a próxima consulta" (the
+            card below) is a single note Java snapshots into one consultation
+            and clears. Never two buttons with the same label, never merged
+            into one feature. The veterinarian's own entry point to the same
+            read-only history lives on ConsultaDetailScreen's eye icon, not
+            here. */}
+        {isResponsavel ? (
+          <AppButton
+            title={t('patientDetail.reportsButton')}
+            variant="outline"
+            onPress={() => navigation.navigate('RelatosAnimal', { patientId: patient.id })}
+          />
+        ) : null}
 
         {/* RESPONSAVEL-only pending note for the NEXT consultation — see
             AnimalObservationCard's own doc comment for the pending-vs-snapshot
