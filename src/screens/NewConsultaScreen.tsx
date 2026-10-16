@@ -9,6 +9,7 @@ import { AppInput } from '../components/AppInput';
 import { AppButton } from '../components/AppButton';
 import { AppCard } from '../components/AppCard';
 import { SearchBar } from '../components/SearchBar';
+import { ChipGroup } from '../components/ChipGroup';
 import { DateField } from '../components/DateField';
 import { TimeField } from '../components/TimeField';
 import { MoneyField } from '../components/MoneyField';
@@ -17,6 +18,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useMyPatients } from '../hooks/usePatients';
 import { useCreateConsulta } from '../hooks/useConsultas';
+import { useEspecies, useRacas } from '../hooks/useLookups';
 import { patientSummaryLine, patientArkiveIdLine } from '../utils/patientDisplay';
 import { isScheduleInPast, startOfToday, toLocalDateTimeString } from '../utils/consultaScheduling';
 import { parseMoneyInput } from '../utils/money';
@@ -28,6 +30,16 @@ import { commonStyles } from '../styles/common';
 
 const MODALIDADE_VALUES: Modalidade[] = ['PRESENCIAL', 'REMOTA'];
 const SEARCH_DEBOUNCE_MS = 300;
+
+type Field = 'patient' | 'modalidade' | 'date' | 'time' | 'motivo' | 'valor';
+const ALL_TOUCHED: Record<Field, boolean> = {
+  patient: true,
+  modalidade: true,
+  date: true,
+  time: true,
+  motivo: true,
+  valor: true,
+};
 
 export function NewConsultaScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
@@ -52,7 +64,14 @@ export function NewConsultaScreen() {
   const [motivo, setMotivo] = useState('');
   const [endereco, setEndereco] = useState('');
   const [valorConsultaInput, setValorConsultaInput] = useState('');
+  const [filterEspecieId, setFilterEspecieId] = useState<number | null>(null);
+  const [filterRacaId, setFilterRacaId] = useState<number | null>(null);
+  // Field errors only show once that field was touched (or on submit), so
+  // the form doesn't open already red. `error` below is API-only.
+  const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({});
   const [error, setError] = useState('');
+
+  const touch = (field: Field) => setTouched((prev) => (prev[field] ? prev : { ...prev, [field]: true }));
 
   // REMOTA never carries an address — clearing it here (rather than just
   // hiding the field) means switching PRESENCIAL -> REMOTA -> PRESENCIAL
@@ -87,49 +106,66 @@ export function NewConsultaScreen() {
     data: clinicPatients,
     isPending: patientsPending,
     isError: patientsError,
-  } = useMyPatients({ busca: trimmedSearch || undefined });
+  } = useMyPatients({
+    busca: trimmedSearch || undefined,
+    especieId: filterEspecieId ?? undefined,
+    racaId: filterRacaId ?? undefined,
+  });
+  const hasFilters = trimmedSearch.length > 0 || filterEspecieId != null;
+
+  const [especieSearch, setEspecieSearch] = useState('');
+  const [racaSearch, setRacaSearch] = useState('');
+  const { data: especies } = useEspecies(especieSearch);
+  const { data: racas } = useRacas(filterEspecieId, racaSearch);
+  const allOption = { value: '', label: t('newConsulta.filterAll') };
+  const especieFilterOptions = [
+    allOption,
+    ...(especies ?? []).filter((e) => e.ativo === 'S').map((e) => ({ value: String(e.id), label: e.nome })),
+  ];
+  const racaFilterOptions = [
+    allOption,
+    ...(racas ?? []).filter((r) => r.ativo === 'S').map((r) => ({ value: String(r.id), label: r.nome })),
+  ];
+
+  const handleEspecieFilter = (value: string) => {
+    setFilterEspecieId(value ? Number(value) : null);
+    setFilterRacaId(null);
+  };
 
   const handleSelectAnimal = (animal: AnimalDto) => {
     setSelectedAnimal(animal);
     setChangingPatient(false);
   };
 
+  const valorResult = parseMoneyInput(valorConsultaInput);
+  const fieldErrors: Partial<Record<Field, string>> = {};
+  if (!selectedAnimal) fieldErrors.patient = t('newConsulta.errorNoPatient');
+  if (!modalidade) fieldErrors.modalidade = t('newConsulta.errorNoModalidade');
+  if (!date) fieldErrors.date = t('newConsulta.errorNoDate');
+  if (!time) fieldErrors.time = t('newConsulta.errorNoTime');
+  // Date and time are checked together — "date is today, but the chosen
+  // time has already passed" depends on both. The pickers' `minimumDate`
+  // alone can't catch it, and the backend rejects a past `dataHora` outright.
+  else if (date && isScheduleInPast(date, time)) fieldErrors.time = t('newConsulta.errorPastDateTime');
+  if (!motivo.trim()) fieldErrors.motivo = t('newConsulta.errorNoReason');
+  if (!valorResult.ok) fieldErrors.valor = valorResult.errorMessage;
+  const shownError = (field: Field) => (touched[field] ? fieldErrors[field] : undefined);
+
   const handleSave = async () => {
     setError('');
+    setTouched(ALL_TOUCHED);
 
-    if (!selectedAnimal) {
-      setError(t('newConsulta.errorNoPatient'));
-      return;
-    }
-    if (!modalidade) {
-      setError(t('newConsulta.errorNoModalidade'));
-      return;
-    }
-    if (!date) {
-      setError(t('newConsulta.errorNoDate'));
-      return;
-    }
-    if (!time) {
-      setError(t('newConsulta.errorNoTime'));
-      return;
-    }
-    if (!motivo.trim()) {
-      setError(t('newConsulta.errorNoReason'));
-      return;
-    }
-    // Re-validated here regardless of the date/time pickers' own UI
-    // constraints — the backend rejects a past `dataHora` outright, and a
-    // picker's `minimumDate` alone can't catch "date is today, but the
-    // chosen time has already passed" or a value picked minutes ago that's
-    // since slipped into the past while the form sat open.
-    if (isScheduleInPast(date, time)) {
-      setError(t('newConsulta.errorPastDateTime'));
-      return;
-    }
-
-    const valorResult = parseMoneyInput(valorConsultaInput);
-    if (!valorResult.ok) {
-      setError(valorResult.errorMessage);
+    // `isScheduleInPast` re-run here: the form may have sat open since the
+    // last render, letting a valid time slip into the past.
+    if (
+      Object.keys(fieldErrors).length > 0 ||
+      !selectedAnimal ||
+      !modalidade ||
+      !date ||
+      !time ||
+      !valorResult.ok ||
+      isScheduleInPast(date, time)
+    ) {
       return;
     }
 
@@ -184,8 +220,27 @@ export function NewConsultaScreen() {
                   placeholder={t('newConsulta.searchPatientPlaceholder')}
                 />
 
+                <ChipGroup
+                  label={t('newConsulta.filterSpeciesLabel')}
+                  options={especieFilterOptions}
+                  value={filterEspecieId != null ? String(filterEspecieId) : ''}
+                  onChange={handleEspecieFilter}
+                  searchPlaceholder={t('common.search')}
+                  onSearchChange={setEspecieSearch}
+                />
+                {filterEspecieId != null ? (
+                  <ChipGroup
+                    label={t('newConsulta.filterBreedLabel')}
+                    options={racaFilterOptions}
+                    value={filterRacaId != null ? String(filterRacaId) : ''}
+                    onChange={(value) => setFilterRacaId(value ? Number(value) : null)}
+                    searchPlaceholder={t('common.search')}
+                    onSearchChange={setRacaSearch}
+                  />
+                ) : null}
+
                 <Text style={[styles.subLabel, { color: colors.textSecondary }]}>
-                  {trimmedSearch ? t('newConsulta.searchResults') : t('newConsulta.clinicPatients')}
+                  {hasFilters ? t('newConsulta.searchResults') : t('newConsulta.clinicPatients')}
                 </Text>
 
                 {patientsPending ? (
@@ -239,6 +294,11 @@ export function NewConsultaScreen() {
                     title={t('newConsulta.noPatientsTitle')}
                     message={t('newConsulta.noPatientsFoundFor', { query: trimmedSearch })}
                   />
+                ) : hasFilters ? (
+                  <EmptyState
+                    title={t('newConsulta.noPatientsTitle')}
+                    message={t('newConsulta.noPatientsForFilters')}
+                  />
                 ) : (
                   <EmptyState
                     title={t('newConsulta.noClinicPatientsTitle')}
@@ -254,6 +314,9 @@ export function NewConsultaScreen() {
                 />
               </>
             )}
+            {shownError('patient') ? (
+              <Text style={[commonStyles.errorText, { color: colors.error }]}>{shownError('patient')}</Text>
+            ) : null}
 
             {/* MODALIDADE */}
             <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
@@ -287,6 +350,9 @@ export function NewConsultaScreen() {
                 );
               })}
             </View>
+            {shownError('modalidade') ? (
+              <Text style={[commonStyles.errorText, { color: colors.error }]}>{shownError('modalidade')}</Text>
+            ) : null}
 
             {modalidade === 'PRESENCIAL' ? (
               <>
@@ -306,8 +372,25 @@ export function NewConsultaScreen() {
             <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
               {t('newConsulta.dateTimeSection')}
             </Text>
-            <DateField label={t('newConsulta.dateLabel')} value={date} onChange={setDate} minimumDate={startOfToday()} />
-            <TimeField label={t('newConsulta.timeLabel')} value={time} onChange={setTime} />
+            <DateField
+              label={t('newConsulta.dateLabel')}
+              value={date}
+              onChange={(next) => {
+                setDate(next);
+                touch('date');
+              }}
+              minimumDate={startOfToday()}
+              error={shownError('date')}
+            />
+            <TimeField
+              label={t('newConsulta.timeLabel')}
+              value={time}
+              onChange={(next) => {
+                setTime(next);
+                touch('time');
+              }}
+              error={shownError('time')}
+            />
 
             {/* MOTIVO */}
             <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
@@ -318,18 +401,23 @@ export function NewConsultaScreen() {
               placeholder={t('newConsulta.reasonPlaceholder')}
               value={motivo}
               onChangeText={setMotivo}
+              onBlur={() => touch('motivo')}
+              error={shownError('motivo')}
               multiline
             />
 
             {/* VALOR */}
             <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
               {t('newConsulta.valueSection')}
+              <Text style={[styles.optionalSuffix, { color: colors.textSecondary }]}> · {t('common.optional')}</Text>
             </Text>
             <MoneyField
-              label={t('newConsulta.consultationValueLabel')}
-              helperText={t('newConsulta.consultationValueHelper')}
               value={valorConsultaInput}
-              onChangeText={setValorConsultaInput}
+              onChangeText={(text) => {
+                setValorConsultaInput(text);
+                touch('valor');
+              }}
+              error={shownError('valor')}
             />
 
             {error ? <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{error}</Text> : null}
@@ -376,4 +464,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   submitButton: { marginTop: spacing.xl },
+  // Nested inside the uppercase eyebrow heading — undo its caps/weight so
+  // "opcional" reads as a quiet hint, not part of the title.
+  optionalSuffix: { textTransform: 'none', fontWeight: '400', letterSpacing: 0 },
 });

@@ -50,10 +50,12 @@ export const queryKeys = {
   especies: {
     all: ['especies'] as const,
     list: () => [...queryKeys.especies.all, 'list'] as const,
+    search: (nome: string) => [...queryKeys.especies.list(), 'search', nome] as const,
   },
   racas: {
     all: ['racas'] as const,
     byEspecie: (especieId: number) => [...queryKeys.racas.all, 'by-especie', especieId] as const,
+    search: (especieId: number, nome: string) => [...queryKeys.racas.byEspecie(especieId), 'search', nome] as const,
   },
   responsaveis: {
     all: ['responsaveis'] as const,

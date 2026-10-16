@@ -78,24 +78,30 @@ export function PatientForm({
   const [validationError, setValidationError] = useState('');
   const [breedModalOpen, setBreedModalOpen] = useState(false);
 
+  const [especieSearch, setEspecieSearch] = useState('');
+  const [racaSearch, setRacaSearch] = useState('');
+  // Unfiltered lists drive the form logic (selected name, breed/species
+  // mismatch check); the `*Results` ones are the server-side search the chips show.
   const { data: especies, isPending: especiesLoading } = useEspecies();
   const { data: racas, isPending: racasLoading } = useRacas(especieId);
+  const { data: especieResults } = useEspecies(especieSearch);
+  const { data: racaResults } = useRacas(especieId, racaSearch);
 
   // Only active species/breeds are offered — except the patient's own saved
   // value on edit, which stays visible even if it was deactivated later.
   const especieOptions = useMemo(
     () =>
-      (especies ?? [])
+      (especieResults ?? [])
         .filter((e) => e.ativo === 'S' || e.id === initialValues?.especieId)
         .map((e) => ({ value: String(e.id), label: e.nome })),
-    [especies, initialValues?.especieId]
+    [especieResults, initialValues?.especieId]
   );
   const racaOptions = useMemo(
     () =>
-      (racas ?? [])
+      (racaResults ?? [])
         .filter((r) => r.ativo === 'S' || r.id === initialValues?.racaId)
         .map((r) => ({ value: String(r.id), label: r.nome })),
-    [racas, initialValues?.racaId]
+    [racaResults, initialValues?.racaId]
   );
   const selectedEspecieNome = useMemo(
     () => especies?.find((e) => e.id === especieId)?.nome ?? '',
@@ -160,6 +166,8 @@ export function PatientForm({
         options={especieOptions}
         value={especieId != null ? String(especieId) : null}
         onChange={handleEspecieChange}
+        searchPlaceholder={t('common.search')}
+        onSearchChange={setEspecieSearch}
         emptyMessage={especiesLoading ? t('patientForm.loadingSpecies') : t('patientForm.noSpecies')}
       />
 
@@ -168,6 +176,8 @@ export function PatientForm({
         options={racaOptions}
         value={racaId != null ? String(racaId) : null}
         onChange={(value) => setRacaId(Number(value))}
+        searchPlaceholder={t('common.search')}
+        onSearchChange={setRacaSearch}
         disabled={!especieId}
         emptyMessage={
           !especieId
