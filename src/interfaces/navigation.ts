@@ -63,6 +63,10 @@ export type ResponsavelAppStackParamList = {
   BuscarPacienteArkive: undefined;
   /** Chunk 7 — incoming access requests this Responsible is currently eligible to decide on (`GET /api/solicitacoes-acesso`, Java-scoped). `focusRequestId` highlights one row when reached from a `SOLICITACAO_ACESSO` notification tap — it never fetches a single request on its own; the full, correctly-scoped list already contains it. */
   SolicitacoesAcessoRecebidas: { focusRequestId?: number } | undefined;
+  /** New permanent report history (`AnimalReportsScreen`, Java V18) — shared with `AppStackParamList` below (same component, reused cross-role, same minimal-inline-param pattern as `PacienteDetalhe`/`HistoricoPaciente`). */
+  RelatosAnimal: { patientId: number };
+  /** RESPONSAVEL-only creation screen — this route name only ever exists in THIS stack; a VETERINARIO session never navigates to it (the backend create endpoint is RESPONSAVEL-only regardless). */
+  NovoRelatoAnimal: { patientId: number };
   MinhaConta: undefined;
   Configuracoes: undefined;
   AlterarSenha: undefined;
@@ -99,6 +103,8 @@ export type AppStackParamList = {
   ValoresVeterinario: undefined;
   /** Chunk 7 — the veterinarian's own outgoing access requests. VETERINARIO-only, read-only tracking (approval/rejection is exclusively the Responsible's own route, `SolicitacoesAcessoRecebidas`, which does not exist in this stack). */
   SolicitacoesAcessoEnviadas: undefined;
+  /** New permanent report history, READ-ONLY for VETERINARIO — same `AnimalReportsScreen` component `ResponsavelAppStackParamList` registers; this stack never registers `NovoRelatoAnimal` at all, since the backend create endpoint is RESPONSAVEL-only. */
+  RelatosAnimal: { patientId: number };
   Configuracoes: undefined;
   AlterarSenha: undefined;
   Notificacoes: undefined;

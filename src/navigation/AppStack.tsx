@@ -28,6 +28,7 @@ import { CreateShareScreen } from '../screens/CreateShareScreen';
 import { SharePreviewScreen } from '../screens/SharePreviewScreen';
 import { ScanShareQrScreen } from '../screens/ScanShareQrScreen';
 import { EnterShareCodeScreen } from '../screens/EnterShareCodeScreen';
+import { AnimalReportsScreen } from '../screens/AnimalReportsScreen';
 import { useThemeColors } from '../hooks/useThemeColors';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -54,6 +55,7 @@ export function AppStack() {
       <Stack.Screen name="EditarPaciente" component={EditPatientScreen} />
       <Stack.Screen name="HistoricoPaciente" component={PatientHistoryScreen} />
       <Stack.Screen name="CustosPaciente" component={PatientCostScreen} />
+      <Stack.Screen name="RelatosAnimal" component={AnimalReportsScreen} />
       <Stack.Screen name="CompartilharPaciente" component={CreateShareScreen} />
       <Stack.Screen name="ConvitePaciente" component={SharePreviewScreen} />
       <Stack.Screen name="EscanearConvite" component={ScanShareQrScreen} />

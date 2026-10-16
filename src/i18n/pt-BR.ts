@@ -308,6 +308,8 @@ export const pt = {
     loadErrorTitle: 'Não foi possível carregar',
     notFound: 'Consulta não encontrada.',
     statusLabel: 'Status',
+    /** Eye icon, Chunk 9 — opens the animal's permanent report history in read-only mode. Omitted from the header entirely (not merely disabled) when the presence check confirms zero reports. */
+    viewReportsAccessibilityLabel: 'Ver relatos do animal',
     patientLabel: 'Paciente: {{name}}',
     reasonLabel: 'Motivo: {{reason}}',
     symptomsLabel: 'Sintomas: {{symptoms}}',
@@ -508,6 +510,8 @@ export const pt = {
     historyButton: 'Ver histórico',
     /** Neutral wording — describes recorded care values, not a characterization of the animal as a financial burden. Applies to both VETERINARIO and RESPONSAVEL, since both navigate here via this same key. */
     costsButton: 'Valores dos atendimentos',
+    /** RESPONSAVEL-only entry point to the permanent report history — deliberately distinct wording from `animalObservation.sectionTitle` ("Observações para a próxima consulta"), a single pending note, not this permanent list. */
+    reportsButton: 'Relatos e observações',
   },
   patientCosts: {
     title: 'Valores dos atendimentos',
@@ -651,6 +655,50 @@ export const pt = {
     saving: 'Salvando...',
     saveSuccess: 'Observação salva.',
     clearButton: 'Limpar observação',
+  },
+  /**
+   * New permanent report history (`GET`/`POST /api/animais/{id}/relatos`,
+   * Java V18) — deliberately separate wording/namespace from
+   * `animalObservation` (the single pending note for the next consultation):
+   * these are two different features with two different Java endpoints and
+   * lifecycles, never conflated in copy or code.
+   */
+  animalReports: {
+    title: 'Relatos e observações',
+    loading: 'Carregando relatos...',
+    loadErrorTitle: 'Não foi possível carregar',
+    emptyTitle: 'Nenhum relato registrado',
+    emptyMessage: 'Nenhum relato foi registrado para este animal ainda.',
+    emptySearchTitle: 'Nenhum relato encontrado',
+    emptySearchMessage: 'Nenhum relato corresponde a essa busca.',
+    searchPlaceholder: 'Buscar nos relatos (ex.: vômito, apetite)',
+    resultsCount: '{{count}} relatos encontrados',
+    addReportButton: 'Adicionar relato',
+    reportedByLabel: 'Relatado por {{name}}',
+    submittedAtLabel: 'Registrado em {{date}}',
+    occurredAtLabel: 'Ocorrido em {{date}}',
+    expandButton: 'Ver mais',
+    collapseButton: 'Ver menos',
+    loadMoreButton: 'Carregar mais',
+    loadingMore: 'Carregando mais...',
+    loadMoreError: 'Não foi possível carregar mais relatos. Tente novamente.',
+    newTitle: 'Novo relato',
+    textLabel: 'Texto do relato',
+    textPlaceholder: 'Ex.: Vomitou duas vezes durante a madrugada.',
+    charCount: '{{count}}/2000',
+    occurrenceDateLabel: 'Data da ocorrência',
+    occurrenceDateHelper: 'Opcional. Informe quando o evento realmente aconteceu, se for diferente de hoje.',
+    transcribeButton: 'Transcrever áudio',
+    backToTextButton: 'Voltar ao texto',
+    micPermissionDenied:
+      'Ative a permissão de microfone nas configurações do sistema para usar o ditado. O relato continua disponível pelo teclado.',
+    retryTranscription: 'Tentar transcrever novamente',
+    validationEmpty: 'Informe o texto do relato.',
+    saveButton: 'Salvar relato',
+    saving: 'Salvando...',
+    saveSuccess: 'Relato salvo.',
+    /** Never phrased as a confirmed diagnosis — this is the Responsible's own account of events, not a clinical finding. */
+    loadingPatient: 'Carregando paciente...',
   },
   prescricoesList: {
     title: 'Prescrições',
@@ -931,6 +979,14 @@ export const pt = {
     accessRequestDecisionNotFound: 'Esta solicitação não foi encontrada.',
     accessRequestDecisionUnavailable: 'Não foi possível concluir agora. Tente novamente em instantes.',
     accessRequestDecisionGeneric: 'Não foi possível concluir agora.',
+    animalReportCreateForbidden: 'Você não tem permissão para adicionar relatos para este animal.',
+    animalReportCreateUnavailable: 'Não foi possível salvar o relato agora. Tente novamente em instantes.',
+    animalReportCreateGeneric: 'Não foi possível salvar o relato agora.',
+    animalReportCreateNetwork: 'Sem conexão com o servidor. O relato não foi salvo — tente novamente.',
+    animalReportListForbidden: 'Você não tem permissão para ver os relatos deste animal.',
+    animalReportListNotFound: 'Animal não encontrado.',
+    animalReportListGeneric: 'Não foi possível carregar os relatos agora.',
+    animalReportListNetwork: 'Sem conexão com o servidor. Verifique sua internet e tente novamente.',
     accessRequestDecisionNetwork: 'Sem conexão com o servidor. Verifique sua internet e tente novamente.',
     animalObservationForbidden: 'Você não é o responsável ativo deste animal.',
     animalObservationNotFound: 'Não foi possível encontrar este animal.',

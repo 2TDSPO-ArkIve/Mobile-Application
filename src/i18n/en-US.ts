@@ -306,6 +306,8 @@ export const en = {
     loadErrorTitle: 'Could not load',
     notFound: 'Visit not found.',
     statusLabel: 'Status',
+    /** Eye icon, Chunk 9 — opens the animal's permanent report history in read-only mode. Omitted from the header entirely (not merely disabled) when the presence check confirms zero reports. */
+    viewReportsAccessibilityLabel: "View animal's reports",
     patientLabel: 'Patient: {{name}}',
     reasonLabel: 'Reason: {{reason}}',
     symptomsLabel: 'Symptoms: {{symptoms}}',
@@ -506,6 +508,8 @@ export const en = {
     historyButton: 'View history',
     /** Neutral wording — describes recorded care values, not a characterization of the animal as a financial burden. Applies to both VETERINARIO and RESPONSAVEL, since both navigate here via this same key. */
     costsButton: 'Care costs and values',
+    /** RESPONSAVEL-only entry point to the permanent report history — deliberately distinct wording from `animalObservation.sectionTitle` ("Note for the next visit"), a single pending note, not this permanent list. */
+    reportsButton: 'Reports and observations',
   },
   patientCosts: {
     title: 'Care costs and values',
@@ -649,6 +653,48 @@ export const en = {
     saving: 'Saving...',
     saveSuccess: 'Observation saved.',
     clearButton: 'Clear observation',
+  },
+  /**
+   * New permanent report history (`GET`/`POST /api/animais/{id}/relatos`,
+   * Java V18) — deliberately separate wording/namespace from
+   * `animalObservation` (the single pending note for the next visit): two
+   * different features, two different Java endpoints and lifecycles.
+   */
+  animalReports: {
+    title: 'Reports and observations',
+    loading: 'Loading reports...',
+    loadErrorTitle: 'Could not load',
+    emptyTitle: 'No reports recorded',
+    emptyMessage: 'No reports have been recorded for this animal yet.',
+    emptySearchTitle: 'No reports found',
+    emptySearchMessage: 'No report matches this search.',
+    searchPlaceholder: 'Search reports (e.g. vomiting, appetite)',
+    resultsCount: '{{count}} matching reports',
+    addReportButton: 'Add report',
+    reportedByLabel: 'Reported by {{name}}',
+    submittedAtLabel: 'Submitted on {{date}}',
+    occurredAtLabel: 'Occurred on {{date}}',
+    expandButton: 'Show more',
+    collapseButton: 'Show less',
+    loadMoreButton: 'Load more',
+    loadingMore: 'Loading more...',
+    loadMoreError: 'Could not load more reports. Try again.',
+    newTitle: 'New report',
+    textLabel: 'Report text',
+    textPlaceholder: 'E.g.: Vomited twice overnight.',
+    charCount: '{{count}}/2000',
+    occurrenceDateLabel: 'Occurrence date',
+    occurrenceDateHelper: "Optional. Enter when the event actually happened, if different from today.",
+    transcribeButton: 'Transcribe audio',
+    backToTextButton: 'Back to text',
+    micPermissionDenied:
+      'Enable microphone access in system settings to use dictation. The report is still available via the keyboard.',
+    retryTranscription: 'Try transcribing again',
+    validationEmpty: 'Enter the report text.',
+    saveButton: 'Save report',
+    saving: 'Saving...',
+    saveSuccess: 'Report saved.',
+    loadingPatient: 'Loading patient...',
   },
   prescricoesList: {
     title: 'Prescriptions',
@@ -925,6 +971,14 @@ export const en = {
     accessRequestDecisionNotFound: 'This request was not found.',
     accessRequestDecisionUnavailable: 'Could not complete this right now. Try again shortly.',
     accessRequestDecisionGeneric: 'Could not complete this right now.',
+    animalReportCreateForbidden: "You don't have permission to add reports for this animal.",
+    animalReportCreateUnavailable: 'Could not save the report right now. Try again shortly.',
+    animalReportCreateGeneric: 'Could not save the report right now.',
+    animalReportCreateNetwork: 'No connection to the server. The report was not saved — try again.',
+    animalReportListForbidden: "You don't have permission to view this animal's reports.",
+    animalReportListNotFound: 'Animal not found.',
+    animalReportListGeneric: 'Could not load the reports right now.',
+    animalReportListNetwork: 'No connection to the server. Check your internet and try again.',
     accessRequestDecisionNetwork: 'No connection to the server. Check your internet and try again.',
     animalObservationForbidden: "You are not this animal's active responsible person.",
     animalObservationNotFound: 'Could not find this animal.',
