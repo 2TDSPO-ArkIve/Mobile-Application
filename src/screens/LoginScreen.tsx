@@ -135,19 +135,14 @@ export function LoginScreen() {
             <AppButton title={t('auth.loginButton')} onPress={handleLogin} loading={loading} colors={lightColors} />
           </View>
 
+          {/* Chunk 2: ONE unified entry point — the destination screen itself
+              now offers the Veterinário | Responsável selector, replacing
+              the previous two separate "Criar conta" / "Cadastro de tutor"
+              buttons. */}
           <AppButton
             title={t('auth.createAccount')}
             variant="ghost"
             onPress={() => navigation.navigate('Cadastro')}
-            style={styles.registerLink}
-            colors={lightColors}
-          />
-
-          <AppButton
-            title={t('auth.createAccountResponsavel')}
-            variant="ghost"
-            size="small"
-            onPress={() => navigation.navigate('CadastroResponsavel')}
             style={styles.registerLink}
             colors={lightColors}
           />

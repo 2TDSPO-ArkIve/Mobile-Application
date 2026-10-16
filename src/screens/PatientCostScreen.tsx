@@ -13,6 +13,7 @@ import { usePatientCosts } from '../hooks/usePatients';
 import { consultaStatusPresentation } from '../utils/statusPresentation';
 import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
 import { describePatientCostsError } from '../utils/errorMessages';
+import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { PatientCostConsultation } from '../services/patientCostService';
 import { spacing, fontSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
@@ -117,6 +118,9 @@ export function PatientCostScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={data.animalNome} />
       <ScreenContainer>
+        <Text style={[styles.arkiveIdSubtitle, { color: colors.textSecondary }]} selectable>
+          {patientArkiveIdLine(data)}
+        </Text>
         <Text style={[commonStyles.eyebrow, { color: colors.primary, marginBottom: spacing.sm }]}>
           {t('patientCosts.title')}
         </Text>
@@ -190,6 +194,7 @@ export function PatientCostScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  arkiveIdSubtitle: { fontSize: fontSize.xs, fontFamily: 'monospace', textAlign: 'center', marginBottom: spacing.sm },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
   dateText: { fontSize: fontSize.md, fontWeight: '700' },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },

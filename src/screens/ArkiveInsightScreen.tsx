@@ -10,10 +10,12 @@ import { AppButton } from '../components/AppButton';
 import { EmptyState } from '../components/EmptyState';
 import { VoiceOrb } from '../components/VoiceOrb';
 import { ClinicalSupportCard } from '../components/ClinicalSupportCard';
+import { CancelConsultaModal } from '../components/CancelConsultaModal';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useConsulta, useConsultaClinicalSupport } from '../hooks/useConsultas';
 import { isSupportNotYetPersisted } from '../services/consultaService';
+import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
@@ -56,6 +58,7 @@ export function ArkiveInsightScreen() {
   });
   const [showNarrative, setShowNarrative] = useState(false);
   const [messageIndex, setMessageIndex] = useState(0);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
   const hasFailed = support.isError && !isSupportNotYetPersisted(support.error);
   const isWaiting = !support.data && !hasFailed;
@@ -76,9 +79,14 @@ export function ArkiveInsightScreen() {
         {isWaiting ? (
           <View style={styles.heroWrap}>
             {consulta ? (
-              <Text style={[styles.patientNameSmall, { color: colors.textSecondary }]} numberOfLines={1}>
-                {consulta.animalNome}
-              </Text>
+              <>
+                <Text style={[styles.patientNameSmall, { color: colors.textSecondary }]} numberOfLines={1}>
+                  {consulta.animalNome}
+                </Text>
+                <Text style={[styles.patientArkiveIdSmall, { color: colors.textSecondary }]} numberOfLines={1} selectable>
+                  {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
+                </Text>
+              </>
             ) : null}
 
             <VoiceOrb mode="analyzing" />
@@ -102,15 +110,27 @@ export function ArkiveInsightScreen() {
                 <Text style={{ color: colors.text }}>{consulta.transcricao}</Text>
               </AppCard>
             ) : null}
+
+            <AppButton
+              title={t('cancelConsulta.action')}
+              variant="danger"
+              onPress={() => setCancelModalOpen(true)}
+              style={styles.cancelButton}
+            />
           </View>
         ) : (
           <>
             {consultaPending ? (
               <Text style={{ color: colors.textSecondary }}>{t('consultaDetail.loading')}</Text>
             ) : consulta ? (
-              <Text style={[styles.patientName, { color: colors.text }]} numberOfLines={1}>
-                {consulta.animalNome}
-              </Text>
+              <>
+                <Text style={[styles.patientName, { color: colors.text }]} numberOfLines={1}>
+                  {consulta.animalNome}
+                </Text>
+                <Text style={[styles.patientArkiveId, { color: colors.textSecondary }]} numberOfLines={1} selectable>
+                  {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
+                </Text>
+              </>
             ) : null}
 
             <Text
@@ -145,9 +165,29 @@ export function ArkiveInsightScreen() {
                 style={styles.conclusionButton}
               />
             ) : null}
+
+            <AppButton
+              title={t('cancelConsulta.action')}
+              variant="danger"
+              onPress={() => setCancelModalOpen(true)}
+              style={styles.cancelButton}
+            />
           </>
         )}
       </ScreenContainer>
+
+      <CancelConsultaModal
+        visible={cancelModalOpen}
+        consultaId={consultaId}
+        onClose={() => setCancelModalOpen(false)}
+        onCancelled={() => {
+          setCancelModalOpen(false);
+          // AP->CA just happened — this screen has nothing left to show for
+          // this consultation; return to the single underlying
+          // ConsultaDetalhe instance, which will now render its CA state.
+          navigation.popTo('ConsultaDetalhe', { consultaId });
+        }}
+      />
     </View>
   );
 }
@@ -155,12 +195,14 @@ export function ArkiveInsightScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   patientName: { fontSize: fontSize.lg, fontWeight: '700' },
+  patientArkiveId: { fontSize: fontSize.xs, marginTop: 2, marginBottom: spacing.xs },
   // Vertically centers the loading hero in the viewport (flexGrow, not a
   // fixed height) — content still scrolls normally if the collapsed
   // narrative is expanded and pushes past one screen.
   waitingContent: { flexGrow: 1, justifyContent: 'center' },
   heroWrap: { alignItems: 'center', paddingVertical: spacing.lg },
-  patientNameSmall: { fontSize: fontSize.sm, fontWeight: '600', marginBottom: spacing.md },
+  patientNameSmall: { fontSize: fontSize.sm, fontWeight: '600' },
+  patientArkiveIdSmall: { fontSize: fontSize.xs, marginTop: 2, marginBottom: spacing.md },
   heroTitle: {
     fontSize: fontSize.xl,
     fontWeight: '700',
@@ -192,4 +234,5 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   conclusionButton: { marginTop: spacing.lg },
+  cancelButton: { marginTop: spacing.lg },
 });

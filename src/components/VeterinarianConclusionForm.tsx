@@ -39,6 +39,16 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
   const [conclusao, setConclusao] = useState('');
   const [validationError, setValidationError] = useState('');
 
+  /**
+   * Chunk 4 — a routine visit with no disease found must be finishable
+   * without inventing a catalog diagnosis: this only ever prefills the
+   * free-text `diagnostico` field (still fully editable afterward,
+   * never auto-submitted) — `doencaId` was already always `null` here,
+   * and severity stays untouched/optional either way. This is a UI
+   * convenience, never a fabricated medical finding.
+   */
+  const handleQuickFill = (text: string) => setDiagnostico(text);
+
   const handleSubmit = () => {
     setValidationError('');
 
@@ -70,6 +80,22 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
           editable={!isSubmitting}
           multiline
         />
+        <View style={styles.quickFillRow}>
+          <Pressable
+            onPress={() => handleQuickFill(t('conclusion.routineOption'))}
+            disabled={isSubmitting}
+            accessibilityRole="button"
+          >
+            <Text style={[styles.quickFillText, { color: colors.primary }]}>{t('conclusion.routineOption')}</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => handleQuickFill(t('conclusion.noDiseaseOption'))}
+            disabled={isSubmitting}
+            accessibilityRole="button"
+          >
+            <Text style={[styles.quickFillText, { color: colors.primary }]}>{t('conclusion.noDiseaseOption')}</Text>
+          </Pressable>
+        </View>
       </View>
 
       <View style={styles.section}>
@@ -142,6 +168,8 @@ const styles = StyleSheet.create({
   // marginBottom, not the section's own rhythm).
   section: { marginBottom: spacing.xl },
   sectionLabel: { marginBottom: spacing.sm },
+  quickFillRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.xs, flexWrap: 'wrap' },
+  quickFillText: { fontSize: fontSize.sm, fontWeight: '600' },
   severityRow: { flexDirection: 'row', gap: spacing.sm },
   severityOption: {
     flex: 1,

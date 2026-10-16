@@ -1,15 +1,8 @@
 import { apiGet } from './apiClient';
 
 /**
- * Confirmed against `VeterinarioResponse.java`. There is still no dedicated
- * `/me`/`whoami` endpoint, but `GET /api/veterinarios/{id}` has no per-caller
- * ownership check (`VeterinarioController.buscarPorId` takes no
- * `UsuarioPrincipal`, and `SecurityConfig` only requires `/api/**` to be
- * `.authenticated()` — no role restriction) — so calling it with the
- * veterinarioId this app already resolves elsewhere (see
- * NewConsultaScreen.tsx's own confidence note) returns the authenticated
- * vet's own real record. No `telefone` field exists on this DTO at all —
- * never fabricate one.
+ * Confirmed against `VeterinarioResponse.java`. No `telefone` field exists
+ * on this DTO at all — never fabricate one.
  */
 export interface VeterinarioDto {
   id: number;
@@ -22,6 +15,19 @@ export interface VeterinarioDto {
   ativo: 'S' | 'N';
 }
 
-export async function getVeterinarioById(id: number): Promise<VeterinarioDto> {
-  return apiGet<VeterinarioDto>(`/api/veterinarios/${id}`);
+/**
+ * `GET /api/veterinarios/me` (Chunk 1 addition, confirmed in
+ * `VeterinarioController.buscarPerfilAutenticado` /
+ * `VeterinarioService.buscarPerfilAutenticado`) — derives the veterinarian
+ * exclusively from the authenticated principal; it takes NO id and must
+ * never be sent one. This REPLACES the previous self-profile lookup via
+ * `GET /api/veterinarios/{id}`: that by-id route is now confirmed
+ * SYSADMIN-only in `SecurityConfig` (`/api/veterinarios/**` requires
+ * `SYSADMIN`, separate from the explicit `VETERINARIO`-only rule on
+ * `/api/veterinarios/me`), so a normal veterinarian calling it now gets 403 —
+ * this app must never call the by-id endpoint for a veterinarian's own
+ * profile again.
+ */
+export async function getOwnVeterinario(): Promise<VeterinarioDto> {
+  return apiGet<VeterinarioDto>('/api/veterinarios/me');
 }

@@ -17,7 +17,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useMyPatients } from '../hooks/usePatients';
 import { useCreateConsulta } from '../hooks/useConsultas';
-import { patientSummaryLine, patientFallbackId } from '../utils/patientDisplay';
+import { patientSummaryLine, patientArkiveIdLine } from '../utils/patientDisplay';
 import { isScheduleInPast, startOfToday, toLocalDateTimeString } from '../utils/consultaScheduling';
 import { parseMoneyInput } from '../utils/money';
 import type { AnimalDto } from '../services/patientService';
@@ -87,7 +87,7 @@ export function NewConsultaScreen() {
     data: clinicPatients,
     isPending: patientsPending,
     isError: patientsError,
-  } = useMyPatients({ nome: trimmedSearch || undefined });
+  } = useMyPatients({ busca: trimmedSearch || undefined });
 
   const handleSelectAnimal = (animal: AnimalDto) => {
     setSelectedAnimal(animal);
@@ -170,7 +170,7 @@ export function NewConsultaScreen() {
                       {patientSummaryLine(selectedAnimal)}
                     </Text>
                     <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
-                      {patientFallbackId(selectedAnimal)}
+                      {patientArkiveIdLine(selectedAnimal)}
                     </Text>
                   </View>
                   <Ionicons name="checkmark-circle" size={22} color={colors.success} />
@@ -223,7 +223,7 @@ export function NewConsultaScreen() {
                             {patientSummaryLine(animal)}
                           </Text>
                           <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
-                            {patientFallbackId(animal)}
+                            {patientArkiveIdLine(animal)}
                           </Text>
                         </View>
                         <Ionicons

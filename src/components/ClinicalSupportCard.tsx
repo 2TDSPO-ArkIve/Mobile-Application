@@ -91,10 +91,12 @@ export function ClinicalSupportCard({ support }: Props) {
           <Text style={[styles.label, { color: colors.textSecondary }]}>
             {t('clinicalSupportCard.ragReferencesTitle')}
           </Text>
-          {referencias.map((titulo, index) => (
-            <View key={`${index}-${titulo}`} style={styles.sourceRow}>
+          {referencias.map((referencia, index) => (
+            <View key={`${index}-${referencia.titulo}`} style={styles.sourceRow}>
               <Text style={[styles.bullet, { color: colors.textSecondary }]}>{'•'}</Text>
-              <Text style={[styles.sourceText, { color: colors.textSecondary }]}>{titulo}</Text>
+              <Text style={[styles.sourceText, { color: colors.textSecondary }]}>
+                {referencia.fonte ? `${referencia.fonte} — ${referencia.titulo}` : referencia.titulo}
+              </Text>
             </View>
           ))}
         </View>

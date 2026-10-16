@@ -1,10 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createPatient,
+  getAnimalObservation,
   getPatientById,
   getPatientByArkiveId,
   listAccessibleAnimals,
   listMyPatients,
+  updateAnimalObservation,
   updatePatient,
   type AnimalRequestInput,
   type MyPatientsFilters,
@@ -96,6 +98,39 @@ export function useUpdatePatient(id: number) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.patients.detail(id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.patients.all });
+    },
+  });
+}
+
+/**
+ * RESPONSAVEL-only pending note for one animal (`GET
+ * /api/animais/{id}/observacao-responsavel`) — scoped by `animalId` in the
+ * query key so it can never be read back for the wrong animal. Refetches
+ * normally on mount/focus like every other read here, rather than assuming
+ * a cached value from a previous visit is still current.
+ */
+export function useAnimalObservation(animalId: number) {
+  return useQuery({
+    queryKey: queryKeys.patients.observacao(animalId),
+    queryFn: () => getAnimalObservation(animalId),
+    enabled: Number.isFinite(animalId),
+  });
+}
+
+/**
+ * `PATCH /api/animais/{id}/observacao-responsavel`. On success, seeds the
+ * observation query with the server's own echoed-back value (the
+ * authoritative post-trim/post-clear result) rather than the raw text the
+ * user typed — avoids a stale cache entry if the backend normalized
+ * (trimmed/blanked) the value differently than what was sent.
+ */
+export function useUpdateAnimalObservation(animalId: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (observacao: string | null) => updateAnimalObservation(animalId, observacao),
+    onSuccess: (result) => {
+      queryClient.setQueryData(queryKeys.patients.observacao(animalId), result);
     },
   });
 }

@@ -6,6 +6,8 @@ import type { ConsultaStatus, Modalidade } from './consultaService';
 /** `AnimalHistoricoResponse.paciente` — the patient summary the history screen's header renders. */
 export interface AnimalHistoryPatient {
   id: number;
+  /** Was missing from this type despite being present on the real `AnimalHistoricoResponse.Paciente` record — fixed in Chunk 1 while auditing/updating this contract. */
+  arkivePatientId: string | null;
   nome: string;
   especie: string;
   raca: string | null;
@@ -24,7 +26,7 @@ export interface AnimalHistoryPrescription {
   dataInicio: string | null;
   dataFim: string | null;
   instrucoes: string | null;
-  /** V13 additive field — `null` means no cost was recorded; never render that as `R$ 0,00`. */
+  /** V13 additive field — `null` means no cost was recorded, or (Chunk 1) that Java redacted it for financial-privacy reasons; never render either case as `R$ 0,00`. */
   valorMedicamento: number | null;
 }
 
@@ -51,8 +53,10 @@ export interface AnimalHistoryConsultation {
   diagnosticoConfirmado: string | null;
   severidadeFinal: string | null;
   conclusao: string | null;
+  /** Chunk-1 addition (`ConsultaHistorico.observacaoResponsavel`) — the responsible person's note for the next consultation. Contract-only for now; no display/editing UI yet (a later chunk). */
+  observacaoResponsavel: string | null;
   prescricoes: AnimalHistoryPrescription[];
-  /** V13 additive field (`ConsultaHistorico.valorConsulta`) — `null` means no cost was recorded; never render that as `R$ 0,00`. */
+  /** V13 additive field (`ConsultaHistorico.valorConsulta`) — `null` means no cost was recorded, or (Chunk 1) that Java redacted it for financial-privacy reasons; never render either case as `R$ 0,00`. */
   valorConsulta: number | null;
 }
 

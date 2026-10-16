@@ -58,13 +58,24 @@ export async function requestNotificationPermission(): Promise<boolean> {
  * granted. `trigger: null` means "present immediately" — this is a reaction
  * to an already-persisted backend event discovered by polling, not a
  * scheduled future reminder.
+ *
+ * `data` (Chunk 5) carries the SAME minimal, server-provided metadata Java's
+ * own real Expo push payload carries (`notificationId`/`type`/`animalId`/
+ * `resourceType`/`resourceId` — see `NotificacaoPushService.criarPayload`) so
+ * that tapping this LOCAL notification is handled identically to tapping a
+ * real remote one, by the same `PushTapHandler` listener. Never includes
+ * anything beyond those fields.
  */
-export async function presentLocalNotification(title: string, body: string): Promise<void> {
+export async function presentLocalNotification(
+  title: string,
+  body: string,
+  data?: Record<string, unknown>
+): Promise<void> {
   if (Platform.OS === 'web') return;
   const granted = await getNotificationPermissionGranted();
   if (!granted) return;
   await Notifications.scheduleNotificationAsync({
-    content: { title, body },
+    content: { title, body, data },
     trigger: null,
   });
 }

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import { ApiError } from '../services/apiClient';
 import {
+  cancelConsulta,
   createConsulta,
   deleteConsulta,
   finalizeConsulta,
@@ -246,6 +247,50 @@ export function useFinalizeConsulta(id: number) {
       queryClient.invalidateQueries({ queryKey: queryKeys.diagnosticos.byConsulta(id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.patients.costs(finalized.animalId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.patients.history(finalized.animalId) });
+      // Chunk 6 — finalizing is the exact transition that makes a
+      // consultation start counting toward the authenticated veterinarian's
+      // own financial dashboard (`GET /api/veterinarios/me/custos` only
+      // aggregates `FI` consultations).
+      queryClient.invalidateQueries({ queryKey: queryKeys.veterinarios.ownCosts() });
+    },
+  });
+}
+
+/**
+ * POST cancelar (Chunk 4). `retry: false` — a state-changing POST must never
+ * be silently repeated. No `onError` 409-handling: confirmed against the
+ * current Java source that `cancelar`'s only rejections (already FI, already
+ * CA, inactive linked resources) are plain `BusinessException`s mapped to
+ * 400, never 409 — unlike `suporte-clinico`, this endpoint has no in-flight
+ * concurrency lock to react to.
+ *
+ * `onSuccess` MERGES the returned `ConsultaWorkflowResponse` onto the
+ * existing cached `ConsultaDto` (`{ ...current, ...cancelled }`) rather than
+ * replacing it wholesale — the workflow response is missing `endereco`/
+ * `valorConsulta`, and a naive full replacement would make those fields
+ * silently vanish from the UI until the subsequent invalidation refetch
+ * resolves. Also invalidates `consultas.clinicalSupport(id)` so a screen
+ * still reading clinical-support state re-checks reality instead of acting
+ * on a now-moot in-progress assumption, and `patients.history` since a CA
+ * consultation's status change is visible in that patient's timeline.
+ */
+export function useCancelConsulta(id: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (motivo: string) => cancelConsulta(id, { motivo }),
+    retry: false,
+    onSuccess: (cancelled) => {
+      queryClient.setQueryData<ConsultaDto | undefined>(queryKeys.consultas.detail(id), (current) =>
+        current ? { ...current, ...cancelled } : current
+      );
+      queryClient.setQueryData<ConsultaDto[] | undefined>(queryKeys.consultas.list(), (current) =>
+        current?.map((consulta) => (consulta.id === id ? { ...consulta, ...cancelled } : consulta))
+      );
+      queryClient.invalidateQueries({ queryKey: queryKeys.consultas.detail(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.consultas.list() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.consultas.clinicalSupport(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.patients.history(cancelled.animalId) });
     },
   });
 }

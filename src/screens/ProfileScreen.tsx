@@ -17,7 +17,7 @@ import { spacing, fontSize } from '../styles/theme';
 /**
  * Real identity, not the old `useAuth().user` compatibility shim (which
  * just mirrored the Basic Auth login username/email — see AuthContext.tsx's
- * `toLegacyUser`). Backend contract confirmed: `GET /api/veterinarios/{id}`
+ * `toLegacyUser`). Backend contract confirmed: `GET /api/veterinarios/me`
  * (`VeterinarioResponse.java`) has no `telefone` field at all, so this
  * screen never shows a phone number — showing one would mean inventing data
  * the backend doesn't have.
@@ -73,6 +73,30 @@ export function ProfileScreen() {
           {t('profile.editUnavailable')}
         </Text>
 
+        {/* Chunk 6 — the one discoverable entry point to the veterinarian's
+            own financial dashboard. Deliberately not duplicated on the Home
+            tab (avoids overcrowding it with an unrelated card) and
+            deliberately absent from ResponsavelAppStack entirely — a
+            Responsible user has no Mobile navigation path to this screen. */}
+        <Text style={[styles.sectionLabel, { color: colors.text }]}>{t('profile.financialSection')}</Text>
+        <AppButton
+          title={t('vetCosts.entryPointButton')}
+          variant="outline"
+          onPress={() => navigation.navigate('ValoresVeterinario')}
+        />
+
+        {/* Chunk 7 — read-only tracking of the vet's own outgoing access
+            requests. The actual "request access" action lives on
+            ArkiveIdLookupScreen (only surfaced once a lookup is forbidden,
+            since that's the exact moment the feature is relevant); this is
+            just the follow-up visibility into requests already sent. */}
+        <Text style={[styles.sectionLabel, { color: colors.text }]}>{t('profile.accessSection')}</Text>
+        <AppButton
+          title={t('myAccessRequests.entryPointButton')}
+          variant="outline"
+          onPress={() => navigation.navigate('SolicitacoesAcessoEnviadas')}
+        />
+
         <Text style={[styles.sectionLabel, { color: colors.text }]}>{t('profile.securitySection')}</Text>
         <AppButton
           title={t('profile.changePasswordButton')}
@@ -86,17 +110,19 @@ export function ProfileScreen() {
           onPress={() => navigation.navigate('Configuracoes')}
         />
 
+        {/* Chunk 8 — moved out of Segurança (sharing an animal's access isn't
+            an account-security action) and promoted to normal button styling
+            (was a small gray ghost button, easy to miss). */}
+        <Text style={[styles.sectionLabel, { color: colors.text }]}>{t('profile.sharingSection')}</Text>
         <AppButton
           title={t('scanShareQr.entryLink')}
-          variant="ghost"
-          size="small"
+          variant="outline"
           onPress={() => navigation.navigate('EscanearConvite')}
         />
 
         <AppButton
           title={t('enterShareCode.entryLink')}
-          variant="ghost"
-          size="small"
+          variant="outline"
           onPress={() => navigation.navigate('InserirCodigoConvite')}
         />
 

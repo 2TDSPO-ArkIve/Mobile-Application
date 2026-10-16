@@ -6,6 +6,7 @@ import { VoiceOrb } from './VoiceOrb';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useClinicalVoiceRecording } from '../hooks/useClinicalVoiceRecording';
+import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { spacing, fontSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
@@ -17,12 +18,23 @@ function appendSegment(existing: string, segment: string): string {
 
 interface Props {
   animalNome: string;
+  animalArkivePatientId?: string | null;
   contextLine: string;
   motivo?: string;
   initialNarrativa: string;
   /** Persists the narrative, then (only on success) the caller navigates to the analysis screen. Rejecting keeps the veterinarian here with the draft intact. */
   onAnalyze: (narrativa: string) => Promise<void>;
   analyzing: boolean;
+  /**
+   * Chunk 4 — the backend already permits EP->FI directly ("O suporte
+   * ArkIve e opcional"), so the vet isn't forced to wait on ArkIve. Receives
+   * the current draft (possibly blank — narrative is optional on this path,
+   * never a placeholder) so the caller decides whether to persist it before
+   * navigating to the veterinarian's own conclusion form. Rejecting keeps
+   * the veterinarian here with the draft intact, same contract as `onAnalyze`.
+   */
+  onProceedWithoutAnalysis: (narrativa: string) => Promise<void>;
+  proceeding: boolean;
 }
 
 /**
@@ -39,11 +51,14 @@ interface Props {
  */
 export function ClinicalIntake({
   animalNome,
+  animalArkivePatientId,
   contextLine,
   motivo,
   initialNarrativa,
   onAnalyze,
   analyzing,
+  onProceedWithoutAnalysis,
+  proceeding,
 }: Props) {
   const colors = useThemeColors();
   const { t, language } = useTranslation();
@@ -92,12 +107,27 @@ export function ClinicalIntake({
     }
   };
 
+  // No non-empty requirement here — unlike "Analisar com ArkIve", a blank
+  // narrative is a valid choice on this path (the caller skips the PATCH
+  // entirely for a blank draft rather than inventing placeholder text).
+  const handleProceedPress = async () => {
+    setAnalyzeError('');
+    try {
+      await onProceedWithoutAnalysis(draft);
+    } catch (err) {
+      setAnalyzeError(err instanceof Error ? err.message : t('clinicalIntake.saveFallbackError'));
+    }
+  };
+
   const showOrbArea = view === 'orb' || voice.status === 'recording' || voice.status === 'transcribing';
 
   return (
     <View>
       <Text style={[styles.patientName, { color: colors.text }]} numberOfLines={1}>
         {animalNome}
+      </Text>
+      <Text style={[styles.patientArkiveId, { color: colors.textSecondary }]} numberOfLines={1} selectable>
+        {patientArkiveIdLine({ arkivePatientId: animalArkivePatientId ?? null })}
       </Text>
       <Text style={{ color: colors.textSecondary, marginBottom: spacing.sm }} numberOfLines={2}>
         {contextLine}
@@ -184,14 +214,23 @@ export function ClinicalIntake({
       ) : null}
 
       {view === 'editor' && (voice.status === 'idle' || voice.status === 'error') ? (
-        <AppButton
-          title={t('clinicalIntake.analyzeButton')}
-          icon="sparkles"
-          onPress={handleAnalyzePress}
-          loading={analyzing}
-          disabled={analyzing || !draft.trim()}
-          style={styles.analyzeButton}
-        />
+        <>
+          <AppButton
+            title={t('clinicalIntake.analyzeButton')}
+            icon="sparkles"
+            onPress={handleAnalyzePress}
+            loading={analyzing}
+            disabled={analyzing || proceeding || !draft.trim()}
+            style={styles.analyzeButton}
+          />
+          <AppButton
+            title={t('clinicalIntake.proceedWithoutAnalysisButton')}
+            variant="outline"
+            onPress={handleProceedPress}
+            loading={proceeding}
+            disabled={analyzing || proceeding}
+          />
+        </>
       ) : null}
     </View>
   );
@@ -199,6 +238,7 @@ export function ClinicalIntake({
 
 const styles = StyleSheet.create({
   patientName: { fontSize: fontSize.lg, fontWeight: '700' },
+  patientArkiveId: { fontSize: fontSize.xs, marginTop: 2 },
   question: { fontSize: fontSize.xl, fontWeight: '700', marginTop: spacing.md, marginBottom: spacing.xs },
   subtitle: { fontSize: fontSize.sm, marginBottom: spacing.md, lineHeight: 20 },
   linkWrap: { alignSelf: 'center', marginTop: spacing.sm, padding: spacing.sm },

@@ -7,7 +7,18 @@ import { emitUnauthorized } from './authEvents';
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
-    message: string
+    message: string,
+    /**
+     * `ErrorResponse.fields` (Chunk 2) — populated ONLY when Java's
+     * `GlobalExceptionHandler.handleValidation` catches a
+     * `MethodArgumentNotValidException` (bean-validation failures on a
+     * `@Valid @RequestBody`, e.g. registration). Keys are the exact request
+     * DTO field/record-component names (e.g. `"nome"`, `"documento"`), so a
+     * caller can map them straight to a form field with no guessing. Absent
+     * for a `BusinessException` (duplicate email, invalid CPF, password
+     * policy, ...) — those only ever have a flat `message`.
+     */
+    public readonly fields?: Record<string, string>
   ) {
     super(message);
     this.name = 'ApiError';
@@ -74,13 +85,17 @@ async function resolveAuthHeaders(
  */
 async function throwForNonOkResponse(response: Response, authOverride: StoredCredentials | undefined): Promise<never> {
   let message = response.statusText || `Erro ${response.status}`;
+  let fields: Record<string, string> | undefined;
   try {
     // Confirmed live shape from the real backend's error body:
     // {"timestamp":...,"status":401,"error":"Unauthorized","message":"Autenticacao obrigatoria.","path":...}
     // `message` carries the specific, human-actionable text; `error` is
-    // just the generic HTTP reason phrase — prefer `message`.
-    const parsed = (await response.json()) as { error?: string; message?: string };
+    // just the generic HTTP reason phrase — prefer `message`. `fields`
+    // (Chunk 2) is only ever present on a bean-validation 400 — see
+    // `ApiError.fields`'s own note.
+    const parsed = (await response.json()) as { error?: string; message?: string; fields?: Record<string, string> };
     message = parsed.message ?? parsed.error ?? message;
+    fields = parsed.fields ?? undefined;
   } catch {
     /* body wasn't JSON — keep the fallback message */
   }
@@ -94,7 +109,7 @@ async function throwForNonOkResponse(response: Response, authOverride: StoredCre
     emitUnauthorized();
   }
 
-  throw new ApiError(response.status, message);
+  throw new ApiError(response.status, message, fields);
 }
 
 async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {

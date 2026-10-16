@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut } from './apiClient';
+import { apiGet, apiPatch, apiPost, apiPut } from './apiClient';
 
 /**
  * CONFIRMED against the ArkIve Spring Boot source (sibling project
@@ -56,10 +56,30 @@ export interface AnimalRequestInput {
   dataNascimento?: string | null;
 }
 
+/**
+ * `busca` (Chunk 1) is the unified search term — confirmed against
+ * `AnimalController`/`AnimalRepository`: it matches partial/full animal name
+ * OR partial/full ArkIve id (`lower(a.nome) like ... or
+ * lower(a.arkivePatientId) like ...`), applied server-side ON TOP OF the
+ * existing role-scoped authorization query for each endpoint — an animal the
+ * caller cannot access is never returned just because its ArkIve id matches.
+ * The backend still accepts the older `nome` param as a fallback
+ * (`buscaEfetiva(busca, nome)` — `busca` wins when both are sent), but this
+ * app only ever sends `busca` now.
+ */
 export interface MyPatientsFilters {
-  nome?: string;
+  busca?: string;
   especieId?: number;
   racaId?: number;
+}
+
+function buildAnimalListQuery(filters?: MyPatientsFilters): string {
+  const params = new URLSearchParams();
+  if (filters?.busca) params.set('busca', filters.busca);
+  if (filters?.especieId != null) params.set('especieId', String(filters.especieId));
+  if (filters?.racaId != null) params.set('racaId', String(filters.racaId));
+  const query = params.toString();
+  return query ? `?${query}` : '';
 }
 
 /**
@@ -79,12 +99,7 @@ export interface MyPatientsFilters {
  * is no longer the operative concept.
  */
 export async function listMyPatients(filters?: MyPatientsFilters): Promise<AnimalDto[]> {
-  const params = new URLSearchParams();
-  if (filters?.nome) params.set('nome', filters.nome);
-  if (filters?.especieId != null) params.set('especieId', String(filters.especieId));
-  if (filters?.racaId != null) params.set('racaId', String(filters.racaId));
-  const query = params.toString() ? `?${params.toString()}` : '';
-  const page = await apiGet<{ content: AnimalDto[] }>(`/api/animais/me${query}`);
+  const page = await apiGet<{ content: AnimalDto[] }>(`/api/animais/me${buildAnimalListQuery(filters)}`);
   return page.content;
 }
 
@@ -100,12 +115,7 @@ export async function listMyPatients(filters?: MyPatientsFilters): Promise<Anima
  * endpoints, kept as two separate functions so neither name's meaning is diluted.
  */
 export async function listAccessibleAnimals(filters?: MyPatientsFilters): Promise<AnimalDto[]> {
-  const params = new URLSearchParams();
-  if (filters?.nome) params.set('nome', filters.nome);
-  if (filters?.especieId != null) params.set('especieId', String(filters.especieId));
-  if (filters?.racaId != null) params.set('racaId', String(filters.racaId));
-  const query = params.toString() ? `?${params.toString()}` : '';
-  const page = await apiGet<{ content: AnimalDto[] }>(`/api/animais${query}`);
+  const page = await apiGet<{ content: AnimalDto[] }>(`/api/animais${buildAnimalListQuery(filters)}`);
   return page.content;
 }
 
@@ -153,4 +163,49 @@ export async function updatePatient(id: number, input: AnimalRequestInput): Prom
  */
 export async function getPatientByArkiveId(arkivePatientId: string): Promise<AnimalDto> {
   return apiGet<AnimalDto>(`/api/animais/arkive/${encodeURIComponent(arkivePatientId)}`);
+}
+
+/**
+ * CONFIRMED against `ObservacaoResponsavelResponse.java` — a pending note the
+ * RESPONSAVEL keeps for the ANIMAL itself (`DS_OBS_RESP_PENDENTE`), distinct
+ * from `ConsultaDto.observacaoResponsavel`/`AnimalHistoryConsultation
+ * .observacaoResponsavel` (`DS_OBS_RESPONSAVEL`), which is a per-consultation
+ * SNAPSHOT the backend copies this pending note into — and clears here —
+ * the moment that consultation transitions AG→EP
+ * (`ConsultaWorkflowService.consumirObservacaoResponsavel`). Never conflate
+ * the two: this endpoint always reflects what is still PENDING, not what any
+ * past consultation already consumed.
+ */
+export interface AnimalObservationDto {
+  animalId: number;
+  observacao: string | null;
+}
+
+/**
+ * CONFIRMED against `AnimalController`/`AnimalService.buscarObservacaoResponsavel`
+ * (`GET /api/animais/{id}/observacao-responsavel`) — RESPONSAVEL-only at the
+ * Spring Security filter chain level, and further gated in the service by
+ * `exigirResponsavelVinculado` (the caller must have an ACTIVE, currently-
+ * vigent `AnimalResponsavel` link to this exact animal — not merely any
+ * RESPONSAVEL, and never a generic `PatientAccess` share grant). 403 if not
+ * linked, 404 if the animal doesn't exist.
+ */
+export async function getAnimalObservation(animalId: number): Promise<AnimalObservationDto> {
+  return apiGet<AnimalObservationDto>(`/api/animais/${animalId}/observacao-responsavel`);
+}
+
+/**
+ * CONFIRMED against `ObservacaoResponsavelRequest.java`
+ * (`PATCH /api/animais/{id}/observacao-responsavel`) — body field is exactly
+ * `observacao`, `@Size(max = 2000)`, no `@NotBlank`: a blank/whitespace-only
+ * string (or `null`) is explicitly treated server-side as "clear the pending
+ * observation" (`AnimalService.atualizarObservacaoResponsavel` trims and
+ * nulls it), not an error. Same RESPONSAVEL + active-vinculo authorization
+ * as the GET above.
+ */
+export async function updateAnimalObservation(
+  animalId: number,
+  observacao: string | null
+): Promise<AnimalObservationDto> {
+  return apiPatch<AnimalObservationDto>(`/api/animais/${animalId}/observacao-responsavel`, { observacao });
 }

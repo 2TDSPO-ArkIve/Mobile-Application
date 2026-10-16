@@ -11,6 +11,7 @@ import { EmptyState } from '../components/EmptyState';
 import { ClinicalIntake } from '../components/ClinicalIntake';
 import { ClinicalSupportCard } from '../components/ClinicalSupportCard';
 import { ConfirmedDiagnosisCard } from '../components/ConfirmedDiagnosisCard';
+import { CancelConsultaModal } from '../components/CancelConsultaModal';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import {
@@ -25,6 +26,7 @@ import { findConfirmedDiagnosis } from '../services/diagnosticoService';
 import { consultaStatusPresentation } from '../utils/statusPresentation';
 import { describeNarrativeSaveError } from '../utils/errorMessages';
 import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
+import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { t } from '../i18n/store';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize } from '../styles/theme';
@@ -67,6 +69,8 @@ export function ConsultaDetailScreen() {
   const clinicalSupport = useConsultaClinicalSupport(consultaId, { enabled: consulta?.status === 'FI' });
 
   const [actionError, setActionError] = useState('');
+  const [proceeding, setProceeding] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
   // AP means the veterinarian already asked ArkIve to analyze this case —
   // reopening it should land on the insight screen, never back on an EP-shaped
@@ -122,6 +126,29 @@ export function ConsultaDetailScreen() {
     navigation.navigate('AnaliseArkive', { consultaId });
   };
 
+  // Chunk 4 — "Prosseguir sem análise ArkIve": the backend already allows
+  // EP->FI directly. A non-blank narrative is still saved first (same
+  // save-then-navigate invariant as handleAnalyze — never discard typed
+  // notes), but a blank one is simply never PATCHed (Java's own
+  // `@NotBlank` would reject an empty value anyway, and inventing
+  // placeholder text would misrepresent the vet's own notes). No AI call
+  // happens on this path at all.
+  const handleProceedWithoutAnalysis = async (narrativa: string) => {
+    setProceeding(true);
+    try {
+      if (narrativa.trim()) {
+        try {
+          await saveNarrativa.mutateAsync(narrativa);
+        } catch (err) {
+          throw new Error(describeNarrativeSaveError(err));
+        }
+      }
+      navigation.navigate('ConclusaoVeterinaria', { consultaId });
+    } finally {
+      setProceeding(false);
+    }
+  };
+
   if (isPending) {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -157,13 +184,33 @@ export function ConsultaDetailScreen() {
         <ScreenContainer>
           <ClinicalIntake
             animalNome={consulta.animalNome}
+            animalArkivePatientId={consulta.animalArkivePatientId}
             contextLine={formatContextLine(consulta.dataHora, consulta.modalidade)}
             motivo={consulta.motivo}
             initialNarrativa={consulta.transcricao ?? ''}
             onAnalyze={handleAnalyze}
             analyzing={saveNarrativa.isPending}
+            onProceedWithoutAnalysis={handleProceedWithoutAnalysis}
+            proceeding={proceeding}
+          />
+
+          {/* Cancellation remains reachable from EP too — a slow/undesired
+              consultation shouldn't be stuck in the intake screen with no
+              way out other than finishing it. */}
+          <AppButton
+            title={t('cancelConsulta.action')}
+            variant="danger"
+            onPress={() => setCancelModalOpen(true)}
+            style={styles.cancelAction}
           />
         </ScreenContainer>
+
+        <CancelConsultaModal
+          visible={cancelModalOpen}
+          consultaId={consultaId}
+          onClose={() => setCancelModalOpen(false)}
+          onCancelled={() => setCancelModalOpen(false)}
+        />
       </View>
     );
   }
@@ -180,7 +227,12 @@ export function ConsultaDetailScreen() {
   const canStart = consulta.status === 'AG';
   const canEdit = consulta.status === 'AG';
   const canDelete = consulta.status === 'AG';
+  // AG only here — EP has its own cancel action in the branch above, and AP
+  // never reaches this render at all (it redirects to InsightArkive, which
+  // has its own cancel action). FI/CA are both terminal.
+  const canCancel = consulta.status === 'AG';
   const isFinalizada = consulta.status === 'FI';
+  const isCancelada = consulta.status === 'CA';
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -198,6 +250,9 @@ export function ConsultaDetailScreen() {
 
           <Text style={[styles.field, { color: colors.text }]}>
             {t('consultaDetail.patientLabel', { name: consulta.animalNome })}
+          </Text>
+          <Text style={[styles.field, styles.arkiveIdField, { color: colors.textSecondary }]} selectable>
+            {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
           </Text>
           <Text style={[styles.field, { color: colors.textSecondary }]}>
             {consulta.modalidade === 'PRESENCIAL' ? t('home.presencial') : t('home.remota')} ·{' '}
@@ -239,6 +294,22 @@ export function ConsultaDetailScreen() {
           ) : null}
         </AppCard>
 
+        {/* `consulta.observacaoResponsavel` is a per-consultation SNAPSHOT
+            (`DS_OBS_RESPONSAVEL`) Java copies from the animal's pending note
+            the moment THIS consultation transitioned AG→EP — never the
+            animal's current/still-pending note (`observacao-responsavel`
+            endpoint), and never repeated onto any other consultation. Shown
+            regardless of status (AG/EP/FI/CA) since it's an immutable
+            historical fact once set, not something tied to being finalized. */}
+        {consulta.observacaoResponsavel ? (
+          <AppCard>
+            <Text style={[styles.label, { color: colors.text }]}>
+              {t('consultaDetail.responsavelObservationLabel')}
+            </Text>
+            <Text style={[styles.field, { color: colors.text }]}>{consulta.observacaoResponsavel}</Text>
+          </AppCard>
+        ) : null}
+
         {isFinalizada ? (
           <>
             {consulta.transcricao ? (
@@ -270,10 +341,21 @@ export function ConsultaDetailScreen() {
           </>
         ) : null}
 
-        {consulta.status === 'CA' ? (
-          <Text style={{ color: colors.textSecondary, marginBottom: spacing.md }}>
-            {t('consultaDetail.closedReadOnly')}
-          </Text>
+        {isCancelada ? (
+          <>
+            {/* Java prepends "Cancelamento: <motivo>" into `observacao` itself
+                (no separate reason field exists) — rendered here the same
+                way the FI branch renders its own conclusion text. */}
+            {consulta.observacao ? (
+              <AppCard>
+                <Text style={[styles.label, { color: colors.text }]}>{t('cancelConsulta.reasonSectionLabel')}</Text>
+                <Text style={[styles.field, { color: colors.text }]}>{consulta.observacao}</Text>
+              </AppCard>
+            ) : null}
+            <Text style={{ color: colors.textSecondary, marginBottom: spacing.md }}>
+              {t('consultaDetail.closedReadOnly')}
+            </Text>
+          </>
         ) : null}
 
         {actionError ? (
@@ -304,7 +386,22 @@ export function ConsultaDetailScreen() {
             loading={deleteMutation.isPending}
           />
         ) : null}
+
+        {canCancel ? (
+          <AppButton
+            title={t('cancelConsulta.action')}
+            variant="outline"
+            onPress={() => setCancelModalOpen(true)}
+          />
+        ) : null}
       </ScreenContainer>
+
+      <CancelConsultaModal
+        visible={cancelModalOpen}
+        consultaId={consultaId}
+        onClose={() => setCancelModalOpen(false)}
+        onCancelled={() => setCancelModalOpen(false)}
+      />
     </View>
   );
 }
@@ -319,7 +416,9 @@ const styles = StyleSheet.create({
   },
   label: { fontSize: fontSize.md, fontWeight: '700' },
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
+  arkiveIdField: { fontFamily: 'monospace', fontSize: fontSize.xs },
   valueBlock: { marginTop: spacing.sm },
+  cancelAction: { marginTop: spacing.lg },
   valueLabel: {
     fontSize: fontSize.xs,
     fontWeight: '600',

@@ -27,12 +27,24 @@ interface Props {
   submitting: boolean;
   submitLabel: string;
   errorMessage?: string;
+  /**
+   * `POST /api/racas` is role-gated server-side to SYSADMIN/ADMIN_CLINICA/
+   * VETERINARIO (confirmed in `SecurityConfig`) — a RESPONSAVEL calling it
+   * would 403 regardless of what this app shows. Defaults to `true` so the
+   * existing veterinarian screens (`NewPatientScreen`/`EditPatientScreen`)
+   * keep working unchanged; `NewAnimalScreen`/`EditAnimalScreen` pass
+   * `false` to hide the "+" action entirely rather than merely disabling it
+   * — there is no leftover affordance a RESPONSAVEL could tap and be
+   * confused by a rejected request.
+   */
+  allowBreedCreation?: boolean;
 }
 
 /**
- * Shared by NewPatientScreen and EditPatientScreen. Deliberately has no
- * field for clínica/veterinário/responsável/status — the backend derives or
- * forbids all of those for a VETERINARIO caller (see patientService.ts).
+ * Shared by NewPatientScreen/EditPatientScreen (VETERINARIO) and
+ * NewAnimalScreen/EditAnimalScreen (RESPONSAVEL). Deliberately has no field
+ * for clínica/veterinário/responsável/status — the backend derives or
+ * forbids all of those per-role (see patientService.ts).
  */
 export function PatientForm({
   initialValues,
@@ -40,6 +52,7 @@ export function PatientForm({
   submitting,
   submitLabel,
   errorMessage,
+  allowBreedCreation = true,
 }: Props) {
   const colors = useThemeColors();
   const { t } = useTranslation();
@@ -158,24 +171,28 @@ export function PatientForm({
         // No species selected -> no "+" at all (nothing to scope a new
         // breed to yet); the ChipGroup's own emptyMessage above already
         // tells the vet to pick a species first, so no separate hint text
-        // is needed either.
+        // is needed either. `allowBreedCreation=false` (RESPONSAVEL) hides
+        // this the same way — no leadingAction prop at all, never a
+        // disabled/no-op button.
         leadingAction={
-          especieId
+          allowBreedCreation && especieId
             ? { icon: 'add', onPress: () => setBreedModalOpen(true), accessibilityLabel: t('patientForm.createBreedButton') }
             : undefined
         }
       />
 
-      <CreateBreedModal
-        visible={breedModalOpen}
-        especieId={especieId ?? 0}
-        especieNome={selectedEspecieNome}
-        onClose={() => setBreedModalOpen(false)}
-        onCreated={(created) => {
-          setRacaId(created.id);
-          setBreedModalOpen(false);
-        }}
-      />
+      {allowBreedCreation ? (
+        <CreateBreedModal
+          visible={breedModalOpen}
+          especieId={especieId ?? 0}
+          especieNome={selectedEspecieNome}
+          onClose={() => setBreedModalOpen(false)}
+          onCreated={(created) => {
+            setRacaId(created.id);
+            setBreedModalOpen(false);
+          }}
+        />
+      ) : null}
 
       <ChipGroup label={t('patientForm.sexLabel')} options={SEXO_OPTIONS} value={sexo} onChange={(v) => setSexo(v as 'M' | 'F')} />
 

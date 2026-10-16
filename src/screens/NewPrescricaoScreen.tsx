@@ -73,6 +73,7 @@ export function NewPrescricaoScreen() {
       <ScreenContainer>
         <PrescricaoForm
           patientName={consulta.animalNome}
+          patientArkiveId={consulta.animalArkivePatientId}
           consultaLabel={toDisplayDate(consulta.dataHora.slice(0, 10))}
           onSubmit={handleSubmit}
           isSubmitting={createMutation.isPending}

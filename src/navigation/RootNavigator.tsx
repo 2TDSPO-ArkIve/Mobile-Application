@@ -9,6 +9,7 @@ import { AppStack } from './AppStack';
 import { ResponsavelAppStack } from './ResponsavelAppStack';
 import { BackendUnavailableScreen } from '../screens/BackendUnavailableScreen';
 import { MandatoryPasswordChangeScreen } from '../screens/MandatoryPasswordChangeScreen';
+import { navigationRef } from './navigationRef';
 import type { RootStackParamList } from '../interfaces/navigation';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -66,7 +67,7 @@ export function RootNavigator() {
     // simply keeps the correct static "ArkIve" already set in
     // `web/index.html` (a single app-wide title, not per-screen). No-op on
     // native (`useDocumentTitle` is a documented noop off web).
-    <NavigationContainer key={status} documentTitle={{ enabled: false }}>
+    <NavigationContainer ref={navigationRef} key={status} documentTitle={{ enabled: false }}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {status === 'authenticated' ? (
           <Stack.Screen name="App" component={AuthenticatedAppRouter} />

@@ -46,12 +46,16 @@ export interface ConsultaDto {
   motivo: string;
   sintomas: string | null;
   observacao: string | null;
+  /** Chunk-1 addition (`ConsultaResponse.observacaoResponsavel`) — the responsible person's note for the next consultation. Display-only for now; the create/edit form for it is a later chunk. */
+  observacaoResponsavel: string | null;
   peso: number | null;
   transcricao: string | null;
   status: ConsultaStatus;
   statusDescricao: string;
   animalId: number;
   animalNome: string;
+  /** Chunk-1 addition (`ConsultaResponse.animalArkivePatientId`) — the patient's permanent ArkIve id, included directly so consultation UI can show it without a separate animal fetch. Use `patientArkiveIdLine`-style null-safety (never fall back to a numeric id) when rendering. */
+  animalArkivePatientId: string | null;
   veterinarioId: number;
   veterinarioNome: string;
   clinicaId: number | null;
@@ -60,17 +64,48 @@ export interface ConsultaDto {
   endereco: string | null;
   /**
    * V13 addition (`Consulta.valorConsulta`). `null` means no cost was
-   * recorded — NEVER render that as `R$ 0,00` (an explicitly recorded `0` is
-   * a real, distinct value). Only ever meaningfully aggregated server-side
-   * for `FI` consultations (see `patientCostService.ts`), but the field
-   * itself can be present on any status since it's set at creation/edit time
-   * (AG), before finalization.
+   * recorded, OR (Chunk 1) that Java redacted it because the authenticated
+   * veterinarian isn't the one who owns this consultation's financial
+   * visibility — NEVER render either case as `R$ 0,00` (an explicitly
+   * recorded `0` is a real, distinct value, and this app never tries to
+   * distinguish "not recorded" from "redacted" — Java alone decides when
+   * `null` is returned). Only ever meaningfully aggregated server-side for
+   * `FI` consultations (see `patientCostService.ts`), but the field itself
+   * can be present on any status since it's set at creation/edit time (AG),
+   * before finalization.
    */
   valorConsulta: number | null;
 }
 
-/** `ConsultaWorkflowResponse.java` — same fields as ConsultaDto plus the diagnosis created by `finalizar`, when applicable. */
-export interface ConsultaWorkflowResponse extends ConsultaDto {
+/**
+ * `ConsultaWorkflowResponse.java`, confirmed field-for-field against the
+ * ACTUAL record — deliberately NOT `extends ConsultaDto`: this response does
+ * NOT include `endereco` or `valorConsulta` at all (confirmed by reading the
+ * record directly), unlike `ConsultaResponse`. Returned by `iniciar`
+ * (AG->EP) and `finalizar` (->FI); callers needing `endereco`/`valorConsulta`
+ * for a just-started/just-finalized consultation must still read them from
+ * `useConsulta`'s own `ConsultaDto`, not from this response.
+ */
+export interface ConsultaWorkflowResponse {
+  id: number;
+  dataHora: string;
+  modalidade: Modalidade;
+  motivo: string;
+  sintomas: string | null;
+  observacao: string | null;
+  observacaoResponsavel: string | null;
+  peso: number | null;
+  transcricao: string | null;
+  status: ConsultaStatus;
+  statusDescricao: string;
+  animalId: number;
+  animalNome: string;
+  animalArkivePatientId: string | null;
+  veterinarioId: number;
+  veterinarioNome: string;
+  clinicaId: number | null;
+  clinicaNome: string | null;
+  /** Set by `finalizar` (the confirmed diagnosis created alongside finalization); `null` for the `iniciar` (AG->EP) response. */
   diagnosticoId: number | null;
 }
 
@@ -184,12 +219,26 @@ export interface ClinicalSupportResponse {
   fontesPesquisadas?: string[];
   /**
    * Human-readable titles from the local RAG knowledge base (never literal
-   * `.md` filenames — Java returns the real document title). Same defensive
-   * optionality as `fontesPesquisadas` for a backend predating this field;
-   * normalize with `support.referenciasRag ?? []`. A distinct concept from
+   * `.md` filenames — Java returns the real document title). Chunk-1 change:
+   * each entry is now a structured `{fonte, titulo}` object (was a plain
+   * `string[]`) — `fonte` is the source/organization abbreviation Java
+   * confirmed (e.g. "ABCD"), nullable; `titulo` is always a non-blank string
+   * (`ClinicalSupportResponse.normalizarReferenciasRag` filters out any entry
+   * without one before it ever reaches this response). Never fabricate a
+   * full organization name from `fonte` — display it exactly as returned, or
+   * omit it when null. Same defensive optionality as `fontesPesquisadas` for
+   * a backend predating this field; normalize with
+   * `support.referenciasRag ?? []`. A distinct concept from
    * `fontesPesquisadas` (external web sources) — never merge the two lists.
    */
-  referenciasRag?: string[];
+  referenciasRag?: RagReference[];
+}
+
+/** `RagReferenceResponse.java` — one entry in `ClinicalSupportResponse.referenciasRag`. */
+export interface RagReference {
+  /** Source/organization abbreviation as confirmed by the clinical engine (e.g. "ABCD") — never expand/guess the full name. */
+  fonte: string | null;
+  titulo: string;
 }
 
 /** `FinalizarConsultaRequest.java` — the veterinarian's conclusion, confirmed, not called yet. */
@@ -200,7 +249,7 @@ export interface FinalizarConsultaRequest {
   conclusao?: string;
 }
 
-/** `CancelarConsultaRequest.java` — confirmed, not called yet (no cancel action in this phase's UI). */
+/** `CancelarConsultaRequest.java`. */
 export interface CancelarConsultaRequest {
   motivo: string;
 }
@@ -312,12 +361,15 @@ export async function requestClinicalSupport(id: number): Promise<ClinicalSuppor
 }
 
 /**
- * Confirmed: `ConsultaStatusTransitionPolicy` actually permits both `EP->FI`
- * and `AP->FI` server-side. This app deliberately only ever calls this from
- * `AP` — the intended ArkIve flow is narrative -> AI support -> veterinarian
- * conclusion, and skipping straight from EP would let a veterinarian
- * finalize a case IA never got a chance to look at. That's a product
- * choice enforced in ConsultaDetailScreen.tsx, not a backend limitation.
+ * Confirmed: `ConsultaStatusTransitionPolicy` permits both `EP->FI` and
+ * `AP->FI` server-side (the controller's own doc string says so explicitly:
+ * "O suporte ArkIve e opcional: EP pode seguir diretamente para FI."). Chunk 4
+ * uses this from BOTH paths — `ClinicalIntake`'s "Prosseguir sem análise
+ * ArkIve" action navigates straight from EP to `ConclusaoVeterinaria`, and
+ * `ArkiveInsightScreen`'s existing "Registrar minha conclusão" still reaches
+ * it from AP after clinical support. The same `VeterinarianConclusionForm`/
+ * `finalizeConsulta` call is reused unmodified for both — the backend doesn't
+ * distinguish them beyond the transition policy above.
  *
  * `doencaId` is always sent as `null` from this app: there is no `/api/doencas`
  * (or equivalent) REST endpoint anywhere in the backend for a mobile client
@@ -329,4 +381,22 @@ export async function finalizeConsulta(
   input: FinalizarConsultaRequest
 ): Promise<ConsultaWorkflowResponse> {
   return apiPost<ConsultaWorkflowResponse>(`/api/consultas/${id}/finalizar`, input);
+}
+
+/**
+ * `POST /api/consultas/{id}/cancelar` — confirmed `ConsultaWorkflowService.cancelar`
+ * allows AG/EP/AP -> CA (never FI/CA, both rejected with 400, not 409 —
+ * Java's own `BusinessException` default status). `motivo` is `@NotBlank`
+ * both at the DTO and redundantly in the service; a 400 here is always a
+ * validation/bad-status rejection, never a transient race to retry. Java
+ * prepends `"Cancelamento: " + motivo` into the consultation's own
+ * `observacao` field — there is no separate "cancellation reason" field to
+ * read back; render `consulta.observacao` for a CA consultation same as it's
+ * already rendered for FI.
+ */
+export async function cancelConsulta(
+  id: number,
+  input: CancelarConsultaRequest
+): Promise<ConsultaWorkflowResponse> {
+  return apiPost<ConsultaWorkflowResponse>(`/api/consultas/${id}/cancelar`, input);
 }

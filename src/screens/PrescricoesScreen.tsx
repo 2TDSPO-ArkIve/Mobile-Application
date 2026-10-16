@@ -13,6 +13,7 @@ import { useConsulta } from '../hooks/useConsultas';
 import { usePrescricoesByConsulta } from '../hooks/usePrescricoes';
 import { useConsultaResumoPdf } from '../hooks/useConsultaResumoPdf';
 import { toDisplayDate } from '../utils/isoDate';
+import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { commonStyles } from '../styles/common';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize } from '../styles/theme';
@@ -40,20 +41,53 @@ export function PrescricoesScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader
         title={t('prescricoesList.title')}
-        actions={[
-          {
-            icon: 'add',
-            onPress: () => navigation.navigate('NovaPrescricao', { consultaId }),
-            accessibilityLabel: t('prescricoesList.newAccessibilityLabel'),
-          },
-        ]}
+        // Chunk 8 correction — creation is only ever valid for a finalized
+        // (FI) consultation (`PrescricaoService.exigirConsultaFinalizada`,
+        // also re-checked by `NewPrescricaoScreen` itself as a second
+        // safeguard). While `consulta` hasn't loaded yet, or its status is
+        // AG/EP/AP/CA, this shortcut must not be offered at all — not even
+        // disabled, since AppHeader's icon actions have no disabled state.
+        actions={
+          isFinalizada
+            ? [
+                {
+                  icon: 'add',
+                  onPress: () => navigation.navigate('NovaPrescricao', { consultaId }),
+                  accessibilityLabel: t('prescricoesList.newAccessibilityLabel'),
+                },
+              ]
+            : []
+        }
       />
 
       <ScreenContainer>
         {consulta ? (
-          <Text style={[styles.context, { color: colors.textSecondary }]}>
-            {consulta.animalNome} · {toDisplayDate(consulta.dataHora.slice(0, 10))}
-          </Text>
+          <>
+            <Text style={[styles.context, { color: colors.textSecondary }]}>
+              {consulta.animalNome} · {toDisplayDate(consulta.dataHora.slice(0, 10))}
+            </Text>
+            <Text style={[styles.context, styles.contextArkiveId, { color: colors.textSecondary }]} selectable>
+              {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
+            </Text>
+          </>
+        ) : null}
+
+        {/* Chunk 8 — the header "+" icon alone wasn't discoverable enough;
+            this content button is the one visually prominent create action
+            (the header icon remains only as a small secondary shortcut, so
+            there's no competing primary action). Chunk 8 correction — gated
+            on `isFinalizada`, same as the header shortcut above: creation is
+            only ever valid for a finalized (FI) consultation, so this must
+            not be shown while `consulta` is still loading or its status is
+            AG/EP/AP/CA. `NewPrescricaoScreen` itself still re-validates FI
+            independently as a second safeguard. */}
+        {isFinalizada ? (
+          <AppButton
+            title={t('prescricoesList.newButton')}
+            icon="add"
+            onPress={() => navigation.navigate('NovaPrescricao', { consultaId })}
+            style={styles.newButton}
+          />
         ) : null}
 
         {isPending ? (
@@ -116,6 +150,8 @@ export function PrescricoesScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   context: { fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.md },
+  contextArkiveId: { fontSize: fontSize.xs, marginTop: -spacing.sm },
+  newButton: { marginBottom: spacing.md },
   // Visually distinct from the prescription cards above — a top border and
   // extra spacing is enough separation, no card/background of its own so it
   // never reads as "just another prescription". Full-width, no fixed

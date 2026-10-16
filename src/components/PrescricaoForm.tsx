@@ -10,6 +10,7 @@ import { useTranslation } from '../i18n/useTranslation';
 import type { PrescricaoRequestInput, ViaAdministracao } from '../services/prescricaoService';
 import { VIA_ADMINISTRACAO_OPTIONS, viaAdministracaoLabel } from '../utils/viaAdministracao';
 import { parseMoneyInput, moneyToInputValue } from '../utils/money';
+import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { spacing, fontSize, radius } from '../styles/theme';
 
 export interface PrescricaoFormValues {
@@ -49,6 +50,7 @@ function formatIsoDateLocal(date: Date): string {
 
 interface Props {
   patientName: string;
+  patientArkiveId?: string | null;
   consultaLabel: string;
   initialValues?: PrescricaoFormValues;
   onSubmit: (input: Omit<PrescricaoRequestInput, 'consultaId'>) => void;
@@ -66,6 +68,7 @@ interface Props {
  */
 export function PrescricaoForm({
   patientName,
+  patientArkiveId,
   consultaLabel,
   initialValues,
   onSubmit,
@@ -139,6 +142,9 @@ export function PrescricaoForm({
       <Text style={[styles.context, { color: colors.textSecondary }]}>
         {patientName}
         {consultaLabel ? ` · ${consultaLabel}` : ''}
+      </Text>
+      <Text style={[styles.contextArkiveId, { color: colors.textSecondary }]} selectable>
+        {patientArkiveIdLine({ arkivePatientId: patientArkiveId ?? null })}
       </Text>
 
       <AppInput
@@ -225,7 +231,8 @@ export function PrescricaoForm({
 }
 
 const styles = StyleSheet.create({
-  context: { fontSize: fontSize.xs, marginBottom: spacing.md },
+  context: { fontSize: fontSize.xs },
+  contextArkiveId: { fontSize: fontSize.xs, marginBottom: spacing.md, marginTop: 2 },
   label: { fontSize: fontSize.sm, fontWeight: '600', marginBottom: spacing.sm },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.md },
   chip: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.md, borderWidth: 1 },

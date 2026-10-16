@@ -7,8 +7,8 @@ import type { AnimalDto } from '../services/patientService';
  * selector/card uses so two same-name, same-species, same-breed animals
  * (a legitimate, allowed case — see PatientForm's dropped duplicate-name
  * warning) still read as distinct at a glance, without requiring a
- * per-card tutor fetch (see `patientTertiaryLine`'s own note on why tutor
- * is deliberately NOT part of this line).
+ * per-card responsible-person fetch (see `patientArkiveIdLine`'s own note on
+ * why that name is deliberately NOT part of this line).
  */
 export function patientSummaryLine(animal: AnimalDto): string {
   const parts = [animal.especieNome];
@@ -20,18 +20,27 @@ export function patientSummaryLine(animal: AnimalDto): string {
 }
 
 /**
- * "Paciente #184" — the last-resort fallback identifier for list/selector
- * cards. Deliberately does NOT include the tutor's name the way a single
- * patient's detail screen can: showing "Tutor: X" on every row of a patient
- * list would mean firing one `GET /api/animais-responsaveis/animal/{id}` per
- * visible card (no bulk endpoint exists, and inventing N+1 fetches for a
- * potentially long list isn't a reasonable trade for a cosmetic line) —
- * `PatientDetailScreen`, which already pays for exactly one such fetch for
- * the single patient being viewed, is where the real tutor name is shown.
+ * The permanent, product-facing patient identity line — `ARK-PET-XXXXX-...`
+ * shown alongside the name on cards, selectors, and detail headers. The
+ * numeric database id (`animal.id`) remains valid internally for
+ * navigation/query-keys/API calls, but is NEVER displayed as the patient's
+ * identity (no more "Paciente #184") — if the ArkIve id is unexpectedly
+ * missing, this falls back to a neutral message that does NOT expose the
+ * database id either.
  *
- * Never renders a bare/unlabeled `#184` — the label makes clear at a glance
- * that this is a stable record identifier, not a room number or a typo.
+ * Deliberately does NOT include the responsible person's name the way a
+ * single patient's detail screen can: showing "Responsável: X" on every row
+ * of a patient list would mean firing one
+ * `GET /api/animais-responsaveis/animal/{id}` per visible card (no bulk
+ * endpoint exists, and inventing N+1 fetches for a potentially long list
+ * isn't a reasonable trade for a cosmetic line) — `PatientDetailScreen`,
+ * which already pays for exactly one such fetch for the single patient being
+ * viewed, is where the real responsible-person name is shown.
+ *
+ * This is the ONE shared helper for this identity line — every card/
+ * selector/header displaying a patient's ArkIve id goes through this rather
+ * than formatting `arkivePatientId` inline.
  */
-export function patientFallbackId(animal: Pick<AnimalDto, 'id'>): string {
-  return t('patientDisplay.fallbackId', { id: animal.id });
+export function patientArkiveIdLine(animal: Pick<AnimalDto, 'arkivePatientId'>): string {
+  return animal.arkivePatientId ?? t('patientDisplay.arkiveIdMissing');
 }

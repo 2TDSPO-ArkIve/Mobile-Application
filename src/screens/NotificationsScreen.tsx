@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { AppCard } from '../components/AppCard';
@@ -16,10 +17,27 @@ import {
   useMarkNotificationRead,
   useMarkAllNotificationsRead,
 } from '../hooks/useNotifications';
-import { DEFAULT_NOTIFICATIONS_PAGE_SIZE, type NotificationDto } from '../services/notificationService';
+import { DEFAULT_NOTIFICATIONS_PAGE_SIZE, type NotificationDto, type NotificationType } from '../services/notificationService';
+import { resolveNotificationDestination } from '../utils/notificationNavigation';
 import { describeNotificationsError } from '../utils/errorMessages';
 import { formatDateTime } from '../utils/localeFormat';
 import { spacing, fontSize, radius } from '../styles/theme';
+
+/**
+ * Chunk 5 — purely visual categorization, never a text substitute: the
+ * backend's own `title`/`message` remain the only displayed copy for every
+ * type (see this file's own long-standing note below on why a specific
+ * backend message is never replaced with a generic invented one). Icon
+ * choice alone is never the only signal distinguishing a type from another —
+ * the backend text next to it always disambiguates for a screen-reader/
+ * color-blind user too.
+ */
+const NOTIFICATION_TYPE_ICON: Record<NotificationType, React.ComponentProps<typeof Ionicons>['name']> = {
+  CONSULTA_AGENDADA: 'calendar-outline',
+  LEMBRETE_CONSULTA: 'alarm-outline',
+  CONSULTA_FINALIZADA: 'checkmark-done-outline',
+  SOLICITACAO_ACESSO: 'key-outline',
+};
 
 /**
  * Reused across BOTH `AppStack` (VETERINARIO) and `ResponsavelAppStack`
@@ -30,15 +48,18 @@ import { spacing, fontSize, radius } from '../styles/theme';
  *
  * Polling-based, not real-time push: this screen (and the header bell) are
  * the one authoritative "notification center" for the browser-first
- * product. The current backend notification type (`CONSULTA_FINALIZADA`) is
- * only ever created for RESPONSAVEL users, so a VETERINARIO session will
- * typically see this screen stay empty — that's expected, not a bug, and
- * the bell/center exist for both roles regardless (future-compatible with
- * a VETERINARIO-facing notification type later).
+ * product. Chunk 1 synchronized the full backend notification type set
+ * (`CONSULTA_AGENDADA`/`LEMBRETE_CONSULTA`/`CONSULTA_FINALIZADA`/
+ * `SOLICITACAO_ACESSO`) — every type renders using the backend's own
+ * title/message like any other notification. Chunk 7: `SOLICITACAO_ACESSO`
+ * now navigates to the Responsible's own access-requests screen (see
+ * `resolveNotificationDestination`'s own note on why this is RESPONSAVEL-only
+ * and keyed by `resourceType`/`resourceId`, never `animalId`).
  */
 type NotificationsNavigationParamList = {
   ConsultaDetalhe: { consultaId: number };
   HistoricoPaciente: { patientId: number };
+  SolicitacoesAcessoRecebidas: { focusRequestId: number };
 };
 
 function NotificationItem({
@@ -59,12 +80,20 @@ function NotificationItem({
       style={isUnread ? { backgroundColor: colors.primaryTint, borderColor: colors.primaryLight } : undefined}
     >
       <View style={styles.headerRow}>
-        <Text
-          style={[styles.title, { color: colors.text, fontWeight: isUnread ? '800' : '600' }]}
-          numberOfLines={2}
-        >
-          {notification.title}
-        </Text>
+        <View style={styles.titleRow}>
+          <Ionicons
+            name={NOTIFICATION_TYPE_ICON[notification.type]}
+            size={18}
+            color={colors.primary}
+            style={styles.typeIcon}
+          />
+          <Text
+            style={[styles.title, { color: colors.text, fontWeight: isUnread ? '800' : '600' }]}
+            numberOfLines={2}
+          >
+            {notification.title}
+          </Text>
+        </View>
         {isUnread ? <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} /> : null}
       </View>
       <Text style={[styles.message, { color: colors.textSecondary }]} numberOfLines={3}>
@@ -107,23 +136,22 @@ export function NotificationsScreen() {
       }
     }
 
-    // Role-safe navigation: a VETERINARIO's own consultation detail route
-    // doesn't exist in ResponsavelAppStack, and a RESPONSAVEL has no
-    // authorized path to it — never attempt it there. For RESPONSAVEL,
-    // HistoricoPaciente (not PacienteDetalhe) is preferred: a finalized-
-    // consultation notification naturally points at the patient's updated
-    // clinical history, not just its static profile.
-    if (isVeterinario) {
-      if (notification.resourceType === 'CONSULTA' && notification.resourceId != null) {
-        navigation.navigate('ConsultaDetalhe', { consultaId: notification.resourceId });
-      }
-      return;
+    // Shared with the native push/local-notification tap handler
+    // (`PushTapHandler`) — see `resolveNotificationDestination`'s own doc
+    // comment for the full role-safety rationale (SOLICITACAO_ACESSO never
+    // navigates, VETERINARIO only to ConsultaDetalhe, RESPONSAVEL only to
+    // HistoricoPaciente via animalId).
+    const destination = resolveNotificationDestination(notification, isVeterinario);
+    if (destination?.screen === 'ConsultaDetalhe') {
+      navigation.navigate('ConsultaDetalhe', destination.params);
+    } else if (destination?.screen === 'HistoricoPaciente') {
+      navigation.navigate('HistoricoPaciente', destination.params);
+    } else if (destination?.screen === 'SolicitacoesAcessoRecebidas') {
+      navigation.navigate('SolicitacoesAcessoRecebidas', destination.params);
     }
-
-    if (notification.animalId != null) {
-      navigation.navigate('HistoricoPaciente', { patientId: notification.animalId });
-    }
-    // Missing resource ids: already marked read above, simply don't navigate.
+    // No destination (missing resource ids, or a VETERINARIO session seeing
+    // a SOLICITACAO_ACESSO notification it was never meant to receive):
+    // already marked read above, simply don't navigate.
   };
 
   const handleMarkAllRead = async () => {
@@ -180,6 +208,8 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   markAllButton: { alignSelf: 'flex-end', marginBottom: spacing.xs },
   headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.sm },
+  titleRow: { flexDirection: 'row', alignItems: 'flex-start', flexShrink: 1, gap: spacing.xs },
+  typeIcon: { marginTop: 2 },
   title: { fontSize: fontSize.md, flexShrink: 1 },
   unreadDot: { width: 8, height: 8, borderRadius: radius.full, marginTop: 6 },
   message: { fontSize: fontSize.sm, marginTop: spacing.xs },

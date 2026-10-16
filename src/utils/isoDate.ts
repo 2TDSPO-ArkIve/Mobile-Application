@@ -1,5 +1,3 @@
-import { getLanguage } from '../i18n/store';
-
 /**
  * Pure string conversion between the app's display format and the ISO
  * YYYY-MM-DD a Java `LocalDate` expects. Deliberately never constructs a
@@ -8,9 +6,10 @@ import { getLanguage } from '../i18n/store';
  * plain string), which is all prescription date-range validation needs.
  *
  * The backend contract (`toIsoDate`'s output, and every `dataInicio`/
- * `dataFim` sent in a request body) is unaffected by language — only
- * `toDisplayDate`'s rendered string changes, matching the app's language
- * (DD/MM/YYYY for pt-BR, MM/DD/YYYY for en-US).
+ * `dataFim` sent in a request body) is unaffected by display formatting —
+ * `toDisplayDate` always renders `dd-MM-yyyy` (fixed, not locale-dependent —
+ * see `localeFormat.ts`'s own note on why), regardless of the app's current
+ * pt-BR/en-US language.
  */
 export function toIsoDate(value: string): string {
   const trimmed = value.trim();
@@ -24,5 +23,5 @@ export function toDisplayDate(value?: string | null): string {
   const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) return value;
   const [, y, m, d] = match;
-  return getLanguage() === 'en-US' ? `${m}/${d}/${y}` : `${d}/${m}/${y}`;
+  return `${d}-${m}-${y}`;
 }

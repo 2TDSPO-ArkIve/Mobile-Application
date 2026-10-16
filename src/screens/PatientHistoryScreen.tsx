@@ -17,6 +17,7 @@ import { viaAdministracaoLabel } from '../utils/viaAdministracao';
 import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
 import { toDisplayDate } from '../utils/isoDate';
 import { describePatientHistoryError } from '../utils/errorMessages';
+import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AnimalHistoryConsultation, AnimalHistoryPrescription } from '../services/patientHistoryService';
 import { spacing, fontSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
@@ -199,6 +200,9 @@ export function PatientHistoryScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={data.paciente.nome} />
       <ScreenContainer>
+        <Text style={[styles.arkiveIdSubtitle, { color: colors.textSecondary }]} selectable>
+          {patientArkiveIdLine(data.paciente)}
+        </Text>
         <Text style={[commonStyles.eyebrow, { color: colors.primary, marginBottom: spacing.sm }]}>
           {t('patientHistory.title')}
         </Text>
@@ -228,6 +232,7 @@ export function PatientHistoryScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  arkiveIdSubtitle: { fontSize: fontSize.xs, fontFamily: 'monospace', textAlign: 'center', marginBottom: spacing.sm },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   dateText: { fontSize: fontSize.md, fontWeight: '700' },
   metaText: { fontSize: fontSize.sm, marginTop: 2 },

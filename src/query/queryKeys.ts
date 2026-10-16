@@ -25,6 +25,8 @@ export const queryKeys = {
     history: (id: string | number) => [...queryKeys.patients.all, 'history', id] as const,
     /** `GET /api/animais/{id}/custos` — same per-patient scoping as `history`. */
     costs: (id: string | number) => [...queryKeys.patients.all, 'costs', id] as const,
+    /** `GET /api/animais/{id}/observacao-responsavel` — the RESPONSAVEL's pending note for this one animal; never shared across animal ids. */
+    observacao: (id: string | number) => [...queryKeys.patients.all, 'observacao', id] as const,
   },
   especies: {
     all: ['especies'] as const,
@@ -50,12 +52,32 @@ export const queryKeys = {
   veterinarios: {
     all: ['veterinarios'] as const,
     detail: (id: string | number) => [...queryKeys.veterinarios.all, 'detail', id] as const,
+    /** `GET /api/veterinarios/me` — the authenticated veterinarian's own profile, no id involved. */
+    me: () => [...queryKeys.veterinarios.all, 'me'] as const,
+    /** `GET /api/veterinarios/me/custos` (Chunk 6) — the authenticated veterinarian's own financial dashboard. No id involved; never shared across accounts. */
+    ownCosts: () => [...queryKeys.veterinarios.all, 'own-costs'] as const,
   },
   prescricoes: {
     all: ['prescricoes'] as const,
     byConsulta: (consultaId: string | number) =>
       [...queryKeys.prescricoes.all, 'by-consulta', consultaId] as const,
     detail: (id: string | number) => [...queryKeys.prescricoes.all, 'detail', id] as const,
+  },
+  /**
+   * Chunk 7 — `GET /api/solicitacoes-acesso` returns a role-scoped view
+   * (Java branches internally: a veterinarian's own outgoing requests, or a
+   * responsible person's incoming/eligible-to-decide requests). `mine`/
+   * `received` are kept as SEPARATE key prefixes rather than one shared list
+   * key, even though both call the identical service function — a vet and a
+   * responsible person must never share a cache entry for what is, from each
+   * role's perspective, a conceptually different list.
+   */
+  accessRequests: {
+    all: ['accessRequests'] as const,
+    mine: (params?: { status?: string; page?: number; size?: number }) =>
+      [...queryKeys.accessRequests.all, 'mine', params ?? {}] as const,
+    received: (params?: { status?: string; page?: number; size?: number }) =>
+      [...queryKeys.accessRequests.all, 'received', params ?? {}] as const,
   },
   notifications: {
     all: ['notifications'] as const,

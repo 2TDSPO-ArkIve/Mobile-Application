@@ -58,6 +58,40 @@ export function describeFinalizeError(error: unknown): string {
 }
 
 /**
+ * Translates a `POST /api/consultas/{id}/cancelar` failure. Confirmed
+ * against `ConsultaWorkflowService.cancelar`: a missing/blank `motivo`, an
+ * already-FI, or an already-CA consultation are ALL plain `BusinessException`s
+ * mapped to 400 (never 409 — this endpoint has no in-flight concurrency lock
+ * like `suporte-clinico`'s does). The 409 branch is kept only as defensive
+ * symmetry with every other `describe*Error` function here, not because a
+ * confirmed real 409 case exists for this endpoint today.
+ */
+export function describeCancelError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 400) {
+      return t('errors.cancelValidation');
+    }
+    if (error.status === 403) {
+      return t('errors.cancelForbidden');
+    }
+    if (error.status === 404) {
+      return t('errors.cancelNotFound');
+    }
+    if (error.status === 409) {
+      return t('errors.cancelConflict');
+    }
+    if (error.status >= 500) {
+      return t('errors.cancelUnavailable');
+    }
+    return t('errors.cancelGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.cancelNetwork');
+  }
+  return t('errors.cancelGeneric');
+}
+
+/**
  * Translates a prescription create/update/delete failure. The 409 case is
  * confirmed to mean one specific thing server-side
  * (`PrescricaoService.exigirSemAdesaoRegistrada`): the prescription already
@@ -244,6 +278,127 @@ export function describePatientCostsError(error: unknown): string {
   return t('errors.patientCostsGeneric');
 }
 
+/**
+ * Translates a `GET`/`PATCH /api/animais/{id}/observacao-responsavel`
+ * failure. 403 here specifically means "not the active/current responsible
+ * person for this animal" (`AnimalService.exigirResponsavelVinculado`), not
+ * a generic permission problem — worded accordingly rather than reused from
+ * `describePatientError`'s "cadastrar pacientes" copy, which wouldn't fit.
+ */
+export function describeAnimalObservationError(error: unknown, isSave = false): string {
+  if (error instanceof ApiError) {
+    if (error.status === 403) {
+      return t('errors.animalObservationForbidden');
+    }
+    if (error.status === 404) {
+      return t('errors.animalObservationNotFound');
+    }
+    if (error.status >= 500) {
+      return isSave ? t('errors.animalObservationSaveUnavailable') : t('errors.animalObservationGeneric');
+    }
+    return isSave ? t('errors.animalObservationSaveGeneric') : t('errors.animalObservationGeneric');
+  }
+  if (isNetworkError(error)) {
+    return isSave ? t('errors.animalObservationSaveNetwork') : t('errors.animalObservationNetwork');
+  }
+  return isSave ? t('errors.animalObservationSaveGeneric') : t('errors.animalObservationGeneric');
+}
+
+/**
+ * Translates a `POST /api/solicitacoes-acesso` (create access request)
+ * failure. Confirmed against the current local Java source:
+ * `PatientAccessRequestService.criar` rejects a nonexistent ArkIve ID (404),
+ * an inactive patient / already-has-access / already-pending / no-eligible-
+ * Responsible condition (409, each with its own specific, human-readable
+ * message — e.g. "Já existe uma solicitação de acesso pendente para este
+ * paciente.") and a blank ArkIve ID (400, bean validation). All of those
+ * messages are shown VERBATIM, same pattern as `describeRegistrationError` —
+ * they are specific, safe, non-sensitive, and already written for an
+ * end-user. 403 means the caller isn't an active VETERINARIO at all.
+ */
+export function describeAccessRequestCreateError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 400 || error.status === 404 || error.status === 409) {
+      return error.message || t('errors.accessRequestCreateGeneric');
+    }
+    if (error.status === 403) {
+      return t('errors.accessRequestCreateForbidden');
+    }
+    if (error.status >= 500) {
+      return t('errors.accessRequestCreateUnavailable');
+    }
+    return t('errors.accessRequestCreateGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.accessRequestCreateNetwork');
+  }
+  return t('errors.accessRequestCreateGeneric');
+}
+
+/** Translates a `GET /api/solicitacoes-acesso` (list) failure for either role. */
+export function describeAccessRequestListError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 403) {
+      return t('errors.accessRequestListForbidden');
+    }
+    return t('errors.accessRequestListGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.accessRequestListNetwork');
+  }
+  return t('errors.accessRequestListGeneric');
+}
+
+/**
+ * Translates a `POST /api/solicitacoes-acesso/{id}/aprovar` or `/rejeitar`
+ * failure. Confirmed: a 409 here always carries a specific, safe, already-
+ * written message ("Solicitação rejeitada não pode ser aprovada.",
+ * "Solicitação aprovada não pode ser rejeitada.", or the requester-no-longer-
+ * active case) — shown verbatim rather than a generic "something changed"
+ * string, since Java's own wording is already precise about what happened. A
+ * 403 specifically means "you are not the current/active Responsible for
+ * this animal" — never retried, never a different endpoint attempted.
+ */
+export function describeAccessRequestDecisionError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 409) {
+      return error.message || t('errors.accessRequestDecisionGeneric');
+    }
+    if (error.status === 403) {
+      return t('errors.accessRequestDecisionForbidden');
+    }
+    if (error.status === 404) {
+      return t('errors.accessRequestDecisionNotFound');
+    }
+    if (error.status >= 500) {
+      return t('errors.accessRequestDecisionUnavailable');
+    }
+    return t('errors.accessRequestDecisionGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.accessRequestDecisionNetwork');
+  }
+  return t('errors.accessRequestDecisionGeneric');
+}
+
+/**
+ * Translates a `GET /api/veterinarios/me/custos` failure. No 404 branch —
+ * confirmed this endpoint takes no path parameter, so a 404 is structurally
+ * impossible here (unlike `describePatientCostsError`'s per-animal GET).
+ */
+export function describeOwnCostsError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 403) {
+      return t('errors.ownCostsForbidden');
+    }
+    return t('errors.ownCostsGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.ownCostsNetwork');
+  }
+  return t('errors.ownCostsGeneric');
+}
+
 /** Translates a `GET /api/animais/{id}/historico-pdf` failure. Same `InvalidPdfError` class as the consultation-summary PDF (see consultaPdfService.ts) — a malformed/empty body is the same failure mode regardless of which PDF endpoint produced it. */
 export function describePatientHistoryPdfError(error: unknown): string {
   if (error instanceof InvalidPdfError) {
@@ -339,6 +494,103 @@ export function describeResponsavelRegistrationError(error: unknown): string {
     return t('errors.registrationResponsavelNetwork');
   }
   return t('errors.registrationResponsavelGeneric');
+}
+
+/** Field-attributed registration error outcome — `fieldErrors` keys match the request DTO's own field/record-component names exactly, so a caller can assign them straight into a form's per-field error state. `formError` is set only when no specific field could be safely identified. */
+export interface RegistrationFieldErrors {
+  fieldErrors: Partial<Record<string, string>>;
+  formError: string | null;
+}
+
+/**
+ * Stable `BusinessException` messages from `VeterinarioService`/
+ * `AccountProvisioningService`/`UsuarioService`/`PasswordPolicy` (Chunk 2
+ * correction) — exact-matched, never fuzzy-substring-matched against
+ * arbitrary text. These are messages THIS codebase controls and the local
+ * Java source confirms verbatim, not guesses about an unrelated system's
+ * wording.
+ *
+ * `AuthService.registrarVeterinario` now calls `passwordPolicy.validar`/
+ * `validarConfirmacao` on the veterinarian's OWN chosen password (same
+ * `PasswordPolicy` component used by Responsável registration) before
+ * `VeterinarioService.criarAutocadastro`, so the same password/confirmation
+ * messages mapped for Responsável below can also surface here.
+ */
+const VETERINARIO_MESSAGE_FIELD: Record<string, string> = {
+  'CRMV ja cadastrado.': 'crmv',
+  'Login de usuario ja cadastrado.': 'email',
+  'E-mail do veterinario e obrigatorio para criar a conta de acesso.': 'email',
+  'E-mail/login e obrigatorio para criar a conta de acesso.': 'email',
+  'E-mail/login deve ter formato valido.': 'email',
+  'E-mail/login deve ter no maximo 72 bytes para uso como credencial inicial.': 'email',
+  'A senha deve ter pelo menos 8 caracteres.': 'senha',
+  'A senha deve ter no maximo 72 caracteres.': 'senha',
+  'A senha deve conter pelo menos uma letra maiuscula.': 'senha',
+  'A senha deve conter pelo menos uma letra minuscula.': 'senha',
+  'A senha deve conter pelo menos um numero.': 'senha',
+  'A confirmacao da senha nao confere.': 'confirmacaoSenha',
+};
+
+/**
+ * `POST /api/auth/register` field-error mapping. Two sources, in priority
+ * order: (1) `error.fields` — present on a bean-validation 400
+ * (`@NotBlank`/`@Size`/`@Email` on `RegistroVeterinarioRequest`), Spring's
+ * own authoritative field names (`nome`/`crmv`/`email`), no guessing; (2) an
+ * exact match against `VETERINARIO_MESSAGE_FIELD` for a `BusinessException`
+ * (duplicate CRMV/login), which carries only a flat message. Anything else
+ * (network, 5xx, an unrecognized message) falls back to the existing
+ * generic `describeRegistrationError` as a form-level message.
+ */
+export function mapVeterinarioRegistrationError(error: unknown): RegistrationFieldErrors {
+  if (error instanceof ApiError) {
+    if (error.fields) {
+      return { fieldErrors: error.fields, formError: null };
+    }
+    const field = VETERINARIO_MESSAGE_FIELD[error.message];
+    if (field) {
+      return { fieldErrors: { [field]: error.message }, formError: null };
+    }
+  }
+  return { fieldErrors: {}, formError: describeRegistrationError(error) };
+}
+
+/**
+ * Stable `BusinessException` messages from `ResponsavelRegistrationService`/
+ * `PasswordPolicy` (Chunk 2) — same exact-match discipline as
+ * `VETERINARIO_MESSAGE_FIELD`. The generic race-condition fallback
+ * (`"Já existe uma conta com o e-mail ou documento informado."`, thrown only
+ * if a `DataIntegrityViolationException` slips past the explicit
+ * email/document availability pre-checks) is deliberately NOT mapped here —
+ * it cannot be safely attributed to one field, so it always falls through to
+ * the generic form-level message instead.
+ */
+const RESPONSAVEL_MESSAGE_FIELD: Record<string, string> = {
+  'Tipo de documento é obrigatório.': 'tipoDocumento',
+  'Tipo de documento inválido.': 'tipoDocumento',
+  'CPF inválido.': 'documento',
+  'RG inválido.': 'documento',
+  'E-mail já cadastrado.': 'email',
+  'Documento já cadastrado.': 'documento',
+  'A senha deve ter pelo menos 8 caracteres.': 'senha',
+  'A senha deve ter no maximo 72 caracteres.': 'senha',
+  'A senha deve conter pelo menos uma letra maiuscula.': 'senha',
+  'A senha deve conter pelo menos uma letra minuscula.': 'senha',
+  'A senha deve conter pelo menos um numero.': 'senha',
+  'A confirmacao da senha nao confere.': 'confirmacaoSenha',
+};
+
+/** `POST /api/auth/register/responsavel` field-error mapping — same two-source priority as `mapVeterinarioRegistrationError`. */
+export function mapResponsavelRegistrationError(error: unknown): RegistrationFieldErrors {
+  if (error instanceof ApiError) {
+    if (error.fields) {
+      return { fieldErrors: error.fields, formError: null };
+    }
+    const field = RESPONSAVEL_MESSAGE_FIELD[error.message];
+    if (field) {
+      return { fieldErrors: { [field]: error.message }, formError: null };
+    }
+  }
+  return { fieldErrors: {}, formError: describeResponsavelRegistrationError(error) };
 }
 
 /**

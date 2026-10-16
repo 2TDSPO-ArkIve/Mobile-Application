@@ -2,9 +2,20 @@ import type { AnimalDto } from '../services/patientService';
 import type { AuthMeResponse } from '../services/authService';
 
 export type AuthStackParamList = {
-  /** `prefillIdentifier` — set by RegisterScreen/RegisterResponsavelScreen after a successful cadastro, so the user doesn't have to retype the e-mail they just registered with. */
+  /** `prefillIdentifier` — set by the unified `RegisterScreen` after a successful cadastro, so the user doesn't have to retype the e-mail they just registered with. */
   Login: { prefillIdentifier?: string } | undefined;
-  Cadastro: undefined;
+  /**
+   * Chunk 2: ONE unified registration screen — a `Veterinário | Responsável`
+   * segmented selector up top decides which fields render. `initialRole` is
+   * optional (the `LoginScreen`'s single "Criar conta" entry point omits it,
+   * defaulting to VETERINARIO); `CadastroResponsavel` below is kept as a
+   * route-name ALIAS of this exact same screen for backward compatibility —
+   * `SharePreviewScreen`'s existing `navigate('CadastroResponsavel')` call
+   * (and any other stale reference) still lands here with RESPONSAVEL
+   * preselected, with no change needed at the call site.
+   */
+  Cadastro: { initialRole?: 'VETERINARIO' | 'RESPONSAVEL' } | undefined;
+  /** Alias route for `Cadastro` — registered against the SAME `RegisterScreen` component (see `AuthStack.tsx`), which reads `useRoute().name` to preselect RESPONSAVEL when entered through this name. No separate screen/component exists for this anymore. */
   CadastroResponsavel: undefined;
   /**
    * No params — the screen always reads `PendingShareContext.pendingToken`
@@ -24,14 +35,22 @@ export type BottomTabParamList = {
 };
 
 /**
- * The RESPONSAVEL application shell — deliberately small (Sprint "RESPONSAVEL
- * Phase 1/2"): read-only patient access only, no clinical write screens, no
- * sharing yet. `PacienteDetalhe` here is the exact same `PatientDetailScreen`
- * component `AppStackParamList` uses (shared, role-neutral display), typed
- * independently in each param list rather than sharing one big union.
+ * The RESPONSAVEL application shell. `PacienteDetalhe` here is the exact
+ * same `PatientDetailScreen` component `AppStackParamList` uses (shared,
+ * role-neutral display), typed independently in each param list rather than
+ * sharing one big union.
+ *
+ * Chunk 3: `CadastrarAnimal`/`EditarAnimal` give RESPONSAVEL its own
+ * write path, backed by `NewAnimalScreen`/`EditAnimalScreen` — deliberately
+ * NOT `NovoPaciente`/`EditarPaciente` (the VETERINARIO screens embed
+ * tutor-linking logic that doesn't apply to a RESPONSAVEL managing their own
+ * animal). Clinical write screens (consultations, prescriptions, veterinary
+ * administration) remain entirely absent from this stack.
  */
 export type ResponsavelAppStackParamList = {
   MeusAnimais: undefined;
+  CadastrarAnimal: undefined;
+  EditarAnimal: { patientId: number };
   PacienteDetalhe: { patientId: number };
   /** Read-only clinical timeline — Java authorizes RESPONSAVEL access the same as VETERINARIO (`GET /api/animais/{id}/historico`), so this is not gated client-side by role. */
   HistoricoPaciente: { patientId: number };
@@ -42,6 +61,8 @@ export type ResponsavelAppStackParamList = {
   EscanearConvite: undefined;
   /** Explicit ArkIve-ID lookup — retrieval only, same read-authorization rule as every other patient fetch; never creates/imports a patient. */
   BuscarPacienteArkive: undefined;
+  /** Chunk 7 — incoming access requests this Responsible is currently eligible to decide on (`GET /api/solicitacoes-acesso`, Java-scoped). `focusRequestId` highlights one row when reached from a `SOLICITACAO_ACESSO` notification tap — it never fetches a single request on its own; the full, correctly-scoped list already contains it. */
+  SolicitacoesAcessoRecebidas: { focusRequestId?: number } | undefined;
   MinhaConta: undefined;
   Configuracoes: undefined;
   AlterarSenha: undefined;
@@ -74,6 +95,10 @@ export type AppStackParamList = {
   PrescricaoDetalhe: { prescricaoId: number; consultaId: number };
   EditarPrescricao: { prescricaoId: number; consultaId: number };
   Perfil: undefined;
+  /** Chunk 6 — "Resumo financeiro". VETERINARIO-only: this route does not exist in `ResponsavelAppStackParamList`, and the backend endpoint it reads (`GET /api/veterinarios/me/custos`) is `hasRole("VETERINARIO")`-gated regardless. No params — always "my own" data, never a chosen veterinarianId. */
+  ValoresVeterinario: undefined;
+  /** Chunk 7 — the veterinarian's own outgoing access requests. VETERINARIO-only, read-only tracking (approval/rejection is exclusively the Responsible's own route, `SolicitacoesAcessoRecebidas`, which does not exist in this stack). */
+  SolicitacoesAcessoEnviadas: undefined;
   Configuracoes: undefined;
   AlterarSenha: undefined;
   Notificacoes: undefined;

@@ -56,6 +56,7 @@ export function EditPrescricaoScreen() {
       <ScreenContainer>
         <PrescricaoForm
           patientName={consulta?.animalNome ?? ''}
+          patientArkiveId={consulta?.animalArkivePatientId}
           consultaLabel={consulta ? toDisplayDate(consulta.dataHora.slice(0, 10)) : ''}
           initialValues={{
             medicamento: prescricao.medicamento,
