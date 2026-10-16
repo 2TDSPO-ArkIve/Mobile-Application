@@ -54,10 +54,12 @@ export function ResponsavelAccountScreen() {
           onPress={() => navigation.navigate('Configuracoes')}
         />
 
+        {/* Chunk 8 — moved out of Segurança and promoted to normal button
+            styling (was a small gray ghost button, easy to miss). */}
+        <Text style={[styles.sectionLabel, { color: colors.text }]}>{t('account.sharingSection')}</Text>
         <AppButton
           title={t('scanShareQr.entryLink')}
-          variant="ghost"
-          size="small"
+          variant="outline"
           onPress={() => navigation.navigate('EscanearConvite')}
         />
 

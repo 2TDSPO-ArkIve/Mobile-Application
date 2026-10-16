@@ -9,6 +9,7 @@ import { PatientHistoryScreen } from '../screens/PatientHistoryScreen';
 import { PatientCostScreen } from '../screens/PatientCostScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { ArkiveIdLookupScreen } from '../screens/ArkiveIdLookupScreen';
+import { AccessRequestsScreen } from '../screens/AccessRequestsScreen';
 import { ResponsavelAccountScreen } from '../screens/ResponsavelAccountScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { ChangePasswordScreen } from '../screens/ChangePasswordScreen';
@@ -61,6 +62,7 @@ export function ResponsavelAppStack() {
       <Stack.Screen name="AlterarSenha" component={ChangePasswordScreen} />
       <Stack.Screen name="Notificacoes" component={NotificationsScreen} />
       <Stack.Screen name="BuscarPacienteArkive" component={ArkiveIdLookupScreen} />
+      <Stack.Screen name="SolicitacoesAcessoRecebidas" component={AccessRequestsScreen} />
     </Stack.Navigator>
   );
 }

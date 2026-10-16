@@ -63,6 +63,22 @@ export const queryKeys = {
       [...queryKeys.prescricoes.all, 'by-consulta', consultaId] as const,
     detail: (id: string | number) => [...queryKeys.prescricoes.all, 'detail', id] as const,
   },
+  /**
+   * Chunk 7 — `GET /api/solicitacoes-acesso` returns a role-scoped view
+   * (Java branches internally: a veterinarian's own outgoing requests, or a
+   * responsible person's incoming/eligible-to-decide requests). `mine`/
+   * `received` are kept as SEPARATE key prefixes rather than one shared list
+   * key, even though both call the identical service function — a vet and a
+   * responsible person must never share a cache entry for what is, from each
+   * role's perspective, a conceptually different list.
+   */
+  accessRequests: {
+    all: ['accessRequests'] as const,
+    mine: (params?: { status?: string; page?: number; size?: number }) =>
+      [...queryKeys.accessRequests.all, 'mine', params ?? {}] as const,
+    received: (params?: { status?: string; page?: number; size?: number }) =>
+      [...queryKeys.accessRequests.all, 'received', params ?? {}] as const,
+  },
   notifications: {
     all: ['notifications'] as const,
     /**

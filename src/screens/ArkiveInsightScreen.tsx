@@ -15,6 +15,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useConsulta, useConsultaClinicalSupport } from '../hooks/useConsultas';
 import { isSupportNotYetPersisted } from '../services/consultaService';
+import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
@@ -78,9 +79,14 @@ export function ArkiveInsightScreen() {
         {isWaiting ? (
           <View style={styles.heroWrap}>
             {consulta ? (
-              <Text style={[styles.patientNameSmall, { color: colors.textSecondary }]} numberOfLines={1}>
-                {consulta.animalNome}
-              </Text>
+              <>
+                <Text style={[styles.patientNameSmall, { color: colors.textSecondary }]} numberOfLines={1}>
+                  {consulta.animalNome}
+                </Text>
+                <Text style={[styles.patientArkiveIdSmall, { color: colors.textSecondary }]} numberOfLines={1} selectable>
+                  {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
+                </Text>
+              </>
             ) : null}
 
             <VoiceOrb mode="analyzing" />
@@ -117,9 +123,14 @@ export function ArkiveInsightScreen() {
             {consultaPending ? (
               <Text style={{ color: colors.textSecondary }}>{t('consultaDetail.loading')}</Text>
             ) : consulta ? (
-              <Text style={[styles.patientName, { color: colors.text }]} numberOfLines={1}>
-                {consulta.animalNome}
-              </Text>
+              <>
+                <Text style={[styles.patientName, { color: colors.text }]} numberOfLines={1}>
+                  {consulta.animalNome}
+                </Text>
+                <Text style={[styles.patientArkiveId, { color: colors.textSecondary }]} numberOfLines={1} selectable>
+                  {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
+                </Text>
+              </>
             ) : null}
 
             <Text
@@ -184,12 +195,14 @@ export function ArkiveInsightScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   patientName: { fontSize: fontSize.lg, fontWeight: '700' },
+  patientArkiveId: { fontSize: fontSize.xs, marginTop: 2, marginBottom: spacing.xs },
   // Vertically centers the loading hero in the viewport (flexGrow, not a
   // fixed height) — content still scrolls normally if the collapsed
   // narrative is expanded and pushes past one screen.
   waitingContent: { flexGrow: 1, justifyContent: 'center' },
   heroWrap: { alignItems: 'center', paddingVertical: spacing.lg },
-  patientNameSmall: { fontSize: fontSize.sm, fontWeight: '600', marginBottom: spacing.md },
+  patientNameSmall: { fontSize: fontSize.sm, fontWeight: '600' },
+  patientArkiveIdSmall: { fontSize: fontSize.xs, marginTop: 2, marginBottom: spacing.md },
   heroTitle: {
     fontSize: fontSize.xl,
     fontWeight: '700',

@@ -51,14 +51,15 @@ const NOTIFICATION_TYPE_ICON: Record<NotificationType, React.ComponentProps<type
  * product. Chunk 1 synchronized the full backend notification type set
  * (`CONSULTA_AGENDADA`/`LEMBRETE_CONSULTA`/`CONSULTA_FINALIZADA`/
  * `SOLICITACAO_ACESSO`) — every type renders using the backend's own
- * title/message like any other notification, but only `CONSULTA`-resource
- * types navigate anywhere; `SOLICITACAO_ACESSO` deliberately navigates
- * nowhere yet (its approval/rejection UI is a later chunk — see
- * `handlePress`'s own note on why that's safe rather than a missing feature).
+ * title/message like any other notification. Chunk 7: `SOLICITACAO_ACESSO`
+ * now navigates to the Responsible's own access-requests screen (see
+ * `resolveNotificationDestination`'s own note on why this is RESPONSAVEL-only
+ * and keyed by `resourceType`/`resourceId`, never `animalId`).
  */
 type NotificationsNavigationParamList = {
   ConsultaDetalhe: { consultaId: number };
   HistoricoPaciente: { patientId: number };
+  SolicitacoesAcessoRecebidas: { focusRequestId: number };
 };
 
 function NotificationItem({
@@ -145,9 +146,12 @@ export function NotificationsScreen() {
       navigation.navigate('ConsultaDetalhe', destination.params);
     } else if (destination?.screen === 'HistoricoPaciente') {
       navigation.navigate('HistoricoPaciente', destination.params);
+    } else if (destination?.screen === 'SolicitacoesAcessoRecebidas') {
+      navigation.navigate('SolicitacoesAcessoRecebidas', destination.params);
     }
-    // No destination (missing resource ids, or SOLICITACAO_ACESSO): already
-    // marked read above, simply don't navigate.
+    // No destination (missing resource ids, or a VETERINARIO session seeing
+    // a SOLICITACAO_ACESSO notification it was never meant to receive):
+    // already marked read above, simply don't navigate.
   };
 
   const handleMarkAllRead = async () => {

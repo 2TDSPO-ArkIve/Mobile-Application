@@ -92,6 +92,8 @@ export function PushTapHandler(): null {
       navigationRef.navigate('ConsultaDetalhe', destination.params);
     } else if (destination?.screen === 'HistoricoPaciente') {
       navigationRef.navigate('HistoricoPaciente', destination.params);
+    } else if (destination?.screen === 'SolicitacoesAcessoRecebidas') {
+      navigationRef.navigate('SolicitacoesAcessoRecebidas', destination.params);
     }
 
     if (typeof payload.notificationId === 'number') {

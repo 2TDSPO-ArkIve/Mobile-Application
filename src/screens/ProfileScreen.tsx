@@ -85,6 +85,18 @@ export function ProfileScreen() {
           onPress={() => navigation.navigate('ValoresVeterinario')}
         />
 
+        {/* Chunk 7 — read-only tracking of the vet's own outgoing access
+            requests. The actual "request access" action lives on
+            ArkiveIdLookupScreen (only surfaced once a lookup is forbidden,
+            since that's the exact moment the feature is relevant); this is
+            just the follow-up visibility into requests already sent. */}
+        <Text style={[styles.sectionLabel, { color: colors.text }]}>{t('profile.accessSection')}</Text>
+        <AppButton
+          title={t('myAccessRequests.entryPointButton')}
+          variant="outline"
+          onPress={() => navigation.navigate('SolicitacoesAcessoEnviadas')}
+        />
+
         <Text style={[styles.sectionLabel, { color: colors.text }]}>{t('profile.securitySection')}</Text>
         <AppButton
           title={t('profile.changePasswordButton')}
@@ -98,17 +110,19 @@ export function ProfileScreen() {
           onPress={() => navigation.navigate('Configuracoes')}
         />
 
+        {/* Chunk 8 — moved out of Segurança (sharing an animal's access isn't
+            an account-security action) and promoted to normal button styling
+            (was a small gray ghost button, easy to miss). */}
+        <Text style={[styles.sectionLabel, { color: colors.text }]}>{t('profile.sharingSection')}</Text>
         <AppButton
           title={t('scanShareQr.entryLink')}
-          variant="ghost"
-          size="small"
+          variant="outline"
           onPress={() => navigation.navigate('EscanearConvite')}
         />
 
         <AppButton
           title={t('enterShareCode.entryLink')}
-          variant="ghost"
-          size="small"
+          variant="outline"
           onPress={() => navigation.navigate('InserirCodigoConvite')}
         />
 

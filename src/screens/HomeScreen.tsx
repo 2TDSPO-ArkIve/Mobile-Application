@@ -15,6 +15,7 @@ import { useConsultas } from '../hooks/useConsultas';
 import { usePendingShareAutoReturn } from '../hooks/useShares';
 import { consultaStatusPresentation } from '../utils/statusPresentation';
 import { formatTime } from '../utils/localeFormat';
+import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AppStackParamList } from '../interfaces/navigation';
 import type { ConsultaDto } from '../services/consultaService';
 import { spacing, fontSize } from '../styles/theme';
@@ -97,9 +98,14 @@ export function HomeScreen() {
   const renderConsultaCard = (consulta: ConsultaDto, actionLabel?: string) => (
     <AppCard key={consulta.id} onPress={() => goToConsulta(consulta.id)} style={styles.consultaCard}>
       <View style={commonStyles.rowBetween}>
-        <Text style={[styles.patientName, { color: colors.text }]} numberOfLines={1}>
-          {consulta.animalNome}
-        </Text>
+        <View style={styles.patientNameWrap}>
+          <Text style={[styles.patientName, { color: colors.text }]} numberOfLines={1}>
+            {consulta.animalNome}
+          </Text>
+          <Text style={[styles.patientArkiveId, { color: colors.textSecondary }]} numberOfLines={1}>
+            {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
+          </Text>
+        </View>
         <StatusBadge
           label={consulta.statusDescricao}
           tone={consultaStatusPresentation(consulta.status).tone}
@@ -206,11 +212,17 @@ const styles = StyleSheet.create({
   consultaCard: {
     marginBottom: spacing.sm,
   },
+  patientNameWrap: {
+    flexShrink: 1,
+    marginRight: spacing.sm,
+  },
   patientName: {
     fontSize: fontSize.md,
     fontWeight: '700',
-    flexShrink: 1,
-    marginRight: spacing.sm,
+  },
+  patientArkiveId: {
+    fontSize: fontSize.xs,
+    marginTop: 2,
   },
   actionRow: {
     marginTop: spacing.xs,

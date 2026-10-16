@@ -16,6 +16,7 @@ import { useTranslation } from '../i18n/useTranslation';
 import { useConsulta, useUpdateConsulta } from '../hooks/useConsultas';
 import { isScheduleInPast, startOfToday, toLocalDateTimeString } from '../utils/consultaScheduling';
 import { parseMoneyInput, moneyToInputValue } from '../utils/money';
+import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { Modalidade, UpdateConsultaInput } from '../services/consultaService';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, radius } from '../styles/theme';
@@ -190,6 +191,9 @@ export function EditConsultaScreen() {
         <AppCard>
           <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>
             {consulta.animalNome}
+          </Text>
+          <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, marginTop: spacing.xs }} selectable>
+            {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, marginTop: spacing.xs }}>
             {t('editConsulta.patientImmutableHelper')}

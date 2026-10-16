@@ -12,12 +12,14 @@ import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useLookupPatientByArkiveId } from '../hooks/usePatients';
+import { useCreateAccessRequest } from '../hooks/usePatientAccessRequests';
 import { ApiError } from '../services/apiClient';
 import { normalizeArkivePatientId, isPlausibleArkivePatientId } from '../utils/arkivePatientId';
 import {
   describeArkiveLookupForbidden,
   describeArkiveLookupNotFound,
   describeArkiveLookupOtherError,
+  describeAccessRequestCreateError,
 } from '../utils/errorMessages';
 import { spacing, fontSize } from '../styles/theme';
 
@@ -53,16 +55,25 @@ export function ArkiveIdLookupScreen() {
   const { t } = useTranslation();
   const { isVeterinario } = useAuth();
   const lookup = useLookupPatientByArkiveId();
+  const createAccessRequest = useCreateAccessRequest();
 
   const [input, setInput] = useState('');
   const [validationError, setValidationError] = useState('');
   const [outcome, setOutcome] = useState<LookupOutcome>(null);
   const [otherErrorMessage, setOtherErrorMessage] = useState('');
+  // Held only because the 403 response itself carries no patient data at all
+  // (by design — see this screen's own security-model note) — this is the
+  // one piece of information needed to submit "Solicitar acesso" afterward.
+  const [lastNormalizedId, setLastNormalizedId] = useState('');
+  const [accessRequestSent, setAccessRequestSent] = useState(false);
+  const [accessRequestError, setAccessRequestError] = useState('');
 
   const handleSubmit = async () => {
     setValidationError('');
     setOutcome(null);
     setOtherErrorMessage('');
+    setAccessRequestSent(false);
+    setAccessRequestError('');
 
     // Trim + uppercase only — never "fixes" a malformed value into a
     // different potentially-valid id (see normalizeArkivePatientId's own
@@ -73,6 +84,7 @@ export function ArkiveIdLookupScreen() {
       setValidationError(t('arkiveLookup.invalidId'));
       return;
     }
+    setLastNormalizedId(normalized);
 
     try {
       const patient = await lookup.mutateAsync(normalized);
@@ -88,6 +100,27 @@ export function ArkiveIdLookupScreen() {
         setOutcome('other');
         setOtherErrorMessage(describeArkiveLookupOtherError(err));
       }
+    }
+  };
+
+  /**
+   * Chunk 7 — a successful POST only means Java accepted and PERSISTED a
+   * PENDING request; it is never treated as proof of access, and this
+   * handler never navigates to `PacienteDetalhe` on success — only Java's
+   * own eventual approval does that (via the normal, already-authorized
+   * lookup/share routes once access actually exists). `accessRequestSent`
+   * guards against a duplicate submission for the same forbidden outcome —
+   * the button is hidden once sent, same screen only re-enables it via a
+   * brand-new `handleSubmit` call (which resets this state).
+   */
+  const handleRequestAccess = async () => {
+    if (createAccessRequest.isPending) return;
+    setAccessRequestError('');
+    try {
+      await createAccessRequest.mutateAsync(lastNormalizedId);
+      setAccessRequestSent(true);
+    } catch (err) {
+      setAccessRequestError(describeAccessRequestCreateError(err));
     }
   };
 
@@ -139,6 +172,32 @@ export function ArkiveIdLookupScreen() {
                 onPress={() => navigation.navigate('InserirCodigoConvite')}
               />
             ) : null}
+
+            {/* Chunk 7 — the simpler alternative to QR/code sharing: request
+                access directly by ArkIve ID, an eligible Responsible
+                approves or rejects it. VETERINARIO-only (the backend create
+                endpoint is VETERINARIO-only regardless); never navigates to
+                the patient — only Java's own later approval does that. */}
+            {isVeterinario ? (
+              accessRequestSent ? (
+                <Text style={[styles.requestSuccess, { color: colors.success }]}>
+                  {t('arkiveLookup.requestAccessSuccess')}
+                </Text>
+              ) : (
+                <>
+                  <AppButton
+                    title={t('arkiveLookup.requestAccessButton')}
+                    variant="outline"
+                    onPress={handleRequestAccess}
+                    loading={createAccessRequest.isPending}
+                    disabled={createAccessRequest.isPending}
+                  />
+                  {accessRequestError ? (
+                    <Text style={[styles.requestError, { color: colors.error }]}>{accessRequestError}</Text>
+                  ) : null}
+                </>
+              )
+            ) : null}
           </>
         ) : null}
 
@@ -160,4 +219,6 @@ export function ArkiveIdLookupScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   guidance: { fontSize: fontSize.sm, lineHeight: 20, marginBottom: spacing.sm },
+  requestSuccess: { fontSize: fontSize.sm, lineHeight: 20, textAlign: 'center', marginTop: spacing.sm },
+  requestError: { fontSize: fontSize.sm, marginTop: spacing.sm },
 });

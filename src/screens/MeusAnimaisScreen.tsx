@@ -104,6 +104,18 @@ export function MeusAnimaisScreen() {
           style={styles.lookupButton}
         />
 
+        {/* Chunk 7 — a veterinarian may have requested access to one of this
+            Responsible's animals; this is where they review and approve/
+            reject it. Surfaced directly on the root screen (not tucked into
+            the account screen) since, unlike most account-level settings,
+            a pending request is time-sensitive and actionable. */}
+        <AppButton
+          title={t('accessRequestsReceived.entryPointButton')}
+          variant="outline"
+          onPress={() => navigation.navigate('SolicitacoesAcessoRecebidas')}
+          style={styles.lookupButton}
+        />
+
         {isPending ? (
           <Text style={{ color: colors.textSecondary, textAlign: 'center' }}>
             {t('myAnimals.loading')}

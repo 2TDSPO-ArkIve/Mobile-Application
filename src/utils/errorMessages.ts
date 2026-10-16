@@ -305,6 +305,83 @@ export function describeAnimalObservationError(error: unknown, isSave = false): 
 }
 
 /**
+ * Translates a `POST /api/solicitacoes-acesso` (create access request)
+ * failure. Confirmed against the current local Java source:
+ * `PatientAccessRequestService.criar` rejects a nonexistent ArkIve ID (404),
+ * an inactive patient / already-has-access / already-pending / no-eligible-
+ * Responsible condition (409, each with its own specific, human-readable
+ * message — e.g. "Já existe uma solicitação de acesso pendente para este
+ * paciente.") and a blank ArkIve ID (400, bean validation). All of those
+ * messages are shown VERBATIM, same pattern as `describeRegistrationError` —
+ * they are specific, safe, non-sensitive, and already written for an
+ * end-user. 403 means the caller isn't an active VETERINARIO at all.
+ */
+export function describeAccessRequestCreateError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 400 || error.status === 404 || error.status === 409) {
+      return error.message || t('errors.accessRequestCreateGeneric');
+    }
+    if (error.status === 403) {
+      return t('errors.accessRequestCreateForbidden');
+    }
+    if (error.status >= 500) {
+      return t('errors.accessRequestCreateUnavailable');
+    }
+    return t('errors.accessRequestCreateGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.accessRequestCreateNetwork');
+  }
+  return t('errors.accessRequestCreateGeneric');
+}
+
+/** Translates a `GET /api/solicitacoes-acesso` (list) failure for either role. */
+export function describeAccessRequestListError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 403) {
+      return t('errors.accessRequestListForbidden');
+    }
+    return t('errors.accessRequestListGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.accessRequestListNetwork');
+  }
+  return t('errors.accessRequestListGeneric');
+}
+
+/**
+ * Translates a `POST /api/solicitacoes-acesso/{id}/aprovar` or `/rejeitar`
+ * failure. Confirmed: a 409 here always carries a specific, safe, already-
+ * written message ("Solicitação rejeitada não pode ser aprovada.",
+ * "Solicitação aprovada não pode ser rejeitada.", or the requester-no-longer-
+ * active case) — shown verbatim rather than a generic "something changed"
+ * string, since Java's own wording is already precise about what happened. A
+ * 403 specifically means "you are not the current/active Responsible for
+ * this animal" — never retried, never a different endpoint attempted.
+ */
+export function describeAccessRequestDecisionError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 409) {
+      return error.message || t('errors.accessRequestDecisionGeneric');
+    }
+    if (error.status === 403) {
+      return t('errors.accessRequestDecisionForbidden');
+    }
+    if (error.status === 404) {
+      return t('errors.accessRequestDecisionNotFound');
+    }
+    if (error.status >= 500) {
+      return t('errors.accessRequestDecisionUnavailable');
+    }
+    return t('errors.accessRequestDecisionGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.accessRequestDecisionNetwork');
+  }
+  return t('errors.accessRequestDecisionGeneric');
+}
+
+/**
  * Translates a `GET /api/veterinarios/me/custos` failure. No 404 branch —
  * confirmed this endpoint takes no path parameter, so a 404 is structurally
  * impossible here (unlike `describePatientCostsError`'s per-animal GET).

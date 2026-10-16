@@ -6,6 +6,7 @@ import { VoiceOrb } from './VoiceOrb';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useClinicalVoiceRecording } from '../hooks/useClinicalVoiceRecording';
+import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { spacing, fontSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
@@ -17,6 +18,7 @@ function appendSegment(existing: string, segment: string): string {
 
 interface Props {
   animalNome: string;
+  animalArkivePatientId?: string | null;
   contextLine: string;
   motivo?: string;
   initialNarrativa: string;
@@ -49,6 +51,7 @@ interface Props {
  */
 export function ClinicalIntake({
   animalNome,
+  animalArkivePatientId,
   contextLine,
   motivo,
   initialNarrativa,
@@ -122,6 +125,9 @@ export function ClinicalIntake({
     <View>
       <Text style={[styles.patientName, { color: colors.text }]} numberOfLines={1}>
         {animalNome}
+      </Text>
+      <Text style={[styles.patientArkiveId, { color: colors.textSecondary }]} numberOfLines={1} selectable>
+        {patientArkiveIdLine({ arkivePatientId: animalArkivePatientId ?? null })}
       </Text>
       <Text style={{ color: colors.textSecondary, marginBottom: spacing.sm }} numberOfLines={2}>
         {contextLine}
@@ -232,6 +238,7 @@ export function ClinicalIntake({
 
 const styles = StyleSheet.create({
   patientName: { fontSize: fontSize.lg, fontWeight: '700' },
+  patientArkiveId: { fontSize: fontSize.xs, marginTop: 2 },
   question: { fontSize: fontSize.xl, fontWeight: '700', marginTop: spacing.md, marginBottom: spacing.xs },
   subtitle: { fontSize: fontSize.sm, marginBottom: spacing.md, lineHeight: 20 },
   linkWrap: { alignSelf: 'center', marginTop: spacing.sm, padding: spacing.sm },

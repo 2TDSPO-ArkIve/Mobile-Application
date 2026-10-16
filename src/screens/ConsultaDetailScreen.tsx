@@ -184,6 +184,7 @@ export function ConsultaDetailScreen() {
         <ScreenContainer>
           <ClinicalIntake
             animalNome={consulta.animalNome}
+            animalArkivePatientId={consulta.animalArkivePatientId}
             contextLine={formatContextLine(consulta.dataHora, consulta.modalidade)}
             motivo={consulta.motivo}
             initialNarrativa={consulta.transcricao ?? ''}

@@ -13,6 +13,7 @@ import { useConsulta } from '../hooks/useConsultas';
 import { usePrescricoesByConsulta } from '../hooks/usePrescricoes';
 import { useConsultaResumoPdf } from '../hooks/useConsultaResumoPdf';
 import { toDisplayDate } from '../utils/isoDate';
+import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { commonStyles } from '../styles/common';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize } from '../styles/theme';
@@ -51,10 +52,28 @@ export function PrescricoesScreen() {
 
       <ScreenContainer>
         {consulta ? (
-          <Text style={[styles.context, { color: colors.textSecondary }]}>
-            {consulta.animalNome} · {toDisplayDate(consulta.dataHora.slice(0, 10))}
-          </Text>
+          <>
+            <Text style={[styles.context, { color: colors.textSecondary }]}>
+              {consulta.animalNome} · {toDisplayDate(consulta.dataHora.slice(0, 10))}
+            </Text>
+            <Text style={[styles.context, styles.contextArkiveId, { color: colors.textSecondary }]} selectable>
+              {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
+            </Text>
+          </>
         ) : null}
+
+        {/* Chunk 8 — the header "+" icon alone wasn't discoverable enough;
+            this content button is the one visually prominent create action
+            (the header icon remains only as a small secondary shortcut, so
+            there's no competing primary action). Always visible regardless
+            of list state, same NovaPrescricao/consultaId target the header
+            icon already uses. */}
+        <AppButton
+          title={t('prescricoesList.newButton')}
+          icon="add"
+          onPress={() => navigation.navigate('NovaPrescricao', { consultaId })}
+          style={styles.newButton}
+        />
 
         {isPending ? (
           <Text style={{ color: colors.textSecondary, textAlign: 'center' }}>
@@ -116,6 +135,8 @@ export function PrescricoesScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   context: { fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.md },
+  contextArkiveId: { fontSize: fontSize.xs, marginTop: -spacing.sm },
+  newButton: { marginBottom: spacing.md },
   // Visually distinct from the prescription cards above — a top border and
   // extra spacing is enough separation, no card/background of its own so it
   // never reads as "just another prescription". Full-width, no fixed

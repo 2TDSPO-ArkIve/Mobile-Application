@@ -61,6 +61,8 @@ export type ResponsavelAppStackParamList = {
   EscanearConvite: undefined;
   /** Explicit ArkIve-ID lookup — retrieval only, same read-authorization rule as every other patient fetch; never creates/imports a patient. */
   BuscarPacienteArkive: undefined;
+  /** Chunk 7 — incoming access requests this Responsible is currently eligible to decide on (`GET /api/solicitacoes-acesso`, Java-scoped). `focusRequestId` highlights one row when reached from a `SOLICITACAO_ACESSO` notification tap — it never fetches a single request on its own; the full, correctly-scoped list already contains it. */
+  SolicitacoesAcessoRecebidas: { focusRequestId?: number } | undefined;
   MinhaConta: undefined;
   Configuracoes: undefined;
   AlterarSenha: undefined;
@@ -95,6 +97,8 @@ export type AppStackParamList = {
   Perfil: undefined;
   /** Chunk 6 — "Resumo financeiro". VETERINARIO-only: this route does not exist in `ResponsavelAppStackParamList`, and the backend endpoint it reads (`GET /api/veterinarios/me/custos`) is `hasRole("VETERINARIO")`-gated regardless. No params — always "my own" data, never a chosen veterinarianId. */
   ValoresVeterinario: undefined;
+  /** Chunk 7 — the veterinarian's own outgoing access requests. VETERINARIO-only, read-only tracking (approval/rejection is exclusively the Responsible's own route, `SolicitacoesAcessoRecebidas`, which does not exist in this stack). */
+  SolicitacoesAcessoEnviadas: undefined;
   Configuracoes: undefined;
   AlterarSenha: undefined;
   Notificacoes: undefined;
