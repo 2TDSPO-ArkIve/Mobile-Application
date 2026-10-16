@@ -783,8 +783,6 @@ export const en = {
     loadErrorGeneric: 'Check your connection to the server and try again.',
     roleLabel: 'ArkIve Veterinarian',
     crmvLabel: 'License (CRMV): {{value}}',
-    editUnavailable:
-      "Editing registration data isn't available in the app yet. This data is managed by the clinic's administration.",
     financialSection: 'Financial',
     accessSection: 'Patient access',
     securitySection: 'Security',
@@ -860,10 +858,11 @@ export const en = {
     CA: 'Canceled',
   },
   severidade: {
+    AUSENTE: 'None',
     LEVE: 'Mild',
     MODERADA: 'Moderate',
     GRAVE: 'Severe',
-    notInformed: 'Not informed',
+    notInformed: 'None',
   },
   viaAdministracao: {
     ORAL: 'Oral',
@@ -880,7 +879,7 @@ export const en = {
       "Could not confirm your session with the ArkIve server right now. This usually happens when the server is starting up after a period of inactivity. Your credentials remain safely stored on this device.",
   },
   date: {
-    datePlaceholder: 'DD-MM-YYYY',
+    datePlaceholder: 'DD/MM/YYYY',
     timePlaceholder: 'HH:mm',
     pickerCancel: 'Cancel',
     pickerDone: 'Done',

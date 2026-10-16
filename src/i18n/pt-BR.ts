@@ -236,7 +236,7 @@ export const pt = {
     successMessage: 'Sua senha foi alterada com sucesso.',
   },
   home: {
-    greetingWithName: 'Olá, Dr. {{name}}!',
+    greetingWithName: 'Olá, Dr(a). {{name}}!',
     greetingFallback: 'Olá, Doutor(a)!',
     description: 'Acompanhe seus atendimentos e pacientes no ArkIve.',
     inProgressSection: 'Atendimentos em andamento',
@@ -575,7 +575,7 @@ export const pt = {
     emptyTitle: 'Nenhuma consulta no histórico',
     emptyMessage: 'Este paciente ainda não possui consultas disponíveis no histórico.',
     consultationStatusLabel: 'Status',
-    veterinarianLabel: 'Dr. {{name}}',
+    veterinarianLabel: 'Dr(a). {{name}}',
     crmvLabel: 'CRMV {{value}}',
     addressLabel: 'Endereço: {{address}}',
     reasonLabel: 'Motivo',
@@ -787,8 +787,6 @@ export const pt = {
     loadErrorGeneric: 'Verifique a conexão com o servidor e tente novamente.',
     roleLabel: 'Veterinário ArkIve',
     crmvLabel: 'CRMV: {{value}}',
-    editUnavailable:
-      'A edição de dados cadastrais ainda não está disponível pelo aplicativo. Esses dados são gerenciados pela administração da clínica.',
     financialSection: 'Financeiro',
     accessSection: 'Acesso a pacientes',
     securitySection: 'Segurança',
@@ -866,10 +864,11 @@ export const pt = {
     CA: 'Cancelada',
   },
   severidade: {
+    AUSENTE: 'Ausente',
     LEVE: 'Leve',
     MODERADA: 'Moderada',
     GRAVE: 'Grave',
-    notInformed: 'Não informada',
+    notInformed: 'Ausente',
   },
   viaAdministracao: {
     ORAL: 'Oral',
@@ -886,7 +885,7 @@ export const pt = {
       'Não foi possível confirmar sua sessão com o servidor do ArkIve agora. Isso costuma acontecer quando o servidor está iniciando após um período inativo. Suas credenciais continuam salvas com segurança neste aparelho.',
   },
   date: {
-    datePlaceholder: 'DD-MM-AAAA',
+    datePlaceholder: 'DD/MM/AAAA',
     timePlaceholder: 'HH:mm',
     pickerCancel: 'Cancelar',
     pickerDone: 'Concluído',
