@@ -17,6 +17,7 @@ import { verifyCredentials, changePassword as changePasswordRequest, type AuthMe
 import { describeChangePasswordError } from '../utils/errorMessages';
 import { onUnauthorized } from '../services/authEvents';
 import { queryClient } from '../query/queryClient';
+import { disableNativePush, restorePushRegistrationIfEnabled } from '../utils/pushRegistration';
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -30,10 +31,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     credentialsRef.current = credentials;
     setUsername(credentials.username);
     setIdentity(nextIdentity);
-    setStatus(nextIdentity.trocaSenhaObrigatoria ? 'password-change-required' : 'authenticated');
+    const authenticated = !nextIdentity.trocaSenhaObrigatoria;
+    setStatus(authenticated ? 'authenticated' : 'password-change-required');
+    if (authenticated) {
+      // Chunk 5 — NOT an automatic prompt: this only silently re-registers
+      // an already-permitted, already-enabled device (see
+      // `restorePushRegistrationIfEnabled`'s own note); it never requests OS
+      // permission on its own. Fire-and-forget — never blocks login/session
+      // restore, and a failure here is no different from push being
+      // unavailable, never surfaced as a login error.
+      void restorePushRegistrationIfEnabled();
+    }
   }, []);
 
   const applySignedOut = useCallback(async () => {
+    // Chunk 5 — best-effort device-push deactivation MUST happen before
+    // credentials are cleared below: `DELETE /api/notificacoes/dispositivos/{id}`
+    // needs a still-valid stored credential to authenticate. Never blocks
+    // sign-out and never throws either way (`disableNativePush` swallows its
+    // own failures) — a shared device logging out of Account A and into
+    // Account B must not leave A's push registration silently active.
+    await disableNativePush();
+
     credentialsRef.current = null;
     setUsername(null);
     setIdentity(null);

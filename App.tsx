@@ -8,6 +8,7 @@ import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { PendingShareProvider } from './src/context/PendingShareContext';
 import { DeepLinkHandler } from './src/navigation/DeepLinkHandler';
 import { NotificationBridge } from './src/components/NotificationBridge';
+import { PushTapHandler } from './src/components/PushTapHandler';
 import { I18nProvider } from './src/i18n/I18nContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
 
@@ -20,6 +21,10 @@ function AppContent() {
           it) — this needs useAuth() to gate notification polling to an
           authenticated session. */}
       <NotificationBridge />
+      {/* Also needs useAuth() (to gate navigation on a confirmed session) —
+          navigates via the shared navigationRef rather than needing to sit
+          inside RootNavigator's own NavigationContainer subtree. */}
+      <PushTapHandler />
       <RootNavigator />
     </>
   );

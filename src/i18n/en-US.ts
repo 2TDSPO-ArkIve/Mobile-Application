@@ -685,7 +685,13 @@ export const en = {
     notificationsSection: 'Notifications',
     push: 'Push',
     pushHelper: 'Shows device notifications on this device when new notifications arrive.',
+    /** Chunk 5 — shown only when native registration couldn't complete (e.g. missing app configuration); local notifications keep working regardless. */
+    pushNativeUnavailable:
+      "Native push notifications aren't available right now. You'll keep receiving notifications while the app is open.",
+    pushRegistrationError: 'Could not register this device for push notifications right now.',
+    pushDeactivationError: "Could not deactivate this device's push registration right now.",
     email: 'Email',
+    emailHelper: "Preference saved on this device only. E-mail notification delivery isn't available yet.",
     languageSection: 'App language',
     languageHelper: 'Controls the interface language and the voice-dictation language.',
     infoSection: 'Info',

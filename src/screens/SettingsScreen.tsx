@@ -5,7 +5,7 @@ import { ScreenContainer } from '../components/ScreenContainer';
 import { useTheme } from '../context/ThemeContext';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
-import { requestNotificationPermission } from '../utils/localNotifications';
+import { enableNativePush, disableNativePush } from '../utils/pushRegistration';
 import type { Language } from '../i18n/store';
 import { spacing, fontSize, radius } from '../styles/theme';
 
@@ -27,26 +27,62 @@ export function SettingsScreen() {
   const { t, language, setLanguage } = useTranslation();
   const rowStyle = [styles.row, { borderBottomColor: colors.border }];
   const [permissionDenied, setPermissionDenied] = useState(false);
+  const [pushStatusMessage, setPushStatusMessage] = useState<{ tone: 'info' | 'error'; text: string } | null>(null);
+  const [togglingPush, setTogglingPush] = useState(false);
 
   /**
-   * Deliberately contextual, not automatic: the OS permission prompt is only
-   * ever requested here, in direct response to the veterinarian/responsible
-   * person turning this existing toggle ON — never at login or app startup. Turning
-   * it OFF never calls the native API (apps cannot revoke their own
-   * notification permission); it only updates the stored preference, which
-   * `NotificationBridge` already respects before presenting anything.
+   * Chunk 5 — turning this ON now does more than flip a local preference:
+   * it also attempts real native push TOKEN registration with Java
+   * (`enableNativePush`), still only ever triggered by this direct user
+   * action, never automatically at login/startup. The stored `pushEnabled`
+   * preference keeps its original meaning too (it still gates
+   * `NotificationBridge`'s LOCAL notification presentation), so local
+   * notifications keep working even when remote registration is
+   * unavailable/fails — never silently shown as fully working when it
+   * isn't; `pushStatusMessage` reports the real outcome honestly. Turning it
+   * OFF still never calls the OS permission API (apps cannot revoke their
+   * own notification permission) but now also best-effort deactivates this
+   * device's registration server-side (`disableNativePush`).
    */
   const handleTogglePush = async (value: boolean) => {
     setPermissionDenied(false);
-    if (value && Platform.OS !== 'web') {
-      const granted = await requestNotificationPermission();
-      if (!granted) {
-        setPermissionDenied(true);
-        updatePreferences({ pushEnabled: false });
+    setPushStatusMessage(null);
+    setTogglingPush(true);
+    try {
+      if (!value) {
+        const { deactivated } = await disableNativePush();
+        await updatePreferences({ pushEnabled: false });
+        if (!deactivated) {
+          setPushStatusMessage({ tone: 'error', text: t('settings.pushDeactivationError') });
+        }
         return;
       }
+
+      if (Platform.OS === 'web') {
+        await updatePreferences({ pushEnabled: true });
+        return;
+      }
+
+      const result = await enableNativePush();
+      if (result.status === 'permission-denied') {
+        setPermissionDenied(true);
+        await updatePreferences({ pushEnabled: false });
+        return;
+      }
+
+      // Local notifications (via NotificationBridge's existing polling)
+      // keep working regardless of the native-registration outcome below —
+      // only the status message distinguishes "fully registered" from
+      // "local only, here's why".
+      await updatePreferences({ pushEnabled: true });
+      if (result.status === 'unavailable') {
+        setPushStatusMessage({ tone: 'info', text: t('settings.pushNativeUnavailable') });
+      } else if (result.status === 'error') {
+        setPushStatusMessage({ tone: 'error', text: t('settings.pushRegistrationError') });
+      }
+    } finally {
+      setTogglingPush(false);
     }
-    updatePreferences({ pushEnabled: value });
   };
 
   return (
@@ -70,6 +106,7 @@ export function SettingsScreen() {
           <Switch
             value={preferences.pushEnabled}
             onValueChange={handleTogglePush}
+            disabled={togglingPush}
             trackColor={{ true: colors.primary }}
           />
         </View>
@@ -83,6 +120,16 @@ export function SettingsScreen() {
             {t('notifications.permissionDenied')}
           </Text>
         ) : null}
+        {pushStatusMessage ? (
+          <Text
+            style={[
+              styles.fieldLabel,
+              { color: pushStatusMessage.tone === 'error' ? colors.error : colors.textSecondary, fontWeight: '400' },
+            ]}
+          >
+            {pushStatusMessage.text}
+          </Text>
+        ) : null}
 
         <View style={rowStyle}>
           <Text style={{ color: colors.text }}>{t('settings.email')}</Text>
@@ -92,6 +139,13 @@ export function SettingsScreen() {
             trackColor={{ true: colors.primary }}
           />
         </View>
+        {/* Honest disclosure — confirmed against the current local Java
+            source that no email-delivery channel exists at all (no
+            MailSender/SMTP anywhere in the backend). This preference is
+            saved locally only and does not yet trigger any notification. */}
+        <Text style={[styles.fieldLabel, { color: colors.textSecondary, fontWeight: '400' }]}>
+          {t('settings.emailHelper')}
+        </Text>
 
         <Text style={[styles.section, { color: colors.text }]}>{t('settings.languageSection')}</Text>
         <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>

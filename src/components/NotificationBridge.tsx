@@ -4,7 +4,8 @@ import { useAuth } from '../hooks/useAuth';
 import { useNotifications } from '../hooks/useNotifications';
 import { useTheme } from '../context/ThemeContext';
 import { presentLocalNotification } from '../utils/localNotifications';
-import { DEFAULT_NOTIFICATIONS_PAGE_SIZE } from '../services/notificationService';
+import { hasStoredPushRegistration } from '../utils/pushRegistration';
+import { DEFAULT_NOTIFICATIONS_PAGE_SIZE, type NotificationDto } from '../services/notificationService';
 
 /** Same cadence as the header badge's own poll — no separate/faster interval needed for this. */
 const POLL_MS = 30_000;
@@ -144,12 +145,13 @@ export function NotificationBridge(): null {
     }
 
     const cursor = cursorRef.current;
+    const newOnes: NotificationDto[] = [];
 
     for (const notification of data) {
       if (seenIdsRef.current.has(notification.id)) continue;
       if (!isNewerThanCursor(notification, cursor)) continue;
       seenIdsRef.current.add(notification.id);
-      void presentLocalNotification(notification.title, notification.message);
+      newOnes.push(notification);
     }
 
     // High-water mark: cursor = max(cursor, newest row observed this poll).
@@ -160,6 +162,30 @@ export function NotificationBridge(): null {
     if (data.length > 0 && isNewerThanCursor(data[0], cursor)) {
       cursorRef.current = { createdAt: data[0].createdAt, id: data[0].id };
     }
+
+    if (newOnes.length === 0) return;
+
+    // Chunk 5 — if this device has an active remote-push registration, a
+    // real Expo push may ALSO arrive for the same backend event (whenever an
+    // operator enables `arkive.push.expo.enabled` server-side); presenting a
+    // local one too would double the OS banner for one event. This is a
+    // cheap LOCAL storage read, never a network round-trip, and is
+    // deliberately re-checked per poll rather than cached across the
+    // component's lifetime — the Settings toggle can flip registration on/
+    // off at any time.
+    void (async () => {
+      const remoteRegistered = await hasStoredPushRegistration();
+      if (remoteRegistered) return;
+      for (const notification of newOnes) {
+        void presentLocalNotification(notification.title, notification.message, {
+          notificationId: notification.id,
+          type: notification.type,
+          animalId: notification.animalId,
+          resourceType: notification.resourceType,
+          resourceId: notification.resourceId,
+        });
+      }
+    })();
   }, [data, status, preferences.pushEnabled]);
 
   return null;
