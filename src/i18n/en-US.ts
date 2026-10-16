@@ -325,6 +325,20 @@ export const en = {
     deleteConfirmMessage: 'Are you sure you want to delete visit #{{id}}? This action cannot be undone.',
     deleteError: 'Could not delete the visit.',
   },
+  /** Chunk 4 — `POST /api/consultas/{id}/cancelar`, allowed from AG/EP/AP, never FI/CA. */
+  cancelConsulta: {
+    action: 'Cancel visit',
+    title: 'Cancel visit',
+    message: 'This action cannot be undone. Enter the reason for canceling.',
+    reasonLabel: 'Cancellation reason',
+    reasonPlaceholder: 'E.g.: Visit canceled at the responsible person’s request.',
+    validationNoReason: 'Enter the reason for canceling.',
+    confirmButton: 'Confirm cancellation',
+    submitting: 'Canceling...',
+    backButton: 'Back',
+    /** Shown on a CA visit — Java stores the reason as "Cancelamento: <motivo>" inside the same `observacao` field the FI branch already renders for its own conclusion. */
+    reasonSectionLabel: 'Cancellation reason',
+  },
   editConsulta: {
     title: 'Edit Visit',
     patientImmutableHelper: 'The patient cannot be changed after the visit is created.',
@@ -342,6 +356,8 @@ export const en = {
     addToNarrative: 'Add to note',
     typeNarrative: 'Type note',
     analyzeButton: 'Analyze with ArkIve',
+    /** Chunk 4 — EP->FI directly, without AI support (already backend-allowed). */
+    proceedWithoutAnalysisButton: 'Proceed without ArkIve analysis',
     validationEmpty: 'Describe what happened before analyzing with ArkIve.',
     saveFallbackError: 'Could not save the note.',
     micPermissionDenied:
@@ -365,6 +381,21 @@ export const en = {
     slowMessage: "This is taking a little longer than usual. We're still preparing your analysis.",
     errorTitle: "Couldn't finish right now",
     backToNarrative: 'Back to note',
+    /** Chunk 4 — a real status read confirmed CA (never inferred from a 409 alone). */
+    canceledTitle: 'Visit canceled',
+    canceledMessage: 'This visit has been canceled. The analysis will not be completed.',
+    backToConsultation: 'Back to the visit',
+    /** Chunk 4 — a bounded recovery window elapsed with no definitive answer (Java's own call to the clinical engine may have timed out); never promised as "still working" indefinitely. */
+    uncertainTitle: "Couldn't confirm the result",
+    uncertainMessage:
+      "The analysis is taking longer than expected and we can't confirm whether a result will still be generated. You can check again, try again, or go back and continue later.",
+    /** Distinct from uncertainMessage — used only when a result is known to already exist (AP/FI) but couldn't be read back cleanly; nothing is "still being generated" here, it's a retrieval problem. */
+    retrievalUncertainMessage:
+      "We couldn't retrieve this visit's result right now. You can check again or try again later.",
+    recheckButton: 'Check again',
+    /** Correction — AG (never generated) or FI reached without ArkIve (direct EP->FI path). Never an error, never a cancellation. */
+    unavailableTitle: 'ArkIve analysis unavailable',
+    unavailableMessage: 'There is no ArkIve analysis available for this visit right now.',
   },
   aiInsight: {
     title: 'Clinical support',
@@ -385,6 +416,9 @@ export const en = {
     intro: 'Record your final clinical decision.',
     diagnosisLabel: 'Diagnosis',
     diagnosisPlaceholder: 'Diagnosis set by the veterinarian',
+    /** Chunk 4 — quick-fill shortcuts for a routine visit with no disease found; prefill only, never auto-submitted, never a fabricated catalog diagnosis (doencaId stays null either way). */
+    routineOption: 'Routine visit',
+    noDiseaseOption: 'No disease identified',
     severityLabel: 'Severity',
     conclusionLabel: 'Clinical conclusion',
     conclusionPlaceholder: 'Treatment plan, guidance, and final remarks',
@@ -730,6 +764,13 @@ export const en = {
     finalizeUnavailable: 'Could not finalize the visit right now. Try again in a moment.',
     finalizeGeneric: 'Could not finalize the visit right now.',
     finalizeNetwork: 'No connection to the server. The visit was not finalized — try again.',
+    cancelValidation: 'Enter the reason for canceling.',
+    cancelForbidden: "You don't have permission to cancel this visit.",
+    cancelNotFound: 'This visit was not found.',
+    cancelConflict: "This visit's status may have changed. Check before trying again.",
+    cancelUnavailable: 'Could not cancel the visit right now. Try again shortly.',
+    cancelGeneric: 'Could not cancel the visit right now.',
+    cancelNetwork: 'No connection to the server. The visit was not canceled — try again.',
     prescricaoValidation: 'Check the prescription data and try again.',
     prescricaoForbidden: "You don't have permission for this prescription.",
     prescricaoNotFound: 'This prescription was not found.',

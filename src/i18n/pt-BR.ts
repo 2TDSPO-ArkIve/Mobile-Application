@@ -327,6 +327,20 @@ export const pt = {
     deleteConfirmMessage: 'Tem certeza que deseja excluir a consulta #{{id}}? Esta ação não pode ser desfeita.',
     deleteError: 'Não foi possível excluir a consulta.',
   },
+  /** Chunk 4 — `POST /api/consultas/{id}/cancelar`, allowed from AG/EP/AP, never FI/CA. */
+  cancelConsulta: {
+    action: 'Cancelar consulta',
+    title: 'Cancelar consulta',
+    message: 'Esta ação não pode ser desfeita. Informe o motivo do cancelamento.',
+    reasonLabel: 'Motivo do cancelamento',
+    reasonPlaceholder: 'Ex.: Consulta cancelada a pedido do responsável.',
+    validationNoReason: 'Informe o motivo do cancelamento.',
+    confirmButton: 'Confirmar cancelamento',
+    submitting: 'Cancelando...',
+    backButton: 'Voltar',
+    /** Shown on a CA consultation — Java stores the reason as "Cancelamento: <motivo>" inside the same `observacao` field the FI branch already renders for its own conclusion. */
+    reasonSectionLabel: 'Motivo do cancelamento',
+  },
   editConsulta: {
     title: 'Editar Consulta',
     patientImmutableHelper: 'O paciente não pode ser alterado após a criação da consulta.',
@@ -344,6 +358,8 @@ export const pt = {
     addToNarrative: 'Adicionar ao relato',
     typeNarrative: 'Digitar relato',
     analyzeButton: 'Analisar com ArkIve',
+    /** Chunk 4 — EP->FI directly, without AI support (already backend-allowed). */
+    proceedWithoutAnalysisButton: 'Prosseguir sem análise ArkIve',
     validationEmpty: 'Descreva o que aconteceu antes de analisar com a ArkIve.',
     saveFallbackError: 'Não foi possível salvar o relato.',
     micPermissionDenied:
@@ -367,6 +383,21 @@ export const pt = {
     slowMessage: 'Está levando um pouco mais de tempo que o normal. Continuamos preparando sua análise.',
     errorTitle: 'Não foi possível concluir agora',
     backToNarrative: 'Voltar ao relato',
+    /** Chunk 4 — a real status read confirmed CA (never inferred from a 409 alone). */
+    canceledTitle: 'Consulta cancelada',
+    canceledMessage: 'Esta consulta foi cancelada. A análise não será concluída.',
+    backToConsultation: 'Voltar para a consulta',
+    /** Chunk 4 — a bounded recovery window elapsed with no definitive answer (Java's own call to the clinical engine may have timed out); never promised as "still working" indefinitely. */
+    uncertainTitle: 'Não foi possível confirmar o resultado',
+    uncertainMessage:
+      'A análise está demorando mais que o esperado e não é possível confirmar se um resultado ainda será gerado. Você pode verificar novamente, tentar de novo, ou voltar e continuar mais tarde.',
+    /** Distinct from uncertainMessage — used only when a result is known to already exist (AP/FI) but couldn't be read back cleanly; nothing is "still being generated" here, it's a retrieval problem. */
+    retrievalUncertainMessage:
+      'Não foi possível recuperar o resultado desta consulta agora. Você pode verificar novamente ou tentar mais tarde.',
+    recheckButton: 'Verificar novamente',
+    /** Correction — AG (nunca gerado) ou FI alcançada sem ArkIve (fluxo EP->FI direto). Nunca um erro nem um cancelamento. */
+    unavailableTitle: 'Análise ArkIve não disponível',
+    unavailableMessage: 'Não há uma análise ArkIve disponível para esta consulta no momento.',
   },
   aiInsight: {
     title: 'Apoio clínico',
@@ -387,6 +418,9 @@ export const pt = {
     intro: 'Registre sua decisão clínica final.',
     diagnosisLabel: 'Diagnóstico',
     diagnosisPlaceholder: 'Diagnóstico definido pelo veterinário',
+    /** Chunk 4 — quick-fill shortcuts for a routine visit with no disease found; prefill only, never auto-submitted, never a fabricated catalog diagnosis (doencaId stays null either way). */
+    routineOption: 'Consulta de rotina',
+    noDiseaseOption: 'Nenhuma doença identificada',
     severityLabel: 'Severidade',
     conclusionLabel: 'Conclusão clínica',
     conclusionPlaceholder: 'Conduta, orientações e observações finais',
@@ -734,6 +768,13 @@ export const pt = {
     finalizeUnavailable: 'Não foi possível finalizar a consulta agora. Tente novamente em instantes.',
     finalizeGeneric: 'Não foi possível finalizar a consulta agora.',
     finalizeNetwork: 'Sem conexão com o servidor. A consulta não foi finalizada — tente novamente.',
+    cancelValidation: 'Informe o motivo do cancelamento.',
+    cancelForbidden: 'Você não tem permissão para cancelar esta consulta.',
+    cancelNotFound: 'Esta consulta não foi encontrada.',
+    cancelConflict: 'O status desta consulta pode ter mudado. Verifique antes de tentar novamente.',
+    cancelUnavailable: 'Não foi possível cancelar a consulta agora. Tente novamente em instantes.',
+    cancelGeneric: 'Não foi possível cancelar a consulta agora.',
+    cancelNetwork: 'Sem conexão com o servidor. A consulta não foi cancelada — tente novamente.',
     prescricaoValidation: 'Verifique os dados da prescrição e tente novamente.',
     prescricaoForbidden: 'Você não tem permissão para esta prescrição.',
     prescricaoNotFound: 'Esta prescrição não foi encontrada.',

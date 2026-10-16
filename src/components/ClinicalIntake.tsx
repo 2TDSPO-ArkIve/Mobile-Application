@@ -23,6 +23,16 @@ interface Props {
   /** Persists the narrative, then (only on success) the caller navigates to the analysis screen. Rejecting keeps the veterinarian here with the draft intact. */
   onAnalyze: (narrativa: string) => Promise<void>;
   analyzing: boolean;
+  /**
+   * Chunk 4 — the backend already permits EP->FI directly ("O suporte
+   * ArkIve e opcional"), so the vet isn't forced to wait on ArkIve. Receives
+   * the current draft (possibly blank — narrative is optional on this path,
+   * never a placeholder) so the caller decides whether to persist it before
+   * navigating to the veterinarian's own conclusion form. Rejecting keeps
+   * the veterinarian here with the draft intact, same contract as `onAnalyze`.
+   */
+  onProceedWithoutAnalysis: (narrativa: string) => Promise<void>;
+  proceeding: boolean;
 }
 
 /**
@@ -44,6 +54,8 @@ export function ClinicalIntake({
   initialNarrativa,
   onAnalyze,
   analyzing,
+  onProceedWithoutAnalysis,
+  proceeding,
 }: Props) {
   const colors = useThemeColors();
   const { t, language } = useTranslation();
@@ -87,6 +99,18 @@ export function ClinicalIntake({
     }
     try {
       await onAnalyze(draft);
+    } catch (err) {
+      setAnalyzeError(err instanceof Error ? err.message : t('clinicalIntake.saveFallbackError'));
+    }
+  };
+
+  // No non-empty requirement here — unlike "Analisar com ArkIve", a blank
+  // narrative is a valid choice on this path (the caller skips the PATCH
+  // entirely for a blank draft rather than inventing placeholder text).
+  const handleProceedPress = async () => {
+    setAnalyzeError('');
+    try {
+      await onProceedWithoutAnalysis(draft);
     } catch (err) {
       setAnalyzeError(err instanceof Error ? err.message : t('clinicalIntake.saveFallbackError'));
     }
@@ -184,14 +208,23 @@ export function ClinicalIntake({
       ) : null}
 
       {view === 'editor' && (voice.status === 'idle' || voice.status === 'error') ? (
-        <AppButton
-          title={t('clinicalIntake.analyzeButton')}
-          icon="sparkles"
-          onPress={handleAnalyzePress}
-          loading={analyzing}
-          disabled={analyzing || !draft.trim()}
-          style={styles.analyzeButton}
-        />
+        <>
+          <AppButton
+            title={t('clinicalIntake.analyzeButton')}
+            icon="sparkles"
+            onPress={handleAnalyzePress}
+            loading={analyzing}
+            disabled={analyzing || proceeding || !draft.trim()}
+            style={styles.analyzeButton}
+          />
+          <AppButton
+            title={t('clinicalIntake.proceedWithoutAnalysisButton')}
+            variant="outline"
+            onPress={handleProceedPress}
+            loading={proceeding}
+            disabled={analyzing || proceeding}
+          />
+        </>
       ) : null}
     </View>
   );

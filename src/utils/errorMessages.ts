@@ -58,6 +58,40 @@ export function describeFinalizeError(error: unknown): string {
 }
 
 /**
+ * Translates a `POST /api/consultas/{id}/cancelar` failure. Confirmed
+ * against `ConsultaWorkflowService.cancelar`: a missing/blank `motivo`, an
+ * already-FI, or an already-CA consultation are ALL plain `BusinessException`s
+ * mapped to 400 (never 409 — this endpoint has no in-flight concurrency lock
+ * like `suporte-clinico`'s does). The 409 branch is kept only as defensive
+ * symmetry with every other `describe*Error` function here, not because a
+ * confirmed real 409 case exists for this endpoint today.
+ */
+export function describeCancelError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 400) {
+      return t('errors.cancelValidation');
+    }
+    if (error.status === 403) {
+      return t('errors.cancelForbidden');
+    }
+    if (error.status === 404) {
+      return t('errors.cancelNotFound');
+    }
+    if (error.status === 409) {
+      return t('errors.cancelConflict');
+    }
+    if (error.status >= 500) {
+      return t('errors.cancelUnavailable');
+    }
+    return t('errors.cancelGeneric');
+  }
+  if (isNetworkError(error)) {
+    return t('errors.cancelNetwork');
+  }
+  return t('errors.cancelGeneric');
+}
+
+/**
  * Translates a prescription create/update/delete failure. The 409 case is
  * confirmed to mean one specific thing server-side
  * (`PrescricaoService.exigirSemAdesaoRegistrada`): the prescription already

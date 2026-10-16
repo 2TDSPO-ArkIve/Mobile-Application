@@ -249,7 +249,7 @@ export interface FinalizarConsultaRequest {
   conclusao?: string;
 }
 
-/** `CancelarConsultaRequest.java` — confirmed, not called yet (no cancel action in this phase's UI). */
+/** `CancelarConsultaRequest.java`. */
 export interface CancelarConsultaRequest {
   motivo: string;
 }
@@ -361,12 +361,15 @@ export async function requestClinicalSupport(id: number): Promise<ClinicalSuppor
 }
 
 /**
- * Confirmed: `ConsultaStatusTransitionPolicy` actually permits both `EP->FI`
- * and `AP->FI` server-side. This app deliberately only ever calls this from
- * `AP` — the intended ArkIve flow is narrative -> AI support -> veterinarian
- * conclusion, and skipping straight from EP would let a veterinarian
- * finalize a case IA never got a chance to look at. That's a product
- * choice enforced in ConsultaDetailScreen.tsx, not a backend limitation.
+ * Confirmed: `ConsultaStatusTransitionPolicy` permits both `EP->FI` and
+ * `AP->FI` server-side (the controller's own doc string says so explicitly:
+ * "O suporte ArkIve e opcional: EP pode seguir diretamente para FI."). Chunk 4
+ * uses this from BOTH paths — `ClinicalIntake`'s "Prosseguir sem análise
+ * ArkIve" action navigates straight from EP to `ConclusaoVeterinaria`, and
+ * `ArkiveInsightScreen`'s existing "Registrar minha conclusão" still reaches
+ * it from AP after clinical support. The same `VeterinarianConclusionForm`/
+ * `finalizeConsulta` call is reused unmodified for both — the backend doesn't
+ * distinguish them beyond the transition policy above.
  *
  * `doencaId` is always sent as `null` from this app: there is no `/api/doencas`
  * (or equivalent) REST endpoint anywhere in the backend for a mobile client
@@ -378,4 +381,22 @@ export async function finalizeConsulta(
   input: FinalizarConsultaRequest
 ): Promise<ConsultaWorkflowResponse> {
   return apiPost<ConsultaWorkflowResponse>(`/api/consultas/${id}/finalizar`, input);
+}
+
+/**
+ * `POST /api/consultas/{id}/cancelar` — confirmed `ConsultaWorkflowService.cancelar`
+ * allows AG/EP/AP -> CA (never FI/CA, both rejected with 400, not 409 —
+ * Java's own `BusinessException` default status). `motivo` is `@NotBlank`
+ * both at the DTO and redundantly in the service; a 400 here is always a
+ * validation/bad-status rejection, never a transient race to retry. Java
+ * prepends `"Cancelamento: " + motivo` into the consultation's own
+ * `observacao` field — there is no separate "cancellation reason" field to
+ * read back; render `consulta.observacao` for a CA consultation same as it's
+ * already rendered for FI.
+ */
+export async function cancelConsulta(
+  id: number,
+  input: CancelarConsultaRequest
+): Promise<ConsultaWorkflowResponse> {
+  return apiPost<ConsultaWorkflowResponse>(`/api/consultas/${id}/cancelar`, input);
 }

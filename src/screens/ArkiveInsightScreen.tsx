@@ -10,6 +10,7 @@ import { AppButton } from '../components/AppButton';
 import { EmptyState } from '../components/EmptyState';
 import { VoiceOrb } from '../components/VoiceOrb';
 import { ClinicalSupportCard } from '../components/ClinicalSupportCard';
+import { CancelConsultaModal } from '../components/CancelConsultaModal';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useConsulta, useConsultaClinicalSupport } from '../hooks/useConsultas';
@@ -56,6 +57,7 @@ export function ArkiveInsightScreen() {
   });
   const [showNarrative, setShowNarrative] = useState(false);
   const [messageIndex, setMessageIndex] = useState(0);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
   const hasFailed = support.isError && !isSupportNotYetPersisted(support.error);
   const isWaiting = !support.data && !hasFailed;
@@ -102,6 +104,13 @@ export function ArkiveInsightScreen() {
                 <Text style={{ color: colors.text }}>{consulta.transcricao}</Text>
               </AppCard>
             ) : null}
+
+            <AppButton
+              title={t('cancelConsulta.action')}
+              variant="danger"
+              onPress={() => setCancelModalOpen(true)}
+              style={styles.cancelButton}
+            />
           </View>
         ) : (
           <>
@@ -145,9 +154,29 @@ export function ArkiveInsightScreen() {
                 style={styles.conclusionButton}
               />
             ) : null}
+
+            <AppButton
+              title={t('cancelConsulta.action')}
+              variant="danger"
+              onPress={() => setCancelModalOpen(true)}
+              style={styles.cancelButton}
+            />
           </>
         )}
       </ScreenContainer>
+
+      <CancelConsultaModal
+        visible={cancelModalOpen}
+        consultaId={consultaId}
+        onClose={() => setCancelModalOpen(false)}
+        onCancelled={() => {
+          setCancelModalOpen(false);
+          // AP->CA just happened — this screen has nothing left to show for
+          // this consultation; return to the single underlying
+          // ConsultaDetalhe instance, which will now render its CA state.
+          navigation.popTo('ConsultaDetalhe', { consultaId });
+        }}
+      />
     </View>
   );
 }
@@ -192,4 +221,5 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   conclusionButton: { marginTop: spacing.lg },
+  cancelButton: { marginTop: spacing.lg },
 });

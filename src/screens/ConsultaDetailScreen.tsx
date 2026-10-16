@@ -11,6 +11,7 @@ import { EmptyState } from '../components/EmptyState';
 import { ClinicalIntake } from '../components/ClinicalIntake';
 import { ClinicalSupportCard } from '../components/ClinicalSupportCard';
 import { ConfirmedDiagnosisCard } from '../components/ConfirmedDiagnosisCard';
+import { CancelConsultaModal } from '../components/CancelConsultaModal';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import {
@@ -68,6 +69,8 @@ export function ConsultaDetailScreen() {
   const clinicalSupport = useConsultaClinicalSupport(consultaId, { enabled: consulta?.status === 'FI' });
 
   const [actionError, setActionError] = useState('');
+  const [proceeding, setProceeding] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
   // AP means the veterinarian already asked ArkIve to analyze this case —
   // reopening it should land on the insight screen, never back on an EP-shaped
@@ -123,6 +126,29 @@ export function ConsultaDetailScreen() {
     navigation.navigate('AnaliseArkive', { consultaId });
   };
 
+  // Chunk 4 — "Prosseguir sem análise ArkIve": the backend already allows
+  // EP->FI directly. A non-blank narrative is still saved first (same
+  // save-then-navigate invariant as handleAnalyze — never discard typed
+  // notes), but a blank one is simply never PATCHed (Java's own
+  // `@NotBlank` would reject an empty value anyway, and inventing
+  // placeholder text would misrepresent the vet's own notes). No AI call
+  // happens on this path at all.
+  const handleProceedWithoutAnalysis = async (narrativa: string) => {
+    setProceeding(true);
+    try {
+      if (narrativa.trim()) {
+        try {
+          await saveNarrativa.mutateAsync(narrativa);
+        } catch (err) {
+          throw new Error(describeNarrativeSaveError(err));
+        }
+      }
+      navigation.navigate('ConclusaoVeterinaria', { consultaId });
+    } finally {
+      setProceeding(false);
+    }
+  };
+
   if (isPending) {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -163,8 +189,27 @@ export function ConsultaDetailScreen() {
             initialNarrativa={consulta.transcricao ?? ''}
             onAnalyze={handleAnalyze}
             analyzing={saveNarrativa.isPending}
+            onProceedWithoutAnalysis={handleProceedWithoutAnalysis}
+            proceeding={proceeding}
+          />
+
+          {/* Cancellation remains reachable from EP too — a slow/undesired
+              consultation shouldn't be stuck in the intake screen with no
+              way out other than finishing it. */}
+          <AppButton
+            title={t('cancelConsulta.action')}
+            variant="danger"
+            onPress={() => setCancelModalOpen(true)}
+            style={styles.cancelAction}
           />
         </ScreenContainer>
+
+        <CancelConsultaModal
+          visible={cancelModalOpen}
+          consultaId={consultaId}
+          onClose={() => setCancelModalOpen(false)}
+          onCancelled={() => setCancelModalOpen(false)}
+        />
       </View>
     );
   }
@@ -181,7 +226,12 @@ export function ConsultaDetailScreen() {
   const canStart = consulta.status === 'AG';
   const canEdit = consulta.status === 'AG';
   const canDelete = consulta.status === 'AG';
+  // AG only here — EP has its own cancel action in the branch above, and AP
+  // never reaches this render at all (it redirects to InsightArkive, which
+  // has its own cancel action). FI/CA are both terminal.
+  const canCancel = consulta.status === 'AG';
   const isFinalizada = consulta.status === 'FI';
+  const isCancelada = consulta.status === 'CA';
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -290,10 +340,21 @@ export function ConsultaDetailScreen() {
           </>
         ) : null}
 
-        {consulta.status === 'CA' ? (
-          <Text style={{ color: colors.textSecondary, marginBottom: spacing.md }}>
-            {t('consultaDetail.closedReadOnly')}
-          </Text>
+        {isCancelada ? (
+          <>
+            {/* Java prepends "Cancelamento: <motivo>" into `observacao` itself
+                (no separate reason field exists) — rendered here the same
+                way the FI branch renders its own conclusion text. */}
+            {consulta.observacao ? (
+              <AppCard>
+                <Text style={[styles.label, { color: colors.text }]}>{t('cancelConsulta.reasonSectionLabel')}</Text>
+                <Text style={[styles.field, { color: colors.text }]}>{consulta.observacao}</Text>
+              </AppCard>
+            ) : null}
+            <Text style={{ color: colors.textSecondary, marginBottom: spacing.md }}>
+              {t('consultaDetail.closedReadOnly')}
+            </Text>
+          </>
         ) : null}
 
         {actionError ? (
@@ -324,7 +385,22 @@ export function ConsultaDetailScreen() {
             loading={deleteMutation.isPending}
           />
         ) : null}
+
+        {canCancel ? (
+          <AppButton
+            title={t('cancelConsulta.action')}
+            variant="outline"
+            onPress={() => setCancelModalOpen(true)}
+          />
+        ) : null}
       </ScreenContainer>
+
+      <CancelConsultaModal
+        visible={cancelModalOpen}
+        consultaId={consultaId}
+        onClose={() => setCancelModalOpen(false)}
+        onCancelled={() => setCancelModalOpen(false)}
+      />
     </View>
   );
 }
@@ -341,6 +417,7 @@ const styles = StyleSheet.create({
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
   arkiveIdField: { fontFamily: 'monospace', fontSize: fontSize.xs },
   valueBlock: { marginTop: spacing.sm },
+  cancelAction: { marginTop: spacing.lg },
   valueLabel: {
     fontSize: fontSize.xs,
     fontWeight: '600',

@@ -48,10 +48,30 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
   const colors = useThemeColors();
   const { t } = useTranslation();
 
+  /**
+   * Chunk 4 fix — the reported "typing 2026 behaves like 19XX" bug.
+   * React's `onChange` on a DOM `<input>` fires on every keystroke, not just
+   * on a completed value: while the browser's native year segment is still
+   * mid-typed (e.g. the user has only typed "2"), `event.target.value`
+   * already reports a zero-padded partial like `...-0002`. The legacy
+   * multi-argument `Date` constructor then special-cases any year 0–99 as
+   * `1900 + year` (`new Date(2, ...)` => 1902), which is exactly the
+   * "19XX" symptom — and briefly flashes it in `formatDate(value)` below,
+   * since every intermediate keystroke was being committed to state.
+   * Guarding on a real 4-digit year (never < 1000) before ever constructing
+   * a `Date` eliminates every one of those intermediate pseudo-years; only
+   * a syntactically complete `YYYY-MM-DD` with a plausible calendar date
+   * ever reaches `onChange`.
+   */
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const raw = event.target.value;
     if (!raw) return;
-    const [y, m, d] = raw.split('-').map(Number);
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+    if (!match) return;
+    const y = Number(match[1]);
+    const m = Number(match[2]);
+    const d = Number(match[3]);
+    if (y < 1000 || m < 1 || m > 12 || d < 1 || d > 31) return;
     onChange(new Date(y, m - 1, d));
   };
 
