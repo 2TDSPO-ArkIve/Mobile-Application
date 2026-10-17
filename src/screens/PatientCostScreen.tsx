@@ -10,19 +10,22 @@ import { StatusBadge } from '../components/StatusBadge';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { usePatientCosts } from '../hooks/usePatients';
+import { useAuth } from '../hooks/useAuth';
 import { consultaStatusPresentation } from '../utils/statusPresentation';
 import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
 import { describePatientCostsError } from '../utils/errorMessages';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
+import { CostDashboard } from '../components/CostDashboard';
 import type { PatientCostConsultation } from '../services/patientCostService';
 import { spacing, fontSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
 /**
  * Read-only cost dashboard — "how much has been recorded as spent on this
- * patient's care?". No invoices, no payment status, no charts: three summary
- * totals (consultations / medications / grand total, server-computed,
- * `FI`-only) plus a per-consultation breakdown, same minimal inline
+ * patient's care?". No invoices, no payment status: `CostDashboard` (period
+ * filter, KPIs, evolution line, stacked bars, composition ring — the charts
+ * only for the veterinarian; the guardian sees KPIs and the list) over the `FI`-only rows,
+ * plus a per-consultation breakdown, same minimal inline
  * route-type pattern `PatientDetailScreen`/`PatientHistoryScreen` already
  * established, reused by BOTH VETERINARIO and RESPONSAVEL. Java is the sole
  * authorization authority (`GET /api/animais/{id}/custos`) — no extra
@@ -30,9 +33,8 @@ import { commonStyles } from '../styles/common';
  *
  * Per-row `valorConsulta`/`valorMedicamentos` can be `null` (no cost
  * recorded for that piece) and are never rendered as `R$ 0,00` — only the
- * row's own `valorTotal` and the three summary totals are guaranteed numbers
- * (the server aggregates a missing piece as zero), so those alone are safe
- * to always format as currency.
+ * row's own `valorTotal` is a guaranteed number. The dashboard counts a
+ * null piece as zero when summing.
  */
 type PatientCostRouteParamList = { CustosPaciente: { patientId: number } };
 
@@ -86,6 +88,7 @@ export function PatientCostScreen() {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const { patientId } = route.params;
+  const { isResponsavel } = useAuth();
 
   const { data, isPending, isError, error, refetch } = usePatientCosts(patientId);
 
@@ -112,8 +115,6 @@ export function PatientCostScreen() {
     );
   }
 
-  const hasAnyRecordedCost = data.totalGeral > 0;
-
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={data.animalNome} />
@@ -125,68 +126,17 @@ export function PatientCostScreen() {
           {t('patientCosts.title')}
         </Text>
 
-        <AppCard>
-          <View style={styles.summaryRow}>
-            <View style={styles.summaryItem}>
-              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                {t('patientCosts.summaryConsultations')}
-              </Text>
-              <Text style={[styles.summaryValue, { color: colors.text }]}>
-                {formatCurrency(data.totalConsultas)}
-              </Text>
-            </View>
-            <View style={styles.summaryItem}>
-              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                {t('patientCosts.summaryMedications')}
-              </Text>
-              <Text style={[styles.summaryValue, { color: colors.text }]}>
-                {formatCurrency(data.totalMedicamentos)}
-              </Text>
-            </View>
-            <View style={styles.summaryItem}>
-              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                {t('patientCosts.summaryTotal')}
-              </Text>
-              <Text style={[styles.summaryValue, styles.summaryTotalValue, { color: colors.text }]}>
-                {formatCurrency(data.totalGeral)}
-              </Text>
-            </View>
-          </View>
-
-          {data.quantidadeConsultasComValor > 0 || data.quantidadePrescricoesComValor > 0 ? (
-            <View style={styles.countsBlock}>
-              {data.quantidadeConsultasComValor > 0 ? (
-                <Text style={[styles.countText, { color: colors.textSecondary }]}>
-                  {t('patientCosts.consultationsCounted', { count: data.quantidadeConsultasComValor })}
-                </Text>
-              ) : null}
-              {data.quantidadePrescricoesComValor > 0 ? (
-                <Text style={[styles.countText, { color: colors.textSecondary }]}>
-                  {t('patientCosts.prescriptionsCounted', { count: data.quantidadePrescricoesComValor })}
-                </Text>
-              ) : null}
-            </View>
-          ) : null}
-        </AppCard>
-
-        {!hasAnyRecordedCost ? (
+        {data.consultas.length === 0 ? (
           <Text style={{ color: colors.textSecondary, textAlign: 'center', marginVertical: spacing.sm }}>
             {t('patientCosts.noRecordedCosts')}
           </Text>
-        ) : null}
-
-        {data.consultas.length > 0 ? (
-          <>
-            <Text
-              style={[commonStyles.eyebrow, { color: colors.primary, marginTop: spacing.lg, marginBottom: spacing.sm }]}
-            >
-              {t('patientCosts.breakdownTitle')}
-            </Text>
-            {data.consultas.map((consulta) => (
-              <ConsultationCostRow key={consulta.consultaId} consulta={consulta} />
-            ))}
-          </>
-        ) : null}
+        ) : (
+          <CostDashboard
+            rows={data.consultas}
+            showCharts={!isResponsavel}
+            renderRow={(consulta) => <ConsultationCostRow key={consulta.consultaId} consulta={consulta} />}
+          />
+        )}
       </ScreenContainer>
     </View>
   );
@@ -199,11 +149,4 @@ const styles = StyleSheet.create({
   dateText: { fontSize: fontSize.md, fontWeight: '700' },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },
   totalRow: { marginTop: spacing.sm, paddingTop: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  summaryItem: { flex: 1, alignItems: 'center' },
-  summaryLabel: { fontSize: fontSize.xs, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
-  summaryValue: { fontSize: fontSize.md, fontWeight: '700', marginTop: spacing.xs },
-  summaryTotalValue: { fontSize: fontSize.lg },
-  countsBlock: { marginTop: spacing.md },
-  countText: { fontSize: fontSize.xs },
 });

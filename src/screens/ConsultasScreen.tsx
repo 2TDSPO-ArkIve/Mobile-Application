@@ -14,7 +14,7 @@ import { useTranslation } from '../i18n/useTranslation';
 import { useConsultasByStatus } from '../hooks/useConsultas';
 import { LoadMoreButton } from '../components/LoadMoreButton';
 import type { ConsultaDto, ConsultaStatus } from '../services/consultaService';
-import { consultaStatusPresentation } from '../utils/statusPresentation';
+import { CONSULTA_STATUS_ORDER, consultaStatusPresentation } from '../utils/statusPresentation';
 import { formatDate, formatTime } from '../utils/localeFormat';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AppStackParamList } from '../interfaces/navigation';
@@ -30,19 +30,14 @@ import { spacing, fontSize } from '../styles/theme';
  * bottom-right floating "+" (`commonStyles.fab`) that could sit on top of
  * the last visible card.
  */
-/**
- * Group order on screen: awaiting the vet's review first, then in progress,
- * scheduled, finished and cancelled. Each group is its own paged query
- * (`?status=`), so grouping stays correct across pages.
- */
-const STATUS_ORDER: ConsultaStatus[] = ['AP', 'EP', 'AG', 'FI', 'CA'];
-
 export function ConsultasScreen() {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
-  // STATUS_ORDER is a constant, so the hook call order never changes.
-  const groups = STATUS_ORDER.map((status) => ({ status, query: useConsultasByStatus(status) }));
+  // Each status group is its own paged query (`?status=`), so grouping stays
+  // correct across pages. CONSULTA_STATUS_ORDER is a constant, so the hook
+  // call order never changes.
+  const groups = CONSULTA_STATUS_ORDER.map((status) => ({ status, query: useConsultasByStatus(status) }));
 
   const isPending = groups.some((group) => group.query.isPending);
   const failed = groups.find((group) => group.query.isError)?.query;

@@ -274,6 +274,12 @@ export async function listConsultasByStatus(
   );
 }
 
+/** How many consultations have this status — reads only `totalElements` from a 1-item page. */
+export async function countConsultasByStatus(status: ConsultaStatus): Promise<number> {
+  const page = await apiGet<SpringPage<ConsultaDto>>(`/api/consultas?status=${status}&page=0&size=1`);
+  return page.totalElements;
+}
+
 /** Confirmed: `ConsultaController.buscarPorId`, `@GetMapping("/{id}")`. */
 export async function getConsulta(id: number): Promise<ConsultaDto> {
   return apiGet<ConsultaDto>(`/api/consultas/${id}`);

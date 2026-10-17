@@ -11,6 +11,8 @@ export const queryKeys = {
     /** Paged status groups of `ConsultasScreen` — nested under `list()`, so invalidating the list also refetches them. */
     statusGroups: () => [...queryKeys.consultas.list(), 'status'] as const,
     byStatus: (status: string) => [...queryKeys.consultas.statusGroups(), status] as const,
+    /** Count per status for the financial dashboard — also under `list()`, so it refreshes with every list invalidation. */
+    statusCount: (status: string) => [...queryKeys.consultas.list(), 'count', status] as const,
     detail: (id: string | number) => [...queryKeys.consultas.all, 'detail', id] as const,
     clinicalSupport: (id: string | number) =>
       [...queryKeys.consultas.all, 'clinical-support', id] as const,

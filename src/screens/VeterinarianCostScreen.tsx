@@ -1,19 +1,27 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { AppCard } from '../components/AppCard';
 import { AppButton } from '../components/AppButton';
 import { EmptyState } from '../components/EmptyState';
+import { ChipGroup } from '../components/ChipGroup';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useOwnVeterinarianCosts } from '../hooks/useVeterinario';
 import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
 import { describeOwnCostsError } from '../utils/errorMessages';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
+import { CostDashboard } from '../components/CostDashboard';
+import { HorizontalBars } from '../components/charts/HorizontalBars';
+import { useConsultaStatusCounts } from '../hooks/useConsultas';
+import { consultaStatusPresentation, type StatusTone } from '../utils/statusPresentation';
+import { topByAnimal } from '../utils/costDashboard';
 import type { VeterinarianCostConsultation } from '../services/veterinarioCustoService';
+import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize } from '../styles/theme';
-import { commonStyles } from '../styles/common';
 
 /**
  * Chunk 6 — "Resumo financeiro": a read-only overview of the VALUES RECORDED
@@ -40,6 +48,8 @@ import { commonStyles } from '../styles/common';
  * veterinarian can have finalized consultations with no recorded values at
  * all, which is a different, legitimate state from having none.
  */
+const TWO_PANEL_MIN_WIDTH = 960;
+
 function ConsultationCostRow({ consulta }: { consulta: VeterinarianCostConsultation }) {
   const colors = useThemeColors();
   const { t } = useTranslation();
@@ -83,10 +93,104 @@ function ConsultationCostRow({ consulta }: { consulta: VeterinarianCostConsultat
   );
 }
 
+type RankBy = 'value' | 'count';
+
+/**
+ * Every patient of the chosen period, ranked by recorded total or by number
+ * of consultations; tapping one opens the patient.
+ */
+function TopPatientsSection({ rows }: { rows: VeterinarianCostConsultation[] }) {
+  const colors = useThemeColors();
+  const { t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
+  const [rankBy, setRankBy] = useState<RankBy>('value');
+  const patients = topByAnimal(rows);
+
+  if (patients.length === 0) return null;
+
+  const ranked =
+    rankBy === 'value' ? patients : [...patients].sort((a, b) => b.count - a.count || b.total - a.total);
+
+  return (
+    <AppCard style={styles.panel}>
+      <Text style={[styles.panelTitle, { color: colors.text }]}>{t('costDashboard.topPatientsTitle')}</Text>
+      <ChipGroup
+        label={t('costDashboard.rankBy')}
+        options={[
+          { value: 'value', label: t('costDashboard.rankByValue') },
+          { value: 'count', label: t('costDashboard.rankByCount') },
+        ]}
+        value={rankBy}
+        onChange={(value) => setRankBy(value as RankBy)}
+      />
+      <HorizontalBars
+        showRank
+        showShare
+        rows={ranked.map((entry) => ({
+          key: entry.animalId,
+          label: entry.animalNome,
+          value: rankBy === 'value' ? entry.total : entry.count,
+          valueLabel: rankBy === 'value' ? formatCurrency(entry.total) : String(entry.count),
+          color: colors.textSecondary,
+          onPress: () => navigation.navigate('PacienteDetalhe', { patientId: entry.animalId }),
+        }))}
+      />
+    </AppCard>
+  );
+}
+
+/**
+ * Consultations per status, from `/api/consultas` (all dates, every status).
+ * Not affected by the period filter: that endpoint has no date filter.
+ * Tapping a status opens the Consultas tab.
+ */
+function StatusCountsSection() {
+  const colors = useThemeColors();
+  const { t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
+  const { counts, isPending, isError } = useConsultaStatusCounts();
+  const toneColor: Record<StatusTone, string> = {
+    neutral: colors.textSecondary,
+    info: colors.primary,
+    warning: colors.warning,
+    success: colors.success,
+    danger: colors.error,
+  };
+
+  return (
+    <AppCard style={styles.panel}>
+      <Text style={[styles.panelTitle, { color: colors.text }]}>{t('costDashboard.statusTitle')}</Text>
+      <Text style={[styles.countText, { color: colors.textSecondary, marginBottom: spacing.sm }]}>
+        {t('costDashboard.statusAllDates')}
+      </Text>
+      {isPending ? (
+        <Text style={{ color: colors.textSecondary }}>{t('vetCosts.loading')}</Text>
+      ) : isError ? (
+        <Text style={{ color: colors.error }}>{t('costDashboard.statusLoadError')}</Text>
+      ) : (
+        <HorizontalBars
+          showShare
+          rows={counts.map(({ status, count }) => {
+            const presentation = consultaStatusPresentation(status);
+            return {
+              key: status,
+              label: presentation.label,
+              value: count,
+              color: toneColor[presentation.tone],
+              onPress: () => navigation.navigate('MainTabs', { screen: 'Consultas' }),
+            };
+          })}
+        />
+      )}
+    </AppCard>
+  );
+}
+
 export function VeterinarianCostScreen() {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const { data, isPending, isError, error, refetch } = useOwnVeterinarianCosts();
+  const twoPanels = useWindowDimensions().width >= TWO_PANEL_MIN_WIDTH;
 
   if (isPending) {
     return (
@@ -118,62 +222,26 @@ export function VeterinarianCostScreen() {
         <Text style={[styles.intro, { color: colors.textSecondary }]}>{t('vetCosts.intro')}</Text>
 
         {data.consultas.length === 0 ? (
-          <EmptyState title={t('vetCosts.emptyTitle')} message={t('vetCosts.emptyMessage')} />
-        ) : (
           <>
-            <AppCard>
-              <View style={styles.summaryRow}>
-                <View style={styles.summaryItem}>
-                  <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                    {t('vetCosts.summaryConsultations')}
-                  </Text>
-                  <Text style={[styles.summaryValue, { color: colors.text }]}>
-                    {formatCurrency(data.totalConsultas)}
-                  </Text>
+            <EmptyState title={t('vetCosts.emptyTitle')} message={t('vetCosts.emptyMessage')} />
+            <StatusCountsSection />
+          </>
+        ) : (
+          <CostDashboard
+            rows={data.consultas}
+            showComparison
+            renderRow={(consulta) => <ConsultationCostRow key={consulta.consultaId} consulta={consulta} />}
+            renderExtra={(periodRows) => (
+              <View style={twoPanels ? styles.panelRow : undefined}>
+                <View style={twoPanels ? styles.panelColumn : undefined}>
+                  <TopPatientsSection rows={periodRows} />
                 </View>
-                <View style={styles.summaryItem}>
-                  <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                    {t('vetCosts.summaryMedications')}
-                  </Text>
-                  <Text style={[styles.summaryValue, { color: colors.text }]}>
-                    {formatCurrency(data.totalMedicamentos)}
-                  </Text>
-                </View>
-                <View style={styles.summaryItem}>
-                  <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-                    {t('vetCosts.summaryTotal')}
-                  </Text>
-                  <Text style={[styles.summaryValue, styles.summaryTotalValue, { color: colors.text }]}>
-                    {formatCurrency(data.totalGeral)}
-                  </Text>
+                <View style={twoPanels ? styles.panelColumn : undefined}>
+                  <StatusCountsSection />
                 </View>
               </View>
-
-              {data.quantidadeConsultasComValor > 0 || data.quantidadePrescricoesComValor > 0 ? (
-                <View style={styles.countsBlock}>
-                  {data.quantidadeConsultasComValor > 0 ? (
-                    <Text style={[styles.countText, { color: colors.textSecondary }]}>
-                      {t('vetCosts.consultationsCounted', { count: data.quantidadeConsultasComValor })}
-                    </Text>
-                  ) : null}
-                  {data.quantidadePrescricoesComValor > 0 ? (
-                    <Text style={[styles.countText, { color: colors.textSecondary }]}>
-                      {t('vetCosts.prescriptionsCounted', { count: data.quantidadePrescricoesComValor })}
-                    </Text>
-                  ) : null}
-                </View>
-              ) : null}
-            </AppCard>
-
-            <Text
-              style={[commonStyles.eyebrow, { color: colors.primary, marginTop: spacing.lg, marginBottom: spacing.sm }]}
-            >
-              {t('vetCosts.breakdownTitle')}
-            </Text>
-            {data.consultas.map((consulta) => (
-              <ConsultationCostRow key={consulta.consultaId} consulta={consulta} />
-            ))}
-          </>
+            )}
+          />
         )}
       </ScreenContainer>
     </View>
@@ -188,11 +256,9 @@ const styles = StyleSheet.create({
   arkiveIdText: { fontSize: fontSize.xs, fontFamily: 'monospace', marginTop: 2, marginBottom: spacing.sm },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },
   totalRow: { marginTop: spacing.sm, paddingTop: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  summaryItem: { flex: 1, alignItems: 'center' },
-  summaryLabel: { fontSize: fontSize.xs, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
-  summaryValue: { fontSize: fontSize.md, fontWeight: '700', marginTop: spacing.xs },
-  summaryTotalValue: { fontSize: fontSize.lg },
-  countsBlock: { marginTop: spacing.md },
   countText: { fontSize: fontSize.xs },
+  panel: { marginBottom: spacing.sm },
+  panelTitle: { fontSize: fontSize.md, fontWeight: '700', marginBottom: spacing.sm },
+  panelRow: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' },
+  panelColumn: { flex: 1 },
 });

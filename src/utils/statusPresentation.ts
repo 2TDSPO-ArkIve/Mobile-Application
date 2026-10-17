@@ -8,6 +8,9 @@ export interface StatusPresentation {
   tone: StatusTone;
 }
 
+/** Display order wherever consultations are grouped by status: awaiting review first, cancelled last. */
+export const CONSULTA_STATUS_ORDER: ConsultaStatus[] = ['AP', 'EP', 'AG', 'FI', 'CA'];
+
 const CONSULTA_STATUS_TONE: Record<ConsultaStatus, StatusTone> = {
   AG: 'neutral',
   EP: 'info',

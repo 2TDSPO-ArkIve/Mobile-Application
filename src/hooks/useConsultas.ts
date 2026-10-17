@@ -1,6 +1,7 @@
 import {
   useInfiniteQuery,
   useMutation,
+  useQueries,
   useQuery,
   useQueryClient,
   type InfiniteData,
@@ -10,6 +11,7 @@ import {
 import { ApiError } from '../services/apiClient';
 import {
   cancelConsulta,
+  countConsultasByStatus,
   createConsulta,
   deleteConsulta,
   finalizeConsulta,
@@ -29,6 +31,7 @@ import {
 } from '../services/consultaService';
 import { queryKeys } from '../query/queryKeys';
 import { nextPageParam, type SpringPage } from '../utils/pagination';
+import { CONSULTA_STATUS_ORDER } from '../utils/statusPresentation';
 
 /** List — proves screen -> hook -> TanStack Query -> service -> apiClient -> Spring Boot end-to-end. */
 export function useConsultas() {
@@ -45,6 +48,21 @@ export function useConsultasByStatus(status: ConsultaStatus) {
     queryFn: ({ pageParam }) => listConsultasByStatus(status, pageParam),
     initialPageParam: 0,
     getNextPageParam: nextPageParam,
+  });
+}
+
+/** Consultation count per status, in `CONSULTA_STATUS_ORDER`. */
+export function useConsultaStatusCounts() {
+  return useQueries({
+    queries: CONSULTA_STATUS_ORDER.map((status) => ({
+      queryKey: queryKeys.consultas.statusCount(status),
+      queryFn: () => countConsultasByStatus(status),
+    })),
+    combine: (results) => ({
+      counts: CONSULTA_STATUS_ORDER.map((status, i) => ({ status, count: results[i].data ?? 0 })),
+      isPending: results.some((result) => result.isPending),
+      isError: results.some((result) => result.isError),
+    }),
   });
 }
 

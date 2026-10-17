@@ -1,3 +1,4 @@
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { AnimalDto } from '../services/patientService';
 import type { AuthMeResponse } from '../services/authService';
 
@@ -74,7 +75,7 @@ export type ResponsavelAppStackParamList = {
 };
 
 export type AppStackParamList = {
-  MainTabs: undefined;
+  MainTabs: NavigatorScreenParams<BottomTabParamList> | undefined;
   ConsultaDetalhe: { consultaId: number };
   EditarConsulta: { consultaId: number };
   AnaliseArkive: { consultaId: number };
