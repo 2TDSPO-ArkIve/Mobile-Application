@@ -217,7 +217,7 @@ export function ClinicalSupportCard({ support }: Props) {
             <View key={`${index}-${referencia.titulo}`} style={styles.sourceRow}>
               <Text style={[styles.bullet, { color: colors.inkSecondary }]}>{'•'}</Text>
               <Text style={[styles.sourceText, { color: colors.inkSecondary }]}>
-                {referencia.fonte ? `${referencia.fonte} — ${referencia.titulo}` : referencia.titulo}
+                {referencia.fonte ? `${referencia.fonte} · ${referencia.titulo}` : referencia.titulo}
               </Text>
             </View>
           ))}
