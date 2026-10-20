@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { spacing, radius, fontSize } from '../styles/theme';
+import { spacing, radius, fontSize, font } from '../styles/theme';
 import type { StatusPresentation } from '../utils/statusPresentation';
 
 /** `#616161` is the one badge-specific text color the design system calls out (paired with the neutral/inactive tint) that isn't otherwise a theme token. */
@@ -36,6 +36,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: fontSize.xs,
-    fontWeight: '600',
+    ...font('semibold'),
   },
 });

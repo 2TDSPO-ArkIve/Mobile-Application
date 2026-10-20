@@ -11,7 +11,7 @@ import type { PrescricaoRequestInput, ViaAdministracao } from '../services/presc
 import { VIA_ADMINISTRACAO_OPTIONS, viaAdministracaoLabel } from '../utils/viaAdministracao';
 import { parseMoneyInput, moneyToInputValue } from '../utils/money';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
-import { spacing, fontSize, radius } from '../styles/theme';
+import { spacing, fontSize, radius, font } from '../styles/theme';
 
 export interface PrescricaoFormValues {
   medicamento: string;
@@ -233,7 +233,7 @@ export function PrescricaoForm({
 const styles = StyleSheet.create({
   context: { fontSize: fontSize.xs },
   contextArkiveId: { fontSize: fontSize.xs, marginBottom: spacing.md, marginTop: 2 },
-  label: { fontSize: fontSize.sm, fontWeight: '600', marginBottom: spacing.sm },
+  label: { fontSize: fontSize.sm, ...font('semibold'), marginBottom: spacing.sm },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.md },
   chip: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.md, borderWidth: 1 },
 });

@@ -3,7 +3,7 @@ import { View, Text, Pressable, Animated, ActivityIndicator, StyleSheet, useWind
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
 
 export type VoiceOrbMode = 'idle' | 'recording' | 'transcribing' | 'analyzing';
 
@@ -199,6 +199,6 @@ const styles = StyleSheet.create({
   },
   labelRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.md },
   recDot: { width: 8, height: 8, borderRadius: 4 },
-  label: { fontSize: fontSize.md, fontWeight: '600', textAlign: 'center' },
-  timer: { fontSize: fontSize.lg, fontWeight: '700', marginTop: spacing.xs, fontVariant: ['tabular-nums'] },
+  label: { fontSize: fontSize.md, ...font('semibold'), textAlign: 'center' },
+  timer: { fontSize: fontSize.lg, ...font('bold'), marginTop: spacing.xs, fontVariant: ['tabular-nums'] },
 });

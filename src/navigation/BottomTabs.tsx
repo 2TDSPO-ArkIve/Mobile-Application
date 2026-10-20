@@ -9,7 +9,7 @@ import { ConsultasScreen } from '../screens/ConsultasScreen';
 import { PatientsScreen } from '../screens/PatientsScreen';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
-import { fontSize, spacing } from '../styles/theme';
+import { fontSize, spacing, font } from '../styles/theme';
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: fontSize.xs,
-    fontWeight: '600',
+    ...font('semibold'),
     lineHeight: fontSize.xs + 6,
   },
 });

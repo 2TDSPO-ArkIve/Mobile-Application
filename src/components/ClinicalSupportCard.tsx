@@ -13,7 +13,7 @@ import { parseSourceUrl } from '../utils/sourceUrl';
 import { describeInsightFeedbackError } from '../utils/errorMessages';
 import { severidadeLabel } from '../utils/severidade';
 import { formatNumber } from '../utils/localeFormat';
-import { spacing, fontSize, radius } from '../styles/theme';
+import { spacing, fontSize, radius, font } from '../styles/theme';
 
 interface Props {
   support: ClinicalSupportResponse;
@@ -299,18 +299,18 @@ export function ClinicalSupportCard({ support }: Props) {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: fontSize.md, fontWeight: '700', marginBottom: spacing.xs },
+  title: { fontSize: fontSize.md, ...font('bold'), marginBottom: spacing.xs },
   disclaimer: { fontSize: fontSize.xs, lineHeight: 17, marginBottom: spacing.sm },
   label: {
     fontSize: fontSize.xs,
-    fontWeight: '600',
+    ...font('semibold'),
     textTransform: 'uppercase',
     letterSpacing: 0.3,
     marginTop: spacing.sm,
   },
   value: { fontSize: fontSize.sm, marginTop: 2 },
   tokensSection: { marginTop: spacing.sm },
-  tokensMainValue: { fontSize: fontSize.lg, fontWeight: '700', marginTop: 2, marginBottom: spacing.sm },
+  tokensMainValue: { fontSize: fontSize.lg, ...font('bold'), marginTop: 2, marginBottom: spacing.sm },
   tokensSampleCaption: { fontSize: fontSize.xs, marginTop: spacing.xs },
   tokensComparisonText: { fontSize: fontSize.sm, marginTop: spacing.xs, lineHeight: 19 },
   // Deliberately no card-per-source, no border, no background — a compact

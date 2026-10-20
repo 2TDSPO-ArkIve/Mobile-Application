@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../i18n/useTranslation';
-import { spacing, fontSize } from '../../styles/theme';
+import { spacing, fontSize, font } from '../../styles/theme';
 
 export interface HorizontalBarRow {
   key: string | number;
@@ -108,10 +108,10 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
   rank: { width: 18, fontSize: fontSize.xs, fontVariant: ['tabular-nums'] },
   label: { fontSize: fontSize.sm, flex: 1 },
-  value: { fontSize: fontSize.sm, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  value: { fontSize: fontSize.sm, ...font('semibold'), fontVariant: ['tabular-nums'] },
   share: { fontSize: fontSize.xs, fontVariant: ['tabular-nums'], minWidth: 40, textAlign: 'right' },
   bar: { height: 4, borderRadius: 2, marginTop: spacing.xs, opacity: BAR_OPACITY },
   barIndented: { marginLeft: 18 + spacing.sm },
   toggle: { alignSelf: 'flex-start', paddingVertical: spacing.xs },
-  toggleText: { fontSize: fontSize.sm, fontWeight: '600' },
+  toggleText: { fontSize: fontSize.sm, ...font('semibold') },
 });

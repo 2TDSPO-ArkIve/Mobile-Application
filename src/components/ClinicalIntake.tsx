@@ -7,7 +7,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useClinicalVoiceRecording } from '../hooks/useClinicalVoiceRecording';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
 /** Appends a transcribed segment after whatever's already in the draft, never replacing it. */
@@ -160,7 +160,7 @@ export function ClinicalIntake({
 
           {voice.status === 'idle' || voice.status === 'error' ? (
             <Pressable onPress={() => setView('editor')} style={styles.linkWrap} accessibilityRole="button">
-              <Text style={{ color: colors.primary, fontWeight: '600' }}>{t('clinicalIntake.typeNarrative')}</Text>
+              <Text style={{ color: colors.primary, ...font('semibold') }}>{t('clinicalIntake.typeNarrative')}</Text>
             </Pressable>
           ) : null}
 
@@ -237,9 +237,9 @@ export function ClinicalIntake({
 }
 
 const styles = StyleSheet.create({
-  patientName: { fontSize: fontSize.lg, fontWeight: '700' },
+  patientName: { fontSize: fontSize.lg, ...font('bold') },
   patientArkiveId: { fontSize: fontSize.xs, marginTop: 2 },
-  question: { fontSize: fontSize.xl, fontWeight: '700', marginTop: spacing.md, marginBottom: spacing.xs },
+  question: { fontSize: fontSize.xl, ...font('bold'), marginTop: spacing.md, marginBottom: spacing.xs },
   subtitle: { fontSize: fontSize.sm, marginBottom: spacing.md, lineHeight: 20 },
   linkWrap: { alignSelf: 'center', marginTop: spacing.sm, padding: spacing.sm },
   errorBlock: { marginTop: spacing.md },

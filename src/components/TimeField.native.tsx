@@ -4,7 +4,7 @@ import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/d
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../i18n/useTranslation';
-import { spacing, radius, fontSize } from '../styles/theme';
+import { spacing, radius, fontSize, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 import { ClockGlyph } from './CalendarGlyph';
 import { formatTime } from '../utils/localeFormat';
@@ -70,7 +70,7 @@ export function TimeField({ label, value, onChange, error }: Props) {
                   <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>{t('date.pickerCancel')}</Text>
                 </Pressable>
                 <Pressable onPress={confirm}>
-                  <Text style={{ color: colors.primary, fontWeight: '700', fontSize: fontSize.sm }}>
+                  <Text style={{ color: colors.primary, ...font('bold'), fontSize: fontSize.sm }}>
                     {t('date.pickerDone')}
                   </Text>
                 </Pressable>

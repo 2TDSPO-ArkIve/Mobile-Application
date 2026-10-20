@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { spacing, radius, fontSize } from '../styles/theme';
+import { spacing, radius, fontSize, font } from '../styles/theme';
 import { AppButton } from './AppButton';
 
 interface Props {
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: fontSize.md,
-    fontWeight: '700',
+    ...font('bold'),
     textAlign: 'center',
   },
   message: {

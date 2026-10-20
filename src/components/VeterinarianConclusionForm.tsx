@@ -5,7 +5,7 @@ import { AppButton } from './AppButton';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import type { FinalizarConsultaRequest, Severidade } from '../services/consultaService';
-import { spacing, fontSize, radius } from '../styles/theme';
+import { spacing, fontSize, radius, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
 /**
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   section: { marginBottom: spacing.xl },
   sectionLabel: { marginBottom: spacing.sm },
   quickFillRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.xs, flexWrap: 'wrap' },
-  quickFillText: { fontSize: fontSize.sm, fontWeight: '600' },
+  quickFillText: { fontSize: fontSize.sm, ...font('semibold') },
   severityRow: { flexDirection: 'row', gap: spacing.sm },
   severityOption: {
     flex: 1,
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.xs,
   },
-  severityLabel: { fontSize: fontSize.sm, fontWeight: '700' },
+  severityLabel: { fontSize: fontSize.sm, ...font('bold') },
   conclusaoInput: { minHeight: 120, textAlignVertical: 'top' },
   error: { fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.md },
   submitButton: { marginTop: spacing.sm },

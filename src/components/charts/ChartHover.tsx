@@ -3,7 +3,7 @@ import { View, Text, Pressable, Platform, StyleSheet } from 'react-native';
 import { G, Line, Text as SvgText } from 'react-native-svg';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { formatCurrencyShort } from './chartFormat';
-import { radius, spacing, fontSize } from '../../styles/theme';
+import { radius, spacing, fontSize, font } from '../../styles/theme';
 import { shadows } from '../../styles/shadows';
 
 export const AXIS_WIDTH = 52;
@@ -132,9 +132,9 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  title: { fontSize: fontSize.xs, fontWeight: '700', marginBottom: spacing.xs },
+  title: { fontSize: fontSize.xs, ...font('bold'), marginBottom: spacing.xs },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: 2 },
   swatch: { width: 10, height: 10, borderRadius: 2 },
   label: { fontSize: fontSize.xs, flex: 1 },
-  value: { fontSize: fontSize.xs, fontWeight: '700' },
+  value: { fontSize: fontSize.xs, ...font('bold') },
 });

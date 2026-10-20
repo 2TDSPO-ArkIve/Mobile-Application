@@ -27,7 +27,7 @@ import {
 } from '../utils/costDashboard';
 import { formatCurrency } from '../utils/localeFormat';
 import { LIST_PAGE_SIZE } from '../utils/pagination';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
 const WIDE_LAYOUT_MIN_WIDTH = 768;
@@ -280,12 +280,12 @@ export function CostDashboard<T extends CostRow>({
 const styles = StyleSheet.create({
   note: { marginBottom: spacing.sm },
   noteToggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, alignSelf: 'flex-start' },
-  noteTitle: { fontSize: fontSize.xs, fontWeight: '600' },
+  noteTitle: { fontSize: fontSize.xs, ...font('semibold') },
   noteBody: { fontSize: fontSize.xs, lineHeight: 17, marginTop: spacing.xs, marginLeft: 20 },
   kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.sm },
   panel: { marginBottom: spacing.sm },
   panelRow: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' },
-  panelTitle: { fontSize: fontSize.md, fontWeight: '700', marginBottom: spacing.sm },
+  panelTitle: { fontSize: fontSize.md, ...font('bold'), marginBottom: spacing.sm },
   empty: { alignItems: 'center', gap: spacing.sm },
   emptyText: { textAlign: 'center' },
   sectionTitle: { marginTop: spacing.lg, marginBottom: spacing.sm },

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { AppCard } from './AppCard';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
-import { spacing, fontSize, radius } from '../styles/theme';
+import { spacing, fontSize, radius, font } from '../styles/theme';
 
 const ON_HIGHLIGHT = '#FFFFFF';
 const ON_HIGHLIGHT_MUTED = 'rgba(255, 255, 255, 0.8)';
@@ -86,12 +86,12 @@ export function KpiCard({ label, value, hint, delta, deltaRange, highlight, styl
 
 const styles = StyleSheet.create({
   card: { marginBottom: 0, flexGrow: 1 },
-  label: { fontSize: fontSize.xs, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
-  value: { fontSize: fontSize.xl, fontWeight: '800', marginTop: spacing.xs },
+  label: { fontSize: fontSize.xs, ...font('semibold'), textTransform: 'uppercase', letterSpacing: 0.3 },
+  value: { fontSize: fontSize.xl, ...font('bold'), marginTop: spacing.xs },
   subRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.xs },
   pill: {
     fontSize: fontSize.xs,
-    fontWeight: '700',
+    ...font('bold'),
     paddingHorizontal: 7,
     paddingVertical: 1,
     borderRadius: radius.full,

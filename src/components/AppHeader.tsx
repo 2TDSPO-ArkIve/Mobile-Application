@@ -6,7 +6,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { HeaderIconButton } from './HeaderIconButton';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
 import type { AppStackParamList } from '../interfaces/navigation';
 
 export interface HeaderAction {
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     fontSize: fontSize.xl,
-    fontWeight: '800',
+    ...font('bold'),
     textAlign: 'center',
   },
   iconBtn: {
@@ -114,6 +114,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconText: { fontSize: 24, fontWeight: '600' },
+  iconText: { fontSize: 24, ...font('semibold') },
   actionsRow: { flexDirection: 'row' },
 });

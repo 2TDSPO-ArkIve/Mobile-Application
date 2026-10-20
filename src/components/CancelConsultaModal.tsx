@@ -6,7 +6,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useCancelConsulta } from '../hooks/useConsultas';
 import { describeCancelError } from '../utils/errorMessages';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
 
 interface Props {
   visible: boolean;
@@ -108,6 +108,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: spacing.lg,
   },
-  title: { fontSize: fontSize.lg, fontWeight: '800', marginBottom: spacing.xs },
+  title: { fontSize: fontSize.lg, ...font('bold'), marginBottom: spacing.xs },
   reasonInput: { minHeight: 70, textAlignVertical: 'top', paddingTop: spacing.sm },
 });

@@ -5,7 +5,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import type { DiagnosticoDto } from '../services/diagnosticoService';
 import { severidadeLabel } from '../utils/severidade';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
 
 interface Props {
   diagnosis: DiagnosticoDto;
@@ -47,10 +47,10 @@ export function ConfirmedDiagnosisCard({ diagnosis, conclusao }: Props) {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: fontSize.md, fontWeight: '700', marginBottom: spacing.xs },
+  title: { fontSize: fontSize.md, ...font('bold'), marginBottom: spacing.xs },
   label: {
     fontSize: fontSize.xs,
-    fontWeight: '600',
+    ...font('semibold'),
     textTransform: 'uppercase',
     letterSpacing: 0.3,
     marginTop: spacing.sm,

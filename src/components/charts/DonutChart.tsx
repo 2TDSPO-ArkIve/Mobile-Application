@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle, G } from 'react-native-svg';
 import { useThemeColors } from '../../hooks/useThemeColors';
-import { spacing, fontSize } from '../../styles/theme';
+import { spacing, fontSize, font } from '../../styles/theme';
 
 export interface DonutSlice {
   label: string;
@@ -96,5 +96,5 @@ const styles = StyleSheet.create({
   legendRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   swatch: { width: 10, height: 10, borderRadius: 3 },
   legendLabel: { flex: 1, fontSize: fontSize.sm },
-  legendValue: { fontSize: fontSize.sm, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  legendValue: { fontSize: fontSize.sm, ...font('semibold'), fontVariant: ['tabular-nums'] },
 });

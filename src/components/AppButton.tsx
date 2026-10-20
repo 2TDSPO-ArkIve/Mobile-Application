@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { spacing, radius, fontSize } from '../styles/theme';
+import { spacing, radius, fontSize, font } from '../styles/theme';
 import type { ColorPalette } from '../styles/colors';
 
 /**
@@ -156,6 +156,6 @@ const styles = StyleSheet.create({
   },
   content: { flexDirection: 'row', alignItems: 'center' },
   icon: { marginRight: spacing.xs },
-  text: { fontSize: fontSize.md, fontWeight: '700' },
+  text: { fontSize: fontSize.md, ...font('bold') },
   textSmall: { fontSize: fontSize.sm },
 });
