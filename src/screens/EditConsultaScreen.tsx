@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
@@ -7,10 +7,12 @@ import { ScreenContainer } from '../components/ScreenContainer';
 import { AppInput } from '../components/AppInput';
 import { AppButton } from '../components/AppButton';
 import { AppCard } from '../components/AppCard';
+import { SegmentedControl } from '../components/SegmentedControl';
 import { DateField } from '../components/DateField';
 import { TimeField } from '../components/TimeField';
 import { MoneyField } from '../components/MoneyField';
 import { EmptyState } from '../components/EmptyState';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useConsulta, useUpdateConsulta } from '../hooks/useConsultas';
@@ -19,7 +21,7 @@ import { parseMoneyInput, moneyToInputValue } from '../utils/money';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { Modalidade, UpdateConsultaInput } from '../services/consultaService';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize, radius } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
 const MODALIDADE_VALUES: Modalidade[] = ['PRESENCIAL', 'REMOTA'];
@@ -52,6 +54,7 @@ export function EditConsultaScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const colors = useThemeColors();
   const { t } = useTranslation();
+  const wide = useBreakpoint() !== 'compact';
   const { consultaId } = route.params;
 
   const { data: consulta, isPending, isError, error, refetch } = useConsulta(consultaId);
@@ -158,7 +161,7 @@ export function EditConsultaScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('editConsulta.title')} />
-        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl }}>
+        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
           {t('consultaDetail.loading')}
         </Text>
       </View>
@@ -171,6 +174,7 @@ export function EditConsultaScreen() {
         <AppHeader title={t('editConsulta.title')} />
         <ScreenContainer>
           <EmptyState
+            tone="error"
             title={t('consultaDetail.loadErrorTitle')}
             message={error instanceof Error ? error.message : t('consultaDetail.notFound')}
           />
@@ -200,52 +204,32 @@ export function EditConsultaScreen() {
       <AppHeader title={t('editConsulta.title')} />
 
       <ScreenContainer>
-        <Text style={[commonStyles.eyebrow, styles.sectionLabelFirst, { color: colors.primary }]}>
+        <Text style={[commonStyles.eyebrow, styles.sectionLabelFirst, { color: colors.accent }]}>
           {t('newConsulta.patientSection')}
         </Text>
         <AppCard>
-          <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>
+          <Text style={{ color: colors.ink, ...font('bold') }} numberOfLines={1}>
             {consulta.animalNome}
           </Text>
-          <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, marginTop: spacing.xs }} selectable>
+          <Text style={{ color: colors.inkSecondary, fontSize: fontSize.xs, marginTop: spacing.xs }} selectable>
             {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
           </Text>
-          <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, marginTop: spacing.xs }}>
+          <Text style={{ color: colors.inkSecondary, fontSize: fontSize.xs, marginTop: spacing.xs }}>
             {t('editConsulta.patientImmutableHelper')}
           </Text>
         </AppCard>
 
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
+        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
           {t('newConsulta.modalidadeSection')}
         </Text>
-        <View style={styles.segmentedRow}>
-          {MODALIDADE_VALUES.map((value) => {
-            const selected = modalidade === value;
-            return (
-              <Pressable
-                key={value}
-                onPress={() => setModalidade(value)}
-                style={[
-                  styles.segment,
-                  {
-                    backgroundColor: selected ? colors.primary : colors.surface,
-                    borderColor: selected ? colors.primary : colors.border,
-                  },
-                ]}
-              >
-                <Text
-                  style={{
-                    color: selected ? '#FFFFFF' : colors.text,
-                    fontWeight: selected ? '700' : '600',
-                    fontSize: fontSize.md,
-                  }}
-                >
-                  {value === 'PRESENCIAL' ? t('newConsulta.modalidadePresencial') : t('newConsulta.modalidadeRemota')}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <SegmentedControl
+          options={MODALIDADE_VALUES.map((value) => ({
+            value,
+            label: value === 'PRESENCIAL' ? t('newConsulta.modalidadePresencial') : t('newConsulta.modalidadeRemota'),
+          }))}
+          value={modalidade}
+          onChange={setModalidade}
+        />
 
         {modalidade === 'PRESENCIAL' ? (
           <>
@@ -255,36 +239,42 @@ export function EditConsultaScreen() {
               value={endereco}
               onChangeText={setEndereco}
             />
-            <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, marginTop: -spacing.xs, marginBottom: spacing.sm }}>
+            <Text style={{ color: colors.inkSecondary, fontSize: fontSize.xs, marginTop: -spacing.xs, marginBottom: spacing.sm }}>
               {t('newConsulta.addressHelper')}
             </Text>
           </>
         ) : null}
 
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
+        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
           {t('newConsulta.dateTimeSection')}
         </Text>
-        <DateField
-          label={t('newConsulta.dateLabel')}
-          value={date}
-          onChange={(next) => {
-            setDate(next);
-            touch('date');
-          }}
-          minimumDate={startOfToday()}
-          error={shownError('date')}
-        />
-        <TimeField
-          label={t('newConsulta.timeLabel')}
-          value={time}
-          onChange={(next) => {
-            setTime(next);
-            touch('time');
-          }}
-          error={shownError('time')}
-        />
+        <View style={wide ? styles.dateTimeRow : null}>
+          <View style={styles.flex}>
+    <DateField
+              label={t('newConsulta.dateLabel')}
+              value={date}
+              onChange={(next) => {
+                setDate(next);
+                touch('date');
+              }}
+              minimumDate={startOfToday()}
+              error={shownError('date')}
+            />
+          </View>
+          <View style={styles.flex}>
+    <TimeField
+              label={t('newConsulta.timeLabel')}
+              value={time}
+              onChange={(next) => {
+                setTime(next);
+                touch('time');
+              }}
+              error={shownError('time')}
+            />
+          </View>
+        </View>
 
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
+        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
           {t('newConsulta.reasonSection')}
         </Text>
         <AppInput
@@ -297,9 +287,9 @@ export function EditConsultaScreen() {
           multiline
         />
 
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
+        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
           {t('newConsulta.valueSection')}
-          <Text style={[styles.optionalSuffix, { color: colors.textSecondary }]}> · {t('common.optional')}</Text>
+          <Text style={[styles.optionalSuffix, { color: colors.inkSecondary }]}> · {t('common.optional')}</Text>
         </Text>
         <MoneyField
           value={valorConsultaInput}
@@ -328,17 +318,10 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   sectionLabelFirst: { marginBottom: spacing.sm },
   sectionLabel: { marginTop: spacing.xl, marginBottom: spacing.sm },
-  segmentedRow: { flexDirection: 'row', gap: spacing.sm },
-  segment: {
-    flex: 1,
-    minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-  },
+  dateTimeRow: { flexDirection: 'row', gap: spacing.md },
+  flex: { flex: 1 },
   submitButton: { marginTop: spacing.xl },
   // Nested inside the uppercase eyebrow heading — undo its caps/weight so
   // "opcional" reads as a quiet hint, not part of the title.
-  optionalSuffix: { textTransform: 'none', fontWeight: '400', letterSpacing: 0 },
+  optionalSuffix: { textTransform: 'none', ...font('regular'), letterSpacing: 0 },
 });
