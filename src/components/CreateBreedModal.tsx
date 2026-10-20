@@ -8,7 +8,7 @@ import { useTranslation } from '../i18n/useTranslation';
 import { useCreateRaca } from '../hooks/useLookups';
 import { ApiError } from '../services/apiClient';
 import type { RacaDto, Porte } from '../services/racaService';
-import { spacing, fontSize, font } from '../styles/theme';
+import { spacing, fontSize, font, radius, layout } from '../styles/theme';
 
 interface Props {
   visible: boolean;
@@ -69,8 +69,8 @@ export function CreateBreedModal({ visible, especieId, especieNome, onClose, onC
       <View style={[styles.backdrop, { backgroundColor: colors.scrim }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
         <View style={[styles.sheet, { backgroundColor: colors.raised }]}>
-          <Text style={[styles.title, { color: colors.text }]}>{t('patientForm.createBreedModalTitle')}</Text>
-          <Text style={{ color: colors.textSecondary, marginBottom: spacing.md }}>
+          <Text style={[styles.title, { color: colors.ink }]}>{t('patientForm.createBreedModalTitle')}</Text>
+          <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md }}>
             {t('patientForm.createBreedSpeciesContext', { value: especieNome })}
           </Text>
 
@@ -110,8 +110,11 @@ export function CreateBreedModal({ visible, especieId, especieNome, onClose, onC
 const styles = StyleSheet.create({
   backdrop: { flex: 1, justifyContent: 'flex-end' },
   sheet: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    width: '100%',
+    maxWidth: layout.formMax,
+    alignSelf: 'center',
+    borderTopLeftRadius: radius.card,
+    borderTopRightRadius: radius.card,
     padding: spacing.lg,
   },
   title: { fontSize: fontSize.lg, ...font('bold'), marginBottom: spacing.xs },

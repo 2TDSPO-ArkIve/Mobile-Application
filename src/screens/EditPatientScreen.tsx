@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
@@ -8,7 +8,9 @@ import { AppCard } from '../components/AppCard';
 import { PatientForm } from '../components/PatientForm';
 import { TutorSearchModal } from '../components/TutorSearchModal';
 import { EmptyState } from '../components/EmptyState';
+import { AppButton } from '../components/AppButton';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { usePatient, useUpdatePatient } from '../hooks/usePatients';
 import { useAnimalTutores, useLinkTutor } from '../hooks/useTutores';
@@ -16,7 +18,7 @@ import { describePatientError } from '../utils/errorMessages';
 import type { AnimalRequestInput } from '../services/patientService';
 import type { ResponsavelLookupDto } from '../services/responsavelService';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, layout } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
 /**
@@ -37,6 +39,7 @@ export function EditPatientScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const colors = useThemeColors();
   const { t } = useTranslation();
+  const wide = useBreakpoint() === 'wide';
   const { patientId } = route.params;
 
   const { data: patient, isPending, isError, error: loadError } = usePatient(patientId);
@@ -77,7 +80,7 @@ export function EditPatientScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('patientForm.editTitle')} />
-        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl }}>
+        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
           {t('patientDetail.loading')}
         </Text>
       </View>
@@ -101,7 +104,7 @@ export function EditPatientScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('patientForm.editTitle')} />
-      <ScreenContainer>
+      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
         <PatientForm
           initialValues={{
             nome: patient.nome,
@@ -118,24 +121,29 @@ export function EditPatientScreen() {
         />
 
         <AppCard>
-          <Text style={[commonStyles.eyebrow, { color: colors.primary, marginBottom: spacing.sm }]}>
+          <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
             {t('tutor.section')}
           </Text>
-          <Text style={{ color: colors.text, marginBottom: spacing.sm }}>
+          <Text style={{ color: colors.ink, marginBottom: spacing.sm }}>
             {currentTutor ? t('patientDetail.tutorLabel', { name: currentTutor.responsavelNome }) : t('patientDetail.tutorNone')}
           </Text>
           {tutorError ? (
             <Text style={{ color: colors.error, fontSize: fontSize.sm, marginBottom: spacing.sm }}>{tutorError}</Text>
           ) : null}
-          <Pressable onPress={() => setTutorModalOpen(true)} accessibilityRole="button" disabled={linkTutorMutation.isPending}>
-            <Text style={{ color: colors.primary, fontWeight: '700' }}>
-              {linkTutorMutation.isPending
+          <AppButton
+            title={
+              linkTutorMutation.isPending
                 ? t('tutor.linking')
                 : currentTutor
                   ? t('tutor.changeButton')
-                  : t('tutor.searchButton')}
-            </Text>
-          </Pressable>
+                  : t('tutor.searchButton')
+            }
+            variant="secondary"
+            icon="search-outline"
+            onPress={() => setTutorModalOpen(true)}
+            loading={linkTutorMutation.isPending}
+            disabled={linkTutorMutation.isPending}
+          />
         </AppCard>
       </ScreenContainer>
 
