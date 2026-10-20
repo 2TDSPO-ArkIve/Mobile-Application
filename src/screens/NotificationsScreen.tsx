@@ -10,6 +10,7 @@ import { AppButton } from '../components/AppButton';
 import { EmptyState } from '../components/EmptyState';
 import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import {
   useNotifications,
@@ -21,7 +22,7 @@ import { DEFAULT_NOTIFICATIONS_PAGE_SIZE, type NotificationDto, type Notificatio
 import { resolveNotificationDestination } from '../utils/notificationNavigation';
 import { describeNotificationsError } from '../utils/errorMessages';
 import { formatDateTime } from '../utils/localeFormat';
-import { spacing, fontSize, radius } from '../styles/theme';
+import { spacing, fontSize, radius, font, iconSize, layout } from '../styles/theme';
 
 /**
  * Chunk 5 — purely visual categorization, never a text substitute: the
@@ -83,24 +84,24 @@ function NotificationItem({
         <View style={styles.titleRow}>
           <Ionicons
             name={NOTIFICATION_TYPE_ICON[notification.type]}
-            size={18}
-            color={colors.primary}
+            size={iconSize.sm}
+            color={colors.inkSecondary}
             style={styles.typeIcon}
           />
           <Text
-            style={[styles.title, { color: colors.text, fontWeight: isUnread ? '800' : '600' }]}
+            style={[styles.title, { color: colors.ink }, font(isUnread ? 'semibold' : 'regular')]}
             numberOfLines={2}
           >
             {notification.title}
           </Text>
         </View>
-        {isUnread ? <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} /> : null}
+        {isUnread ? <View style={[styles.unreadDot, { backgroundColor: colors.accent }]} /> : null}
       </View>
-      <Text style={[styles.message, { color: colors.textSecondary }]} numberOfLines={3}>
+      <Text style={[styles.message, { color: colors.inkSecondary }]} numberOfLines={3}>
         {notification.message}
       </Text>
       {hasValidDate ? (
-        <Text style={[styles.dateText, { color: colors.textSecondary }]}>{formatDateTime(date)}</Text>
+        <Text style={[styles.dateText, { color: colors.inkSecondary }]}>{formatDateTime(date)}</Text>
       ) : null}
     </AppCard>
   );
@@ -111,6 +112,7 @@ export function NotificationsScreen() {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const { isVeterinario } = useAuth();
+  const wide = useBreakpoint() === 'wide';
 
   // No infinite-scroll/pagination UI exists yet — this explicitly requests a
   // bounded first page rather than silently relying on Spring's own default
@@ -168,7 +170,7 @@ export function NotificationsScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('notifications.title')} />
-      <ScreenContainer>
+      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
         {hasUnread ? (
           <AppButton
             title={t('notifications.markAllRead')}
@@ -184,13 +186,13 @@ export function NotificationsScreen() {
         {actionError ? <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{actionError}</Text> : null}
 
         {isPending ? (
-          <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl }}>
+          <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
             {t('notifications.loading')}
           </Text>
         ) : isError ? (
           <>
             <EmptyState title={t('notifications.loadErrorTitle')} message={describeNotificationsError(error)} />
-            <AppButton title={t('common.tryAgain')} variant="outline" onPress={() => refetch()} />
+            <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
           </>
         ) : !data || data.length === 0 ? (
           <EmptyState title={t('notifications.emptyTitle')} message={t('notifications.emptyMessage')} />
@@ -209,9 +211,9 @@ const styles = StyleSheet.create({
   markAllButton: { alignSelf: 'flex-end', marginBottom: spacing.xs },
   headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.sm },
   titleRow: { flexDirection: 'row', alignItems: 'flex-start', flexShrink: 1, gap: spacing.xs },
-  typeIcon: { marginTop: 2 },
-  title: { fontSize: fontSize.md, flexShrink: 1 },
-  unreadDot: { width: 8, height: 8, borderRadius: radius.full, marginTop: 6 },
+  typeIcon: { marginTop: 3 },
+  title: { fontSize: fontSize.md, lineHeight: 22, flexShrink: 1 },
+  unreadDot: { width: 8, height: 8, borderRadius: radius.full, marginTop: 7 },
   message: { fontSize: fontSize.sm, marginTop: spacing.xs },
   dateText: { fontSize: fontSize.xs, marginTop: spacing.xs },
 });
