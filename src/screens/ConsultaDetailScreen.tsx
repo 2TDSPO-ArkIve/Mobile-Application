@@ -168,7 +168,7 @@ export function ConsultaDetailScreen() {
             title={t('consultaDetail.loadErrorTitle')}
             message={error instanceof Error ? error.message : t('consultaDetail.notFound')}
           />
-          <AppButton title={t('common.tryAgain')} variant="outline" onPress={() => refetch()} />
+          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
         </ScreenContainer>
       </View>
     );
@@ -403,13 +403,13 @@ export function ConsultaDetailScreen() {
         {canEdit ? (
           <AppButton
             title={t('consultaDetail.editConsulta')}
-            variant="outline"
+            variant="secondary"
             onPress={() => navigation.navigate('EditarConsulta', { consultaId: consulta.id })}
           />
         ) : null}
 
         {canCancel ? (
-          <AppButton title={t('cancelConsulta.action')} variant="outline" onPress={() => setCancelModalOpen(true)} />
+          <AppButton title={t('cancelConsulta.action')} variant="secondary" onPress={() => setCancelModalOpen(true)} />
         ) : null}
 
         {canDelete ? (

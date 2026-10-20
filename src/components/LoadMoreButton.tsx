@@ -28,7 +28,7 @@ export function LoadMoreButton({ query }: LoadMoreButtonProps) {
       ) : null}
       <AppButton
         title={query.isFetchingNextPage ? t('common.loadingMore') : t('common.loadMore')}
-        variant="outline"
+        variant="secondary"
         onPress={() => query.fetchNextPage()}
         loading={query.isFetchingNextPage}
         disabled={query.isFetchingNextPage}

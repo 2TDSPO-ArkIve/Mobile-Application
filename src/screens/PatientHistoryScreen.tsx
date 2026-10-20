@@ -201,7 +201,7 @@ export function PatientHistoryScreen() {
         <AppHeader title={t('patientHistory.title')} />
         <ScreenContainer>
           <EmptyState title={t('patientHistory.loadErrorTitle')} message={describePatientHistoryError(error)} />
-          <AppButton title={t('common.tryAgain')} variant="outline" onPress={() => refetch()} />
+          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
         </ScreenContainer>
       </View>
     );

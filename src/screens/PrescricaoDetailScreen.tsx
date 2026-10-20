@@ -75,7 +75,7 @@ export function PrescricaoDetailScreen() {
             title={t('prescricaoDetail.loadErrorTitle')}
             message={error instanceof Error ? error.message : t('prescricaoDetail.notFound')}
           />
-          <AppButton title={t('common.tryAgain')} variant="outline" onPress={() => refetch()} />
+          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
         </ScreenContainer>
       </View>
     );

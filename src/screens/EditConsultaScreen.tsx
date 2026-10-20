@@ -178,7 +178,7 @@ export function EditConsultaScreen() {
             title={t('consultaDetail.loadErrorTitle')}
             message={error instanceof Error ? error.message : t('consultaDetail.notFound')}
           />
-          <AppButton title={t('common.tryAgain')} variant="outline" onPress={() => refetch()} />
+          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
         </ScreenContainer>
       </View>
     );
@@ -193,7 +193,7 @@ export function EditConsultaScreen() {
             title={t('editConsulta.notEditableTitle')}
             message={t('editConsulta.notEditableMessage')}
           />
-          <AppButton title={t('common.back')} variant="outline" onPress={() => navigation.goBack()} />
+          <AppButton title={t('common.back')} variant="secondary" onPress={() => navigation.goBack()} />
         </ScreenContainer>
       </View>
     );

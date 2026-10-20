@@ -180,7 +180,7 @@ export function ClinicalIntake({
                 ) : voice.canRetry ? (
                   <AppButton
                     title={t('clinicalIntake.retryTranscription')}
-                    variant="outline"
+                    variant="secondary"
                     onPress={() => voice.retry(locale)}
                   />
                 ) : null}

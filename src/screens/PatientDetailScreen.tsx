@@ -85,7 +85,7 @@ export function PatientDetailScreen() {
             title={t('patientDetail.loadErrorTitle')}
             message={error instanceof Error ? error.message : t('patientDetail.notFound')}
           />
-          <AppButton title={t('common.tryAgain')} variant="outline" onPress={() => refetch()} />
+          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
         </ScreenContainer>
       </View>
     );

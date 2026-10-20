@@ -146,7 +146,7 @@ export function HomeScreen() {
       <AppButton title={t('home.newConsulta')} icon="add" onPress={() => navigation.navigate('CriarConsulta')} />
       <AppButton
         title={t('home.registerPatient')}
-        variant="outline"
+        variant="secondary"
         icon="paw-outline"
         onPress={() => navigation.navigate('NovoPaciente')}
       />

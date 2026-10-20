@@ -17,7 +17,7 @@ import { isPasswordValid } from '../utils/passwordPolicy';
 import { mapVeterinarioRegistrationError, mapResponsavelRegistrationError } from '../utils/errorMessages';
 import { useThemeColors } from '../hooks/useThemeColors';
 import type { AuthStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize, radius } from '../styles/theme';
+import { spacing, fontSize, radius, font } from '../styles/theme';
 
 type Role = 'VETERINARIO' | 'RESPONSAVEL';
 type TipoDocumento = 'CPF' | 'RG';
@@ -628,7 +628,7 @@ export function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: fontSize.lg, fontWeight: '700', marginBottom: spacing.sm, textAlign: 'center' },
+  title: { fontSize: fontSize.lg, ...font('bold'), marginBottom: spacing.sm, textAlign: 'center' },
   message: { fontSize: fontSize.md, textAlign: 'center', marginBottom: spacing.lg, lineHeight: 22 },
   error: { fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.sm },
   backLink: { marginTop: spacing.sm },
@@ -642,7 +642,7 @@ const styles = StyleSheet.create({
   },
   generateLink: {
     fontSize: fontSize.sm,
-    fontWeight: '600',
+    ...font('semibold'),
     marginTop: -spacing.xs,
     marginBottom: spacing.md,
   },

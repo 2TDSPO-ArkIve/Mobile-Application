@@ -14,10 +14,9 @@ import { focusRing, isActive, type InteractionState } from '../styles/interactio
 
 /**
  * Plano B §3.4: primary is solid `ink`, secondary is `sunken` with `ink`
- * text, tertiary (`ghost`) is `accent` text only. `outline` is kept as an
- * alias for `secondary` rather than renamed across every screen that uses it.
+ * text, tertiary (`ghost`) is `accent` text only.
  */
-type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
 interface Props {
   title: string;
@@ -46,11 +45,9 @@ export function AppButton({
 }: Props) {
   const colors = useThemeColors();
 
-  const secondary = { bg: colors.sunken, activeBg: colors.line, text: colors.ink };
   const appearance: Record<Variant, { bg: string; activeBg: string; text: string }> = {
     primary: { bg: colors.ink, activeBg: colors.ink, text: colors.onInk },
-    secondary,
-    outline: secondary,
+    secondary: { bg: colors.sunken, activeBg: colors.line, text: colors.ink },
     ghost: { bg: 'transparent', activeBg: colors.accentTint, text: colors.accent },
     danger: { bg: colors.errorTint, activeBg: colors.errorTint, text: colors.error },
   };

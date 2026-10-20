@@ -120,7 +120,7 @@ export function ArkiveAnalysisScreen() {
               <AppButton title={t('aiAnalysis.recheckButton')} onPress={recheck} style={styles.actionButton} />
               <AppButton
                 title={t('common.tryAgain')}
-                variant="outline"
+                variant="secondary"
                 onPress={generate}
                 style={styles.actionButton}
               />
@@ -139,7 +139,7 @@ export function ArkiveAnalysisScreen() {
               <AppButton title={t('common.tryAgain')} onPress={generate} style={styles.actionButton} />
               <AppButton
                 title={t('aiAnalysis.backToNarrative')}
-                variant="outline"
+                variant="secondary"
                 onPress={() => navigation.goBack()}
                 style={styles.actionButton}
               />
