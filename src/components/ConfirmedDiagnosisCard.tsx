@@ -5,7 +5,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import type { DiagnosticoDto } from '../services/diagnosticoService';
 import { severidadeLabel } from '../utils/severidade';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
 
 interface Props {
   diagnosis: DiagnosticoDto;
@@ -25,21 +25,21 @@ export function ConfirmedDiagnosisCard({ diagnosis, conclusao }: Props) {
   const { t } = useTranslation();
 
   return (
-    <AppCard>
-      <Text style={[styles.title, { color: colors.primary }]}>{t('confirmedDiagnosis.title')}</Text>
+    <AppCard topBar={colors.accent}>
+      <Text style={[styles.title, { color: colors.ink }]}>{t('confirmedDiagnosis.title')}</Text>
 
-      <Text style={[styles.label, { color: colors.textSecondary }]}>{t('confirmedDiagnosis.diagnosis')}</Text>
-      <Text style={[styles.value, { color: colors.text }]}>{diagnosis.diagnostico}</Text>
+      <Text style={[styles.label, { color: colors.inkSecondary }]}>{t('confirmedDiagnosis.diagnosis')}</Text>
+      <Text style={[styles.value, { color: colors.ink }]}>{diagnosis.diagnostico}</Text>
 
-      <Text style={[styles.label, { color: colors.textSecondary }]}>{t('confirmedDiagnosis.severity')}</Text>
-      <Text style={[styles.value, { color: colors.text }]}>
+      <Text style={[styles.label, { color: colors.inkSecondary }]}>{t('confirmedDiagnosis.severity')}</Text>
+      <Text style={[styles.value, { color: colors.ink }]}>
         {severidadeLabel(diagnosis.severidade)}
       </Text>
 
       {conclusao ? (
         <>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>{t('confirmedDiagnosis.conclusion')}</Text>
-          <Text style={[styles.value, { color: colors.text }]}>{conclusao}</Text>
+          <Text style={[styles.label, { color: colors.inkSecondary }]}>{t('confirmedDiagnosis.conclusion')}</Text>
+          <Text style={[styles.value, { color: colors.ink }]}>{conclusao}</Text>
         </>
       ) : null}
     </AppCard>
@@ -47,10 +47,10 @@ export function ConfirmedDiagnosisCard({ diagnosis, conclusao }: Props) {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: fontSize.md, fontWeight: '700', marginBottom: spacing.xs },
+  title: { fontSize: fontSize.lg, ...font('semibold'), marginTop: spacing.xs, marginBottom: spacing.xs },
   label: {
     fontSize: fontSize.xs,
-    fontWeight: '600',
+    ...font('semibold'),
     textTransform: 'uppercase',
     letterSpacing: 0.3,
     marginTop: spacing.sm,

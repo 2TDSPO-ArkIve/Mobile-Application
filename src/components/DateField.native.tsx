@@ -4,7 +4,7 @@ import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/d
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../i18n/useTranslation';
-import { spacing, radius, fontSize } from '../styles/theme';
+import { spacing, radius, fontSize, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 import { CalendarGlyph } from './CalendarGlyph';
 import { formatDate } from '../utils/localeFormat';
@@ -42,7 +42,7 @@ interface Props {
  */
 export function DateField({ label, value, onChange, error, minimumDate, maximumDate, onClear }: Props) {
   const colors = useThemeColors();
-  const { mode } = useTheme();
+  const { scheme } = useTheme();
   const { t, language } = useTranslation();
   const [iosOpen, setIosOpen] = useState(false);
   const [draft, setDraft] = useState<Date>(value ?? minimumDate ?? new Date());
@@ -69,37 +69,37 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
 
   return (
     <View style={styles.wrap}>
-      <Text style={[commonStyles.label, { color: colors.text }]}>{label}</Text>
+      <Text style={[commonStyles.label, { color: colors.ink }]}>{label}</Text>
       <Pressable
         onPress={openPicker}
         style={[
           styles.field,
-          { backgroundColor: colors.surface, borderColor: error ? colors.error : colors.inputBorder },
+          { backgroundColor: colors.sunken, borderColor: error ? colors.error : 'transparent' },
         ]}
       >
-        <Text style={{ color: value ? colors.text : colors.textSecondary, fontSize: fontSize.md }}>
+        <Text style={{ color: value ? colors.ink : colors.inkSecondary, fontSize: fontSize.md }}>
           {value ? formatDate(value) : t('date.datePlaceholder')}
         </Text>
-        <CalendarGlyph color={colors.primary} />
+        <CalendarGlyph color={colors.ink} />
       </Pressable>
       {value && onClear ? (
         <Pressable onPress={onClear} style={styles.clearBtn} accessibilityRole="button">
-          <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>{t('common.clearDate')}</Text>
+          <Text style={{ color: colors.inkSecondary, fontSize: fontSize.sm }}>{t('common.clearDate')}</Text>
         </Pressable>
       ) : null}
       {error ? <Text style={[commonStyles.errorText, { color: colors.error }]}>{error}</Text> : null}
 
       {Platform.OS === 'ios' ? (
         <Modal visible={iosOpen} transparent animationType="slide" onRequestClose={() => setIosOpen(false)}>
-          <View style={styles.modalRoot}>
+          <View style={[styles.modalRoot, { backgroundColor: colors.scrim }]}>
             <Pressable style={StyleSheet.absoluteFill} onPress={() => setIosOpen(false)} />
-            <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
-              <View style={[styles.sheetHeader, { borderBottomColor: colors.border }]}>
+            <View style={[styles.sheet, { backgroundColor: colors.raised }]}>
+              <View style={[styles.sheetHeader, { borderBottomColor: colors.line }]}>
                 <Pressable onPress={() => setIosOpen(false)}>
-                  <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>{t('date.pickerCancel')}</Text>
+                  <Text style={{ color: colors.inkSecondary, fontSize: fontSize.sm }}>{t('date.pickerCancel')}</Text>
                 </Pressable>
                 <Pressable onPress={confirm}>
-                  <Text style={{ color: colors.primary, fontWeight: '700', fontSize: fontSize.sm }}>
+                  <Text style={{ color: colors.ink, ...font('bold'), fontSize: fontSize.sm }}>
                     {t('date.pickerDone')}
                   </Text>
                 </Pressable>
@@ -111,8 +111,8 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
                 locale={language}
                 minimumDate={minimumDate}
                 maximumDate={maximumDate}
-                themeVariant={mode === 'dark' ? 'dark' : 'light'}
-                textColor={colors.text}
+                themeVariant={scheme === 'dark' ? 'dark' : 'light'}
+                textColor={colors.ink}
                 style={styles.picker}
                 onValueChange={(_event, selected) => setDraft(selected)}
               />
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     minHeight: 44,
-    borderRadius: radius.sm,
+    borderRadius: radius.field,
     borderWidth: 1.5,
     paddingHorizontal: spacing.md,
   },
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   // flex:1 — a flex:1 sibling in Modal's column layout consumes all
   // available height before `sheet` gets any, so the picker rendered at
   // zero height and never showed a single wheel/number.
-  modalRoot: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' },
+  modalRoot: { flex: 1, justifyContent: 'flex-end' },
   sheet: { borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
   // `themeVariant`/`textColor` alone don't help if the picker has no room —
   // explicit height matches iOS's own intrinsic spinner height instead of

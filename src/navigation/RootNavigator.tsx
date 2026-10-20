@@ -43,7 +43,7 @@ export function RootNavigator() {
     // behavior rather than a visible glitch.
     return (
       <View style={[styles.loading, { backgroundColor: lightColors.background }]}>
-        <ActivityIndicator size="large" color={lightColors.primary} />
+        <ActivityIndicator size="large" color={lightColors.ink} />
       </View>
     );
   }

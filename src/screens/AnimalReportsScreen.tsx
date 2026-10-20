@@ -18,7 +18,7 @@ import { formatDateTime } from '../utils/localeFormat';
 import { toDisplayDate } from '../utils/isoDate';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AnimalReportDto } from '../services/animalReportService';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -53,11 +53,11 @@ function ReportCard({ report }: { report: AnimalReportDto }) {
 
   return (
     <AppCard style={styles.reportCard}>
-      <Text style={[styles.reportedBy, { color: colors.text }]}>
+      <Text style={[styles.reportedBy, { color: colors.ink }]}>
         {t('animalReports.reportedByLabel', { name: report.responsavelNome })}
       </Text>
       {hasValidCreatedAt ? (
-        <Text style={[styles.meta, { color: colors.textSecondary }]}>
+        <Text style={[styles.meta, { color: colors.inkSecondary }]}>
           {t('animalReports.submittedAtLabel', { date: formatDateTime(createdAt) })}
         </Text>
       ) : null}
@@ -65,16 +65,16 @@ function ReportCard({ report }: { report: AnimalReportDto }) {
           Responsible typed/saved this report is never the same thing as when
           the reported event actually happened. */}
       {report.dataOcorrencia ? (
-        <Text style={[styles.meta, { color: colors.textSecondary }]}>
+        <Text style={[styles.meta, { color: colors.inkSecondary }]}>
           {t('animalReports.occurredAtLabel', { date: toDisplayDate(report.dataOcorrencia) })}
         </Text>
       ) : null}
-      <Text style={[styles.text, { color: colors.text }]} numberOfLines={expanded ? undefined : 4}>
+      <Text style={[styles.text, { color: colors.ink }]} numberOfLines={expanded ? undefined : 4}>
         {report.texto}
       </Text>
       {isLong ? (
         <Pressable onPress={() => setExpanded((value) => !value)} accessibilityRole="button" style={styles.expandLink}>
-          <Text style={{ color: colors.primary, fontWeight: '600', fontSize: fontSize.sm }}>
+          <Text style={{ color: colors.accent, ...font('semibold'), fontSize: fontSize.sm }}>
             {expanded ? t('animalReports.collapseButton') : t('animalReports.expandButton')}
           </Text>
         </Pressable>
@@ -144,7 +144,7 @@ export function AnimalReportsScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('animalReports.title')} />
-        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl }}>
+        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
           {t('animalReports.loadingPatient')}
         </Text>
       </View>
@@ -160,7 +160,7 @@ export function AnimalReportsScreen() {
             title={t('animalReports.loadErrorTitle')}
             message={patientError instanceof Error ? patientError.message : t('patientDetail.notFound')}
           />
-          <AppButton title={t('common.tryAgain')} variant="outline" onPress={() => refetchPatient()} />
+          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetchPatient()} />
         </ScreenContainer>
       </View>
     );
@@ -170,10 +170,10 @@ export function AnimalReportsScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={patient.nome} />
       <ScreenContainer>
-        <Text style={[styles.arkiveIdSubtitle, { color: colors.textSecondary }]} selectable>
+        <Text style={[styles.arkiveIdSubtitle, { color: colors.inkSecondary }]} selectable>
           {patientArkiveIdLine(patient)}
         </Text>
-        <Text style={[commonStyles.eyebrow, { color: colors.primary, marginBottom: spacing.sm }]}>
+        <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
           {t('animalReports.title')}
         </Text>
 
@@ -203,10 +203,10 @@ export function AnimalReportsScreen() {
               title={t('animalReports.loadErrorTitle')}
               message={describeAnimalReportListError(reportsError)}
             />
-            <AppButton title={t('common.tryAgain')} variant="outline" onPress={() => refetchReports()} />
+            <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetchReports()} />
           </>
         ) : reportsPending ? (
-          <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.lg }}>
+          <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.lg }}>
             {t('animalReports.loading')}
           </Text>
         ) : reports.length === 0 ? (
@@ -216,7 +216,7 @@ export function AnimalReportsScreen() {
           />
         ) : (
           <>
-            <Text style={[styles.resultsCount, { color: colors.textSecondary }]}>
+            <Text style={[styles.resultsCount, { color: colors.inkSecondary }]}>
               {t('animalReports.resultsCount', { count: totalElements })}
             </Text>
             {reports.map((report) => (
@@ -229,7 +229,7 @@ export function AnimalReportsScreen() {
             {hasNextPage ? (
               <AppButton
                 title={isFetchingNextPage ? t('animalReports.loadingMore') : t('animalReports.loadMoreButton')}
-                variant="outline"
+                variant="secondary"
                 onPress={handleLoadMore}
                 loading={isFetchingNextPage}
                 disabled={isFetchingNextPage}
@@ -244,12 +244,12 @@ export function AnimalReportsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  arkiveIdSubtitle: { fontSize: fontSize.xs, fontFamily: 'monospace', textAlign: 'center', marginBottom: spacing.sm },
+  arkiveIdSubtitle: { fontSize: fontSize.xs, ...commonStyles.arkiveId, textAlign: 'center', marginBottom: spacing.sm },
   addButton: { marginBottom: spacing.md },
   resultsCount: { fontSize: fontSize.xs, marginBottom: spacing.sm },
   reportCard: { marginBottom: spacing.sm },
-  reportedBy: { fontSize: fontSize.sm, fontWeight: '700' },
-  meta: { fontSize: fontSize.xs, marginTop: 2 },
+  reportedBy: { fontSize: fontSize.sm, ...font('bold') },
+  meta: { fontSize: fontSize.xs, marginTop: 2, fontVariant: ['tabular-nums'] },
   text: { fontSize: fontSize.sm, marginTop: spacing.sm, lineHeight: 20 },
   expandLink: { marginTop: spacing.xs, paddingVertical: spacing.xs },
 });

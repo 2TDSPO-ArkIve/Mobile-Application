@@ -53,8 +53,8 @@ export function StackedBarChart({ bars, series, formatValue, totalLabel, accessi
                 width={width}
                 plotHeight={plotHeight}
                 maxValue={maxValue}
-                color={colors.border}
-                labelColor={colors.textSecondary}
+                color={colors.line}
+                labelColor={colors.inkSecondary}
               />
               {active != null ? (
                 <Rect
@@ -62,7 +62,7 @@ export function StackedBarChart({ bars, series, formatValue, totalLabel, accessi
                   y={0}
                   width={slot}
                   height={plotHeight}
-                  fill={colors.primaryTint}
+                  fill={colors.sunken}
                   opacity={0.6}
                 />
               ) : null}
@@ -93,7 +93,7 @@ export function StackedBarChart({ bars, series, formatValue, totalLabel, accessi
                         x={x + barWidth / 2}
                         y={HEIGHT - 4}
                         fontSize={10}
-                        fill={colors.textSecondary}
+                        fill={colors.inkSecondary}
                         textAnchor="middle"
                       >
                         {bar.label}
@@ -113,7 +113,7 @@ export function StackedBarChart({ bars, series, formatValue, totalLabel, accessi
                     value: formatValue(activeBar.values[segment] ?? 0),
                     color: item.color,
                   })),
-                  { label: totalLabel, value: formatValue(totals[active]), color: colors.text },
+                  { label: totalLabel, value: formatValue(totals[active]), color: colors.ink },
                 ]}
                 centerX={AXIS_WIDTH + slot * active + slot / 2}
                 containerWidth={width}

@@ -1,6 +1,7 @@
 import React from 'react';
+import type { NavigationHelpers, NavigationState } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import type { AppStackParamList } from '../interfaces/navigation';
+import type { AppStackParamList, BottomTabParamList } from '../interfaces/navigation';
 import { BottomTabs } from './BottomTabs';
 import { ConsultaDetailScreen } from '../screens/ConsultaDetailScreen';
 import { ArkiveAnalysisScreen } from '../screens/ArkiveAnalysisScreen';
@@ -30,15 +31,103 @@ import { ScanShareQrScreen } from '../screens/ScanShareQrScreen';
 import { EnterShareCodeScreen } from '../screens/EnterShareCodeScreen';
 import { AnimalReportsScreen } from '../screens/AnimalReportsScreen';
 import { AiUsageScreen } from '../screens/AiUsageScreen';
+import { SidebarLayout } from '../components/Sidebar';
+import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useTranslation } from '../i18n/useTranslation';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
+
+type Section = keyof BottomTabParamList | 'Custos' | 'UsoDaIa' | 'Perfil';
+
+/** Sidebar item that stays active on each stacked screen. */
+const SECTION: Partial<Record<keyof AppStackParamList, Section>> = {
+  ConsultaDetalhe: 'Consultas',
+  EditarConsulta: 'Consultas',
+  AnaliseArkive: 'Consultas',
+  InsightArkive: 'Consultas',
+  ConclusaoVeterinaria: 'Consultas',
+  CriarConsulta: 'Consultas',
+  Prescricoes: 'Consultas',
+  NovaPrescricao: 'Consultas',
+  PrescricaoDetalhe: 'Consultas',
+  EditarPrescricao: 'Consultas',
+  NovoPaciente: 'Pacientes',
+  PacienteDetalhe: 'Pacientes',
+  EditarPaciente: 'Pacientes',
+  HistoricoPaciente: 'Pacientes',
+  CustosPaciente: 'Pacientes',
+  RelatosAnimal: 'Pacientes',
+  CompartilharPaciente: 'Pacientes',
+  ConvitePaciente: 'Pacientes',
+  EscanearConvite: 'Pacientes',
+  InserirCodigoConvite: 'Pacientes',
+  BuscarPacienteArkive: 'Pacientes',
+  ValoresVeterinario: 'Custos',
+  UsoDaIa: 'UsoDaIa',
+  Perfil: 'Perfil',
+  Configuracoes: 'Perfil',
+  AlterarSenha: 'Perfil',
+  SolicitacoesAcessoEnviadas: 'Perfil',
+};
+
+function activeSection(state: NavigationState): Section | null {
+  const route = state.routes[state.index];
+  if (route.name !== 'MainTabs') return SECTION[route.name as keyof AppStackParamList] ?? null;
+  // Before the tab navigator reports its state, fall back to the requested or first tab.
+  const tabs = route.state;
+  if (tabs?.index != null) return tabs.routes[tabs.index].name as Section;
+  return (route.params as { screen?: Section } | undefined)?.screen ?? 'Home';
+}
+
+function VetSidebarLayout({
+  state,
+  navigation,
+  children,
+}: {
+  state: NavigationState;
+  navigation: NavigationHelpers<AppStackParamList>;
+  children: React.ReactNode;
+}) {
+  const { t } = useTranslation();
+  const { identity } = useAuth();
+  const tab = (screen: keyof BottomTabParamList) => () => navigation.navigate('MainTabs', { screen });
+
+  return (
+    <SidebarLayout
+      activeKey={activeSection(state)}
+      groups={[
+        [
+          { key: 'Home', label: t('nav.home'), icon: { active: 'home', inactive: 'home-outline' }, onPress: tab('Home') },
+          { key: 'Consultas', label: t('nav.consultas'), icon: { active: 'calendar', inactive: 'calendar-outline' }, onPress: tab('Consultas') },
+          { key: 'Pacientes', label: t('nav.pacientes'), icon: { active: 'paw', inactive: 'paw-outline' }, onPress: tab('Pacientes') },
+        ],
+        [
+          { key: 'Custos', label: t('vetCosts.title'), icon: { active: 'bar-chart', inactive: 'bar-chart-outline' }, onPress: () => navigation.navigate('ValoresVeterinario') },
+          { key: 'UsoDaIa', label: t('aiUsage.title'), icon: { active: 'sparkles', inactive: 'sparkles-outline' }, onPress: () => navigation.navigate('UsoDaIa') },
+        ],
+      ]}
+      footer={{
+        title: identity?.nome ?? '',
+        subtitle: t('sidebar.profileAndSettings'),
+        onPress: () => navigation.navigate('Perfil'),
+      }}
+    >
+      {children}
+    </SidebarLayout>
+  );
+}
 
 export function AppStack() {
   const colors = useThemeColors();
 
   return (
     <Stack.Navigator
+      layout={({ state, navigation, children }) => (
+        <VetSidebarLayout state={state} navigation={navigation}>
+          {children}
+        </VetSidebarLayout>
+      )}
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: colors.background },

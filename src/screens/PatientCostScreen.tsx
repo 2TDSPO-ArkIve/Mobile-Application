@@ -16,8 +16,9 @@ import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
 import { describePatientCostsError } from '../utils/errorMessages';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { CostDashboard } from '../components/CostDashboard';
+import { sumConsulta, sumMedicamentos } from '../utils/costDashboard';
 import type { PatientCostConsultation } from '../services/patientCostService';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font, radius } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
 /**
@@ -49,35 +50,81 @@ function ConsultationCostRow({ consulta }: { consulta: PatientCostConsultation }
   return (
     <AppCard>
       <View style={styles.headerRow}>
-        <Text style={[styles.dateText, { color: colors.text }]}>
+        <Text style={[styles.dateText, { color: colors.ink }]}>
           {hasValidDate ? `${formatDate(date)} ${formatTime(date)}` : ''}
         </Text>
         <StatusBadge label={consulta.statusDescricao} tone={tone} />
       </View>
 
       <View style={styles.rowBetween}>
-        <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>
+        <Text style={{ color: colors.inkSecondary, fontSize: fontSize.sm }}>
           {t('patientCosts.consultationValue')}
         </Text>
-        <Text style={{ color: colors.text, fontSize: fontSize.sm }}>
+        <Text style={[styles.amount, { color: colors.ink }]}>
           {consulta.valorConsulta != null ? formatCurrency(consulta.valorConsulta) : '—'}
         </Text>
       </View>
       <View style={styles.rowBetween}>
-        <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>
+        <Text style={{ color: colors.inkSecondary, fontSize: fontSize.sm }}>
           {t('patientCosts.medicationsValue')}
         </Text>
-        <Text style={{ color: colors.text, fontSize: fontSize.sm }}>
+        <Text style={[styles.amount, { color: colors.ink }]}>
           {consulta.valorMedicamentos != null ? formatCurrency(consulta.valorMedicamentos) : '—'}
         </Text>
       </View>
-      <View style={[styles.rowBetween, styles.totalRow, { borderTopColor: colors.border }]}>
-        <Text style={{ color: colors.text, fontSize: fontSize.sm, fontWeight: '700' }}>
+      <View style={[styles.rowBetween, styles.totalRow, { borderTopColor: colors.line }]}>
+        <Text style={[styles.strong, { color: colors.ink, fontSize: fontSize.sm }]}>
           {t('patientCosts.totalValue')}
         </Text>
-        <Text style={{ color: colors.text, fontSize: fontSize.sm, fontWeight: '700' }}>
+        <Text style={[styles.amount, styles.strong, { color: colors.ink }]}>
           {formatCurrency(consulta.valorTotal)}
         </Text>
+      </View>
+    </AppCard>
+  );
+}
+
+/** The guardian's composition view: one bar split by consulta (`chart1`) and medications (`chart3`). */
+function CompositionBar({ rows }: { rows: PatientCostConsultation[] }) {
+  const colors = useThemeColors();
+  const { t } = useTranslation();
+  const consulta = sumConsulta(rows);
+  const medicamentos = sumMedicamentos(rows);
+  const base = consulta + medicamentos;
+  if (base <= 0) return null;
+  // Medications take the remainder so the two percentages always add up to 100.
+  const consultaShare = Math.round((consulta / base) * 100);
+  const items = [
+    { label: t('costDashboard.seriesConsultation'), value: consulta, share: consultaShare, color: colors.chart1 },
+    { label: t('costDashboard.seriesMedications'), value: medicamentos, share: 100 - consultaShare, color: colors.chart3 },
+  ];
+
+  return (
+    <AppCard style={styles.composition}>
+      <View
+        accessible
+        accessibilityLabel={t('costDashboard.compositionA11y', {
+          consulta: formatCurrency(consulta),
+          medicamentos: formatCurrency(medicamentos),
+        })}
+      >
+        <Text style={[styles.compositionTitle, { color: colors.ink }]}>{t('costDashboard.compositionTitle')}</Text>
+        <View style={[styles.bar, { backgroundColor: colors.sunken }]}>
+          {items.map((item) =>
+            item.value > 0 ? <View key={item.label} style={{ flex: item.value, backgroundColor: item.color }} /> : null
+          )}
+        </View>
+        {items.map((item) => (
+          <View key={item.label} style={styles.rowBetween}>
+            <View style={styles.legendLabel}>
+              <View style={[styles.swatch, { backgroundColor: item.color }]} />
+              <Text style={{ color: colors.inkSecondary, fontSize: fontSize.sm }}>{item.label}</Text>
+            </View>
+            <Text style={[styles.amount, { color: colors.ink }]}>
+              {formatCurrency(item.value)} · {item.share}%
+            </Text>
+          </View>
+        ))}
       </View>
     </AppCard>
   );
@@ -96,7 +143,7 @@ export function PatientCostScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('patientCosts.title')} />
-        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl }}>
+        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
           {t('patientCosts.loading')}
         </Text>
       </View>
@@ -109,7 +156,7 @@ export function PatientCostScreen() {
         <AppHeader title={t('patientCosts.title')} />
         <ScreenContainer>
           <EmptyState title={t('patientCosts.loadErrorTitle')} message={describePatientCostsError(error)} />
-          <AppButton title={t('common.tryAgain')} variant="outline" onPress={() => refetch()} />
+          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
         </ScreenContainer>
       </View>
     );
@@ -119,21 +166,22 @@ export function PatientCostScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={data.animalNome} />
       <ScreenContainer>
-        <Text style={[styles.arkiveIdSubtitle, { color: colors.textSecondary }]} selectable>
+        <Text style={[styles.arkiveIdSubtitle, { color: colors.inkSecondary }]} selectable>
           {patientArkiveIdLine(data)}
         </Text>
-        <Text style={[commonStyles.eyebrow, { color: colors.primary, marginBottom: spacing.sm }]}>
+        <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
           {t('patientCosts.title')}
         </Text>
 
         {data.consultas.length === 0 ? (
-          <Text style={{ color: colors.textSecondary, textAlign: 'center', marginVertical: spacing.sm }}>
+          <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginVertical: spacing.sm }}>
             {t('patientCosts.noRecordedCosts')}
           </Text>
         ) : (
           <CostDashboard
             rows={data.consultas}
             showCharts={!isResponsavel}
+            renderExtra={isResponsavel ? (periodRows) => <CompositionBar rows={periodRows} /> : undefined}
             renderRow={(consulta) => <ConsultationCostRow key={consulta.consultaId} consulta={consulta} />}
           />
         )}
@@ -144,9 +192,16 @@ export function PatientCostScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  arkiveIdSubtitle: { fontSize: fontSize.xs, fontFamily: 'monospace', textAlign: 'center', marginBottom: spacing.sm },
+  arkiveIdSubtitle: { fontSize: fontSize.xs, ...commonStyles.arkiveId, textAlign: 'center', marginBottom: spacing.sm },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
-  dateText: { fontSize: fontSize.md, fontWeight: '700' },
+  dateText: { fontSize: fontSize.md, ...font('bold'), fontVariant: ['tabular-nums'] },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },
+  amount: { fontSize: fontSize.sm, fontVariant: ['tabular-nums'] },
+  strong: { ...font('bold') },
+  composition: { marginBottom: spacing.sm },
+  compositionTitle: { fontSize: fontSize.md, ...font('bold'), marginBottom: spacing.sm },
+  bar: { flexDirection: 'row', height: 12, borderRadius: radius.full, overflow: 'hidden', marginBottom: spacing.xs },
+  legendLabel: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  swatch: { width: 10, height: 10, borderRadius: radius.full },
   totalRow: { marginTop: spacing.sm, paddingTop: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth },
 });

@@ -10,11 +10,13 @@ import { AppButton } from '../components/AppButton';
 import { AppCard } from '../components/AppCard';
 import { SearchBar } from '../components/SearchBar';
 import { ChipGroup } from '../components/ChipGroup';
+import { SegmentedControl } from '../components/SegmentedControl';
 import { DateField } from '../components/DateField';
 import { TimeField } from '../components/TimeField';
 import { MoneyField } from '../components/MoneyField';
 import { EmptyState } from '../components/EmptyState';
 import { LoadMoreButton } from '../components/LoadMoreButton';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useMyPatients } from '../hooks/usePatients';
@@ -26,7 +28,7 @@ import { parseMoneyInput } from '../utils/money';
 import type { AnimalDto } from '../services/patientService';
 import type { Modalidade } from '../services/consultaService';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize, radius } from '../styles/theme';
+import { spacing, fontSize, radius, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
 const MODALIDADE_VALUES: Modalidade[] = ['PRESENCIAL', 'REMOTA'];
@@ -47,6 +49,7 @@ export function NewConsultaScreen() {
   const route = useRoute<RouteProp<AppStackParamList, 'CriarConsulta'>>();
   const colors = useThemeColors();
   const { t } = useTranslation();
+  const wide = useBreakpoint() !== 'compact';
 
   // For an authenticated VETERINARIO, Java derives the veterinarian from the
   // principal on `POST /api/consultas` — this screen never needs to know or
@@ -194,7 +197,7 @@ export function NewConsultaScreen() {
 
       <ScreenContainer>
         {/* PACIENTE */}
-            <Text style={[commonStyles.eyebrow, styles.sectionLabelFirst, { color: colors.primary }]}>
+            <Text style={[commonStyles.eyebrow, styles.sectionLabelFirst, { color: colors.accent }]}>
               {t('newConsulta.patientSection')}
             </Text>
 
@@ -202,13 +205,13 @@ export function NewConsultaScreen() {
               <AppCard onPress={() => setChangingPatient(true)}>
                 <View style={commonStyles.rowBetween}>
                   <View style={styles.patientTextCol}>
-                    <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>
+                    <Text style={{ color: colors.ink, ...font('bold') }} numberOfLines={1}>
                       {selectedAnimal.nome}
                     </Text>
-                    <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
+                    <Text style={{ color: colors.inkSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
                       {patientSummaryLine(selectedAnimal)}
                     </Text>
-                    <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
+                    <Text style={{ color: colors.inkSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
                       {patientArkiveIdLine(selectedAnimal)}
                     </Text>
                   </View>
@@ -242,12 +245,12 @@ export function NewConsultaScreen() {
                   />
                 ) : null}
 
-                <Text style={[styles.subLabel, { color: colors.textSecondary }]}>
+                <Text style={[styles.subLabel, { color: colors.inkSecondary }]}>
                   {hasFilters ? t('newConsulta.searchResults') : t('newConsulta.clinicPatients')}
                 </Text>
 
                 {patientsPending ? (
-                  <Text style={{ color: colors.textSecondary, marginBottom: spacing.sm }}>
+                  <Text style={{ color: colors.inkSecondary, marginBottom: spacing.sm }}>
                     {t('newConsulta.loadingPatients')}
                   </Text>
                 ) : patientsError ? (
@@ -266,29 +269,29 @@ export function NewConsultaScreen() {
                           style={[
                             styles.patientRow,
                             {
-                              backgroundColor: selected ? colors.primaryTint : colors.surface,
-                              borderColor: selected ? colors.primaryLight : colors.border,
+                              backgroundColor: selected ? colors.accentTint : colors.surface,
+                              borderColor: selected ? colors.accent : colors.line,
                             },
                           ]}
                         >
                           <View style={styles.patientTextCol}>
                             <Text
-                              style={{ color: colors.text, fontWeight: selected ? '700' : '600' }}
+                              style={{ color: colors.ink, ...font(selected ? 'bold' : 'semibold') }}
                               numberOfLines={1}
                             >
                               {animal.nome}
                             </Text>
-                            <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
+                            <Text style={{ color: colors.inkSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
                               {patientSummaryLine(animal)}
                             </Text>
-                            <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
+                            <Text style={{ color: colors.inkSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
                               {patientArkiveIdLine(animal)}
                             </Text>
                           </View>
                           <Ionicons
                             name={selected ? 'checkmark-circle' : 'chevron-forward'}
                             size={selected ? 22 : 18}
-                            color={selected ? colors.success : colors.textSecondary}
+                            color={selected ? colors.success : colors.inkSecondary}
                           />
                         </Pressable>
                       );
@@ -325,37 +328,17 @@ export function NewConsultaScreen() {
             ) : null}
 
             {/* MODALIDADE */}
-            <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
+            <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
               {t('newConsulta.modalidadeSection')}
             </Text>
-            <View style={styles.segmentedRow}>
-              {MODALIDADE_VALUES.map((value) => {
-                const selected = modalidade === value;
-                return (
-                  <Pressable
-                    key={value}
-                    onPress={() => setModalidade(value)}
-                    style={[
-                      styles.segment,
-                      {
-                        backgroundColor: selected ? colors.primary : colors.surface,
-                        borderColor: selected ? colors.primary : colors.border,
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={{
-                        color: selected ? '#FFFFFF' : colors.text,
-                        fontWeight: selected ? '700' : '600',
-                        fontSize: fontSize.md,
-                      }}
-                    >
-                      {value === 'PRESENCIAL' ? t('newConsulta.modalidadePresencial') : t('newConsulta.modalidadeRemota')}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+            <SegmentedControl
+              options={MODALIDADE_VALUES.map((value) => ({
+                value,
+                label: value === 'PRESENCIAL' ? t('newConsulta.modalidadePresencial') : t('newConsulta.modalidadeRemota'),
+              }))}
+              value={modalidade}
+              onChange={setModalidade}
+            />
             {shownError('modalidade') ? (
               <Text style={[commonStyles.errorText, { color: colors.error }]}>{shownError('modalidade')}</Text>
             ) : null}
@@ -368,38 +351,44 @@ export function NewConsultaScreen() {
                   value={endereco}
                   onChangeText={setEndereco}
                 />
-                <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, marginTop: -spacing.xs, marginBottom: spacing.sm }}>
+                <Text style={{ color: colors.inkSecondary, fontSize: fontSize.xs, marginTop: -spacing.xs, marginBottom: spacing.sm }}>
                   {t('newConsulta.addressHelper')}
                 </Text>
               </>
             ) : null}
 
             {/* DATA E HORÁRIO */}
-            <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
+            <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
               {t('newConsulta.dateTimeSection')}
             </Text>
-            <DateField
-              label={t('newConsulta.dateLabel')}
-              value={date}
-              onChange={(next) => {
-                setDate(next);
-                touch('date');
-              }}
-              minimumDate={startOfToday()}
-              error={shownError('date')}
-            />
-            <TimeField
-              label={t('newConsulta.timeLabel')}
-              value={time}
-              onChange={(next) => {
-                setTime(next);
-                touch('time');
-              }}
-              error={shownError('time')}
-            />
+            <View style={wide ? styles.dateTimeRow : null}>
+              <View style={styles.flex}>
+    <DateField
+                  label={t('newConsulta.dateLabel')}
+                  value={date}
+                  onChange={(next) => {
+                    setDate(next);
+                    touch('date');
+                  }}
+                  minimumDate={startOfToday()}
+                  error={shownError('date')}
+                />
+              </View>
+              <View style={styles.flex}>
+    <TimeField
+                  label={t('newConsulta.timeLabel')}
+                  value={time}
+                  onChange={(next) => {
+                    setTime(next);
+                    touch('time');
+                  }}
+                  error={shownError('time')}
+                />
+              </View>
+            </View>
 
             {/* MOTIVO */}
-            <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
+            <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
               {t('newConsulta.reasonSection')}
             </Text>
             <AppInput
@@ -413,9 +402,9 @@ export function NewConsultaScreen() {
             />
 
             {/* VALOR */}
-            <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
+            <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
               {t('newConsulta.valueSection')}
-              <Text style={[styles.optionalSuffix, { color: colors.textSecondary }]}> · {t('common.optional')}</Text>
+              <Text style={[styles.optionalSuffix, { color: colors.inkSecondary }]}> · {t('common.optional')}</Text>
             </Text>
             <MoneyField
               value={valorConsultaInput}
@@ -447,7 +436,7 @@ const styles = StyleSheet.create({
   // every label/control using the same uniform gap regardless of grouping.
   sectionLabelFirst: { marginBottom: spacing.sm },
   sectionLabel: { marginTop: spacing.xl, marginBottom: spacing.sm },
-  subLabel: { fontSize: fontSize.xs, fontWeight: '600', marginBottom: spacing.xs, marginTop: spacing.xs },
+  subLabel: { fontSize: fontSize.xs, ...font('semibold'), marginBottom: spacing.xs, marginTop: spacing.xs },
   patientTextCol: { flexShrink: 1, marginRight: spacing.sm },
   patientRow: {
     flexDirection: 'row',
@@ -460,17 +449,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: spacing.xs,
   },
-  segmentedRow: { flexDirection: 'row', gap: spacing.sm },
-  segment: {
-    flex: 1,
-    minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-  },
+  dateTimeRow: { flexDirection: 'row', gap: spacing.md },
+  flex: { flex: 1 },
   submitButton: { marginTop: spacing.xl },
   // Nested inside the uppercase eyebrow heading — undo its caps/weight so
   // "opcional" reads as a quiet hint, not part of the title.
-  optionalSuffix: { textTransform: 'none', fontWeight: '400', letterSpacing: 0 },
+  optionalSuffix: { textTransform: 'none', ...font('regular'), letterSpacing: 0 },
 });

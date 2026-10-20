@@ -3,11 +3,12 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { AppInput } from './AppInput';
 import { AppButton } from './AppButton';
 import { VoiceOrb } from './VoiceOrb';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useClinicalVoiceRecording } from '../hooks/useClinicalVoiceRecording';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
 /** Appends a transcribed segment after whatever's already in the draft, never replacing it. */
@@ -62,6 +63,7 @@ export function ClinicalIntake({
 }: Props) {
   const colors = useThemeColors();
   const { t, language } = useTranslation();
+  const wide = useBreakpoint() === 'wide';
   // Initial value only — a background refetch changing the underlying
   // consulta doesn't remount this component (same consultaId, same EP
   // status), so this never gets silently overwritten while the
@@ -119,93 +121,101 @@ export function ClinicalIntake({
     }
   };
 
-  const showOrbArea = view === 'orb' || voice.status === 'recording' || voice.status === 'transcribing';
+  // Wide: orb and narrative side by side, both always visible.
+  const showOrbArea = wide || view === 'orb' || voice.status === 'recording' || voice.status === 'transcribing';
+  const showEditor = wide || !showOrbArea;
+  const voiceIdle = voice.status === 'idle' || voice.status === 'error';
 
   return (
     <View>
-      <Text style={[styles.patientName, { color: colors.text }]} numberOfLines={1}>
+      <Text style={[styles.patientName, { color: colors.ink }]} numberOfLines={1}>
         {animalNome}
       </Text>
-      <Text style={[styles.patientArkiveId, { color: colors.textSecondary }]} numberOfLines={1} selectable>
+      <Text style={[styles.patientArkiveId, { color: colors.inkSecondary }]} numberOfLines={1} selectable>
         {patientArkiveIdLine({ arkivePatientId: animalArkivePatientId ?? null })}
       </Text>
-      <Text style={{ color: colors.textSecondary, marginBottom: spacing.sm }} numberOfLines={2}>
+      <Text style={{ color: colors.inkSecondary, marginBottom: spacing.sm }} numberOfLines={2}>
         {contextLine}
       </Text>
       {motivo ? (
-        <Text style={{ color: colors.textSecondary, marginBottom: spacing.md }}>
+        <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md }}>
           {t('consultaDetail.reasonLabel', { reason: motivo })}
         </Text>
       ) : null}
 
-      <Text style={[styles.question, { color: colors.text }]}>{t('clinicalIntake.question', { name: animalNome })}</Text>
+      <Text style={[styles.question, { color: colors.ink }]}>{t('clinicalIntake.question', { name: animalNome })}</Text>
       {showOrbArea ? (
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t('clinicalIntake.subtitle')}</Text>
+        <Text style={[styles.subtitle, { color: colors.inkSecondary }]}>{t('clinicalIntake.subtitle')}</Text>
       ) : null}
 
-      {showOrbArea ? (
-        <>
-          <VoiceOrb
-            mode={
-              voice.status === 'recording'
-                ? 'recording'
-                : voice.status === 'transcribing'
-                  ? 'transcribing'
-                  : 'idle'
-            }
-            durationSeconds={voice.durationSeconds}
-            meteringLevel={voice.meteringLevel}
-            onPress={handleOrbPress}
-          />
+      <View style={wide ? styles.columns : null}>
+        {showOrbArea ? (
+          <View style={wide ? styles.orbColumn : null}>
+            <VoiceOrb
+              mode={
+                voice.status === 'recording'
+                  ? 'recording'
+                  : voice.status === 'transcribing'
+                    ? 'transcribing'
+                    : 'idle'
+              }
+              durationSeconds={voice.durationSeconds}
+              meteringLevel={voice.meteringLevel}
+              onPress={handleOrbPress}
+            />
 
-          {voice.status === 'idle' || voice.status === 'error' ? (
-            <Pressable onPress={() => setView('editor')} style={styles.linkWrap} accessibilityRole="button">
-              <Text style={{ color: colors.primary, fontWeight: '600' }}>{t('clinicalIntake.typeNarrative')}</Text>
-            </Pressable>
-          ) : null}
+            {!wide && voiceIdle ? (
+              <Pressable onPress={() => setView('editor')} style={styles.linkWrap} accessibilityRole="button">
+                <Text style={{ color: colors.accent, ...font('semibold') }}>{t('clinicalIntake.typeNarrative')}</Text>
+              </Pressable>
+            ) : null}
 
-          {voice.status === 'error' && voice.errorMessage ? (
-            <View style={styles.errorBlock}>
-              <Text style={{ color: colors.error, textAlign: 'center' }}>{voice.errorMessage}</Text>
-              {voice.permanentlyDenied ? (
-                <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xs }}>
-                  {t('clinicalIntake.micPermissionDenied')}
-                </Text>
-              ) : voice.canRetry ? (
-                <AppButton
-                  title={t('clinicalIntake.retryTranscription')}
-                  variant="outline"
-                  onPress={() => voice.retry(locale)}
-                />
-              ) : null}
-            </View>
-          ) : null}
-        </>
-      ) : (
-        <>
-          <Text style={[commonStyles.eyebrow, { color: colors.primary, marginBottom: spacing.sm }]}>
-            {t('clinicalIntake.sectionLabel')}
-          </Text>
-          <AppInput
-            placeholder={t('clinicalIntake.narrativePlaceholder')}
-            value={draft}
-            onChangeText={setDraft}
-            editable={!analyzing}
-            multiline
-            numberOfLines={10}
-            style={styles.editor}
-          />
-          <Text style={[styles.disclaimer, { color: colors.textSecondary }]}>{t('clinicalIntake.disclaimer')}</Text>
+            {voice.status === 'error' && voice.errorMessage ? (
+              <View style={styles.errorBlock}>
+                <Text style={{ color: colors.error, textAlign: 'center' }}>{voice.errorMessage}</Text>
+                {voice.permanentlyDenied ? (
+                  <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xs }}>
+                    {t('clinicalIntake.micPermissionDenied')}
+                  </Text>
+                ) : voice.canRetry ? (
+                  <AppButton
+                    title={t('clinicalIntake.retryTranscription')}
+                    variant="secondary"
+                    onPress={() => voice.retry(locale)}
+                  />
+                ) : null}
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+        {showEditor ? (
+          <View style={wide ? styles.editorColumn : null}>
+            <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
+              {t('clinicalIntake.sectionLabel')}
+            </Text>
+            <AppInput
+              placeholder={t('clinicalIntake.narrativePlaceholder')}
+              value={draft}
+              onChangeText={setDraft}
+              editable={!analyzing}
+              multiline
+              numberOfLines={10}
+              style={styles.editor}
+            />
+            <Text style={[styles.disclaimer, { color: colors.inkSecondary }]}>{t('clinicalIntake.disclaimer')}</Text>
 
-          <AppButton
-            title={t('clinicalIntake.addToNarrative')}
-            variant="ghost"
-            icon="mic-outline"
-            onPress={() => setView('orb')}
-            disabled={analyzing}
-          />
-        </>
-      )}
+            {wide ? null : (
+              <AppButton
+                title={t('clinicalIntake.addToNarrative')}
+                variant="ghost"
+                icon="mic-outline"
+                onPress={() => setView('orb')}
+                disabled={analyzing}
+              />
+            )}
+          </View>
+        ) : null}
+      </View>
 
       {analyzeError ? (
         <Text style={{ color: colors.error, marginTop: spacing.sm, marginBottom: spacing.sm }}>
@@ -213,7 +223,7 @@ export function ClinicalIntake({
         </Text>
       ) : null}
 
-      {view === 'editor' && (voice.status === 'idle' || voice.status === 'error') ? (
+      {showEditor && voiceIdle ? (
         <>
           <AppButton
             title={t('clinicalIntake.analyzeButton')}
@@ -225,7 +235,7 @@ export function ClinicalIntake({
           />
           <AppButton
             title={t('clinicalIntake.proceedWithoutAnalysisButton')}
-            variant="outline"
+            variant="ghost"
             onPress={handleProceedPress}
             loading={proceeding}
             disabled={analyzing || proceeding}
@@ -237,13 +247,16 @@ export function ClinicalIntake({
 }
 
 const styles = StyleSheet.create({
-  patientName: { fontSize: fontSize.lg, fontWeight: '700' },
+  patientName: { fontSize: fontSize.lg, ...font('bold') },
   patientArkiveId: { fontSize: fontSize.xs, marginTop: 2 },
-  question: { fontSize: fontSize.xl, fontWeight: '700', marginTop: spacing.md, marginBottom: spacing.xs },
+  question: { fontSize: fontSize.xl, ...font('bold'), marginTop: spacing.md, marginBottom: spacing.xs },
   subtitle: { fontSize: fontSize.sm, marginBottom: spacing.md, lineHeight: 20 },
   linkWrap: { alignSelf: 'center', marginTop: spacing.sm, padding: spacing.sm },
   errorBlock: { marginTop: spacing.md },
   editor: { minHeight: 240, fontSize: fontSize.lg, lineHeight: 26, textAlignVertical: 'top' },
   disclaimer: { fontSize: fontSize.xs, marginTop: spacing.xs, marginBottom: spacing.md },
   analyzeButton: { marginTop: spacing.lg },
+  columns: { flexDirection: 'row', gap: spacing.xl, alignItems: 'flex-start' },
+  orbColumn: { flex: 2 },
+  editorColumn: { flex: 3, paddingTop: spacing.xl },
 });

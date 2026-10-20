@@ -7,7 +7,9 @@ import { ScreenContainer } from '../components/ScreenContainer';
 import { AppCard } from '../components/AppCard';
 import { PatientForm } from '../components/PatientForm';
 import { TutorSearchModal } from '../components/TutorSearchModal';
+import { AppButton } from '../components/AppButton';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { useCreatePatient } from '../hooks/usePatients';
 import { useLinkTutor } from '../hooks/useTutores';
@@ -15,7 +17,7 @@ import { describePatientError } from '../utils/errorMessages';
 import type { AnimalRequestInput } from '../services/patientService';
 import type { ResponsavelLookupDto } from '../services/responsavelService';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font, layout } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
 /**
@@ -43,6 +45,7 @@ export function NewPatientScreen() {
   const route = useRoute<RouteProp<AppStackParamList, 'NovoPaciente'>>();
   const colors = useThemeColors();
   const { t } = useTranslation();
+  const wide = useBreakpoint() === 'wide';
   const createMutation = useCreatePatient();
   const linkTutorMutation = useLinkTutor();
 
@@ -99,7 +102,7 @@ export function NewPatientScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('patientForm.newTitle')} />
-      <ScreenContainer>
+      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
         <PatientForm
           onSubmit={handleSubmit}
           submitting={createMutation.isPending || linkTutorMutation.isPending}
@@ -108,27 +111,30 @@ export function NewPatientScreen() {
         />
 
         <AppCard>
-          <Text style={[commonStyles.eyebrow, { color: colors.primary, marginBottom: spacing.sm }]}>
+          <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
             {t('tutor.section')}
           </Text>
           {selectedTutor ? (
             <View style={commonStyles.rowBetween}>
               <Text
-                style={{ color: colors.text, fontWeight: '700', flexShrink: 1, marginRight: spacing.sm }}
+                style={{ color: colors.ink, ...font('bold'), flexShrink: 1, marginRight: spacing.sm }}
                 numberOfLines={2}
               >
                 {t('tutor.selected', { name: selectedTutor.nome })}
               </Text>
               <Pressable onPress={() => setSelectedTutor(null)} accessibilityRole="button">
-                <Text style={{ color: colors.primary, fontSize: fontSize.sm }}>{t('tutor.clear')}</Text>
+                <Text style={{ color: colors.accent, fontSize: fontSize.sm }}>{t('tutor.clear')}</Text>
               </Pressable>
             </View>
           ) : (
             <>
-              <Text style={{ color: colors.textSecondary, marginBottom: spacing.sm }}>{t('tutor.none')}</Text>
-              <Pressable onPress={() => setTutorModalOpen(true)} accessibilityRole="button">
-                <Text style={{ color: colors.primary, fontWeight: '700' }}>{t('tutor.searchButton')}</Text>
-              </Pressable>
+              <Text style={{ color: colors.inkSecondary, marginBottom: spacing.sm }}>{t('tutor.none')}</Text>
+              <AppButton
+                title={t('tutor.searchButton')}
+                variant="secondary"
+                icon="search-outline"
+                onPress={() => setTutorModalOpen(true)}
+              />
             </>
           )}
         </AppCard>

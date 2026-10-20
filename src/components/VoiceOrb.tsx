@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { View, Text, Pressable, Animated, ActivityIndicator, StyleSheet, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useTranslation } from '../i18n/useTranslation';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
 
 export type VoiceOrbMode = 'idle' | 'recording' | 'transcribing' | 'analyzing';
 
@@ -43,7 +44,7 @@ function useOrbSizes() {
 }
 
 /**
- * The signature ArkIve voice interaction — a calm indigo orb with a
+ * The signature ArkIve voice interaction — an `ink` orb (`accent` while recording, never `ai`) with a
  * microphone at rest, visibly alive while recording, and a shared pulsing
  * language for transcription/analysis waiting states. Built entirely on
  * React Native's own `Animated` API (no WebGL/canvas/extra dependency).
@@ -56,6 +57,7 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
   const colors = useThemeColors();
   const { t } = useTranslation();
   const { orb: ORB_SIZE, ringOuter: RING_OUTER, ringInner: RING_INNER } = useOrbSizes();
+  const reducedMotion = useReducedMotion();
 
   const ring1 = useRef(new Animated.Value(0)).current;
   const ring2 = useRef(new Animated.Value(0)).current;
@@ -75,7 +77,7 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
 
   // Decorative concentric-ring pulse for every non-idle mode.
   useEffect(() => {
-    if (mode === 'idle') return;
+    if (mode === 'idle' || reducedMotion) return;
     ring1.setValue(0);
     ring2.setValue(0);
     const duration = mode === 'recording' ? 1400 : 1800;
@@ -92,11 +94,11 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
       loop1.stop();
       loop2.stop();
     };
-  }, [mode, ring1, ring2]);
+  }, [mode, reducedMotion, ring1, ring2]);
 
   // Gentle breathing on the center itself while idle.
   useEffect(() => {
-    if (mode !== 'idle') return;
+    if (mode !== 'idle' || reducedMotion) return;
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(breathe, { toValue: 1, duration: 1600, useNativeDriver: true }),
@@ -105,7 +107,9 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
     );
     loop.start();
     return () => loop.stop();
-  }, [mode, breathe]);
+  }, [mode, reducedMotion, breathe]);
+
+  const orbColor = mode === 'recording' ? colors.accent : colors.ink;
 
   const centerScale = Animated.add(
     breathe.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] }),
@@ -117,7 +121,7 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
     width: size,
     height: size,
     borderRadius: size / 2,
-    backgroundColor: colors.primary,
+    backgroundColor: orbColor,
     opacity: anim.interpolate({ inputRange: [0, 1], outputRange: [0.28, 0] }),
     transform: [{ scale: anim.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] }) }],
   });
@@ -144,7 +148,7 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
         accessibilityLabel={accessibilityLabel}
         style={[styles.orbArea, { width: RING_OUTER, height: RING_OUTER }]}
       >
-        {mode !== 'idle' ? (
+        {mode !== 'idle' && !reducedMotion ? (
           <>
             <Animated.View style={ringStyle(ring1, RING_OUTER)} />
             <Animated.View style={ringStyle(ring2, RING_INNER)} />
@@ -158,15 +162,15 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
               width: ORB_SIZE,
               height: ORB_SIZE,
               borderRadius: ORB_SIZE / 2,
-              backgroundColor: mode === 'recording' ? colors.primaryDark : colors.primary,
+              backgroundColor: orbColor,
               transform: [{ scale: centerScale }],
             },
           ]}
         >
           {mode === 'transcribing' || mode === 'analyzing' ? (
-            <ActivityIndicator color="#FFFFFF" />
+            <ActivityIndicator color={colors.onInk} />
           ) : (
-            <Ionicons name={mode === 'recording' ? 'mic' : 'mic-outline'} size={36} color="#FFFFFF" />
+            <Ionicons name={mode === 'recording' ? 'mic' : 'mic-outline'} size={36} color={colors.onInk} />
           )}
         </Animated.View>
       </Pressable>
@@ -174,14 +178,14 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
       {label ? (
         <View style={styles.labelRow}>
           {mode === 'recording' ? <View style={[styles.recDot, { backgroundColor: colors.error }]} /> : null}
-          <Text style={[styles.label, { color: mode === 'recording' ? colors.error : colors.textSecondary }]}>
+          <Text style={[styles.label, { color: mode === 'recording' ? colors.error : colors.inkSecondary }]}>
             {label}
           </Text>
         </View>
       ) : null}
 
       {mode === 'recording' ? (
-        <Text style={[styles.timer, { color: colors.text }]}>{formatDuration(durationSeconds)}</Text>
+        <Text style={[styles.timer, { color: colors.ink }]}>{formatDuration(durationSeconds)}</Text>
       ) : null}
     </View>
   );
@@ -199,6 +203,6 @@ const styles = StyleSheet.create({
   },
   labelRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.md },
   recDot: { width: 8, height: 8, borderRadius: 4 },
-  label: { fontSize: fontSize.md, fontWeight: '600', textAlign: 'center' },
-  timer: { fontSize: fontSize.lg, fontWeight: '700', marginTop: spacing.xs, fontVariant: ['tabular-nums'] },
+  label: { fontSize: fontSize.md, ...font('semibold'), textAlign: 'center' },
+  timer: { fontSize: fontSize.lg, ...font('bold'), marginTop: spacing.xs, fontVariant: ['tabular-nums'] },
 });

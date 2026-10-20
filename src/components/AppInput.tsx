@@ -1,33 +1,24 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TextInputProps } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, TextInputProps } from 'react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { spacing, radius, fontSize } from '../styles/theme';
+import { useTranslation } from '../i18n/useTranslation';
+import { spacing, radius, fontSize, iconSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
-import type { ColorPalette } from '../styles/colors';
+import { Ionicons } from '@expo/vector-icons';
+import { focusRing, type InteractionState } from '../styles/interaction';
 
 interface Props extends TextInputProps {
   /** Omit when a heading elsewhere already labels this field — avoids a redundant/duplicate label. */
   label?: string;
   error?: string;
   helperText?: string;
-  /** Overrides the label's theme-derived color — e.g. LoginScreen forcing pure black regardless of the user's dark-mode preference. */
-  labelColor?: string;
-  /**
-   * Forces a specific palette instead of the app's current theme — e.g.
-   * LoginScreen passing `lightColors`, since that screen must render
-   * identically regardless of the user's dark-mode preference. Without
-   * this, only the label/text color could be forced (via `labelColor`);
-   * the input's own background/border/placeholder color always came from
-   * the live theme regardless, which is what let a dark-mode input box
-   * render inside an otherwise-forced-light card.
-   */
-  colors?: ColorPalette;
 }
 
-export function AppInput({ label, error, helperText, labelColor, colors: colorsOverride, style, onFocus, onBlur, editable, ...props }: Props) {
-  const themeColors = useThemeColors();
-  const colors = colorsOverride ?? themeColors;
+export function AppInput({ label, error, helperText, style, onFocus, onBlur, editable, secureTextEntry, ...props }: Props) {
+  const colors = useThemeColors();
+  const { t } = useTranslation();
   const [focused, setFocused] = useState(false);
+  const [revealed, setRevealed] = useState(false);
 
   // Typed via TextInputProps itself (not a named FocusEvent/BlurEvent import)
   // so this keeps compiling regardless of how RN names that type internally.
@@ -41,34 +32,53 @@ export function AppInput({ label, error, helperText, labelColor, colors: colorsO
     onBlur?.(event);
   };
 
-  const borderColor = error ? colors.error : focused ? colors.primary : colors.inputBorder;
+  // Plano B §3.4: no border at rest; 1.5 px `ink` on focus. The width stays
+  // constant so focusing never shifts the layout.
+  const borderColor = error ? colors.error : focused ? colors.ink : 'transparent';
 
   return (
     <View style={[styles.wrap, editable === false && styles.disabled]}>
       {label ? (
-        <Text style={[commonStyles.label, { color: labelColor ?? colors.text }]}>{label}</Text>
+        <Text style={[commonStyles.label, { color: colors.ink }]}>{label}</Text>
       ) : null}
-      <TextInput
-        placeholderTextColor={colors.textSecondary}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        editable={editable}
-        style={[
-          styles.input,
-          {
-            backgroundColor: colors.surface,
-            borderColor,
-            borderWidth: focused && !error ? 2 : 1.5,
-            color: colors.text,
-          },
-          style,
-        ]}
-        {...props}
-      />
+      <View>
+        <TextInput
+          placeholderTextColor={colors.inkSecondary}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          editable={editable}
+          secureTextEntry={secureTextEntry && !revealed}
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.sunken,
+              borderColor,
+              color: colors.ink,
+            },
+            secureTextEntry && styles.withToggle,
+            style,
+          ]}
+          {...props}
+        />
+        {secureTextEntry ? (
+          <Pressable
+            onPress={() => setRevealed((value) => !value)}
+            disabled={editable === false}
+            accessibilityRole="button"
+            accessibilityLabel={revealed ? t('common.hidePassword') : t('common.showPassword')}
+            style={(state: InteractionState) => [styles.toggle, focusRing(state, colors)]}
+          >
+            <Ionicons name={revealed ? 'eye-off-outline' : 'eye-outline'} size={iconSize.md} color={colors.inkSecondary} />
+          </Pressable>
+        ) : null}
+      </View>
       {error ? (
-        <Text style={[commonStyles.errorText, { color: colors.error }]}>{error}</Text>
+        <View style={styles.errorRow}>
+          <Ionicons name="alert-circle" size={14} color={colors.error} style={styles.errorIcon} />
+          <Text style={[commonStyles.errorText, styles.errorText, { color: colors.error }]}>{error}</Text>
+        </View>
       ) : helperText ? (
-        <Text style={[commonStyles.helperText, { color: colors.textSecondary }]}>
+        <Text style={[commonStyles.helperText, { color: colors.inkSecondary }]}>
           {helperText}
         </Text>
       ) : null}
@@ -79,9 +89,24 @@ export function AppInput({ label, error, helperText, labelColor, colors: colorsO
 const styles = StyleSheet.create({
   wrap: { marginBottom: spacing.sm },
   disabled: { opacity: 0.56 },
+  errorRow: { flexDirection: 'row', gap: spacing.xs },
+  errorIcon: { marginTop: spacing.xs },
+  errorText: { flex: 1 },
+  withToggle: { paddingRight: 44 },
+  toggle: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.field,
+  },
   input: {
     minHeight: 44,
-    borderRadius: radius.sm,
+    borderRadius: radius.field,
+    borderWidth: 1.5,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 2,
     fontSize: fontSize.md,

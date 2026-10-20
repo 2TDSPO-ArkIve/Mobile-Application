@@ -1,15 +1,16 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppCard } from './AppCard';
 import { AppButton } from './AppButton';
-import { ChipGroup } from './ChipGroup';
+import { SegmentedControl } from './SegmentedControl';
 import { KpiCard } from './KpiCard';
 import { LoadMoreButton } from './LoadMoreButton';
 import { StackedBarChart } from './charts/StackedBarChart';
 import { DonutChart } from './charts/DonutChart';
 import { LineChart, type ChartLine } from './charts/LineChart';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import {
   COST_PERIODS,
@@ -27,11 +28,8 @@ import {
 } from '../utils/costDashboard';
 import { formatCurrency } from '../utils/localeFormat';
 import { LIST_PAGE_SIZE } from '../utils/pagination';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
-
-const WIDE_LAYOUT_MIN_WIDTH = 768;
-const TWO_PANEL_MIN_WIDTH = 960;
 
 interface Props<T extends CostRow> {
   rows: T[];
@@ -60,7 +58,7 @@ export function CostDashboard<T extends CostRow>({
 }: Props<T>) {
   const colors = useThemeColors();
   const { t } = useTranslation();
-  const { width } = useWindowDimensions();
+  const band = useBreakpoint();
   const [period, setPeriod] = useState<CostPeriod>('30d');
   const [visibleCount, setVisibleCount] = useState(LIST_PAGE_SIZE);
   const [noteOpen, setNoteOpen] = useState(false);
@@ -92,17 +90,18 @@ export function CostDashboard<T extends CostRow>({
     (best, bucket) => (bucketTotal(bucket) > (best ? bucketTotal(best) : 0) ? bucket : best),
     null
   );
-  const kpiBasis = width >= WIDE_LAYOUT_MIN_WIDTH ? '22%' : '45%';
-  const twoPanels = width >= TWO_PANEL_MIN_WIDTH;
-  const consultaColor = colors.primary;
-  const medicamentosColor = colors.success;
+  // Four KPIs on one row from `medium`; line and composition side by side on `wide`.
+  const kpiBasis = band === 'compact' ? '45%' : '22%';
+  const wide = band === 'wide';
+  const consultaColor = colors.chart1;
+  const medicamentosColor = colors.chart3;
 
   const handlePeriod = (value: string) => {
     setPeriod(value as CostPeriod);
     setVisibleCount(LIST_PAGE_SIZE);
   };
 
-  const panelTitle = (text: string) => <Text style={[styles.panelTitle, { color: colors.text }]}>{text}</Text>;
+  const panelTitle = (text: string) => <Text style={[styles.panelTitle, { color: colors.ink }]}>{text}</Text>;
 
   const lines: ChartLine[] = [
     {
@@ -115,7 +114,7 @@ export function CostDashboard<T extends CostRow>({
   if (previousBuckets.length === buckets.length && previousBuckets.length > 0) {
     lines.push({
       label: t('costDashboard.seriesPrevious'),
-      color: colors.textSecondary,
+      color: colors.chart2,
       values: previousBuckets.map(bucketTotal),
       pointTitles: previousBuckets.map((bucket) => bucket.accessibilityLabel),
       muted: true,
@@ -124,7 +123,7 @@ export function CostDashboard<T extends CostRow>({
 
   return (
     <>
-      <ChipGroup
+      <SegmentedControl
         label={t('costDashboard.periodLabel')}
         options={COST_PERIODS.map((value) => ({ value, label: t(`costDashboard.period_${value}`) }))}
         value={period}
@@ -139,14 +138,14 @@ export function CostDashboard<T extends CostRow>({
             accessibilityState={{ expanded: noteOpen }}
             style={styles.noteToggle}
           >
-            <Ionicons name="information-circle-outline" size={16} color={colors.textSecondary} />
-            <Text style={[styles.noteTitle, { color: colors.textSecondary }]}>
+            <Ionicons name="information-circle-outline" size={16} color={colors.inkSecondary} />
+            <Text style={[styles.noteTitle, { color: colors.inkSecondary }]}>
               {t('costDashboard.howCalculatedTitle')}
             </Text>
-            <Ionicons name={noteOpen ? 'chevron-up' : 'chevron-down'} size={14} color={colors.textSecondary} />
+            <Ionicons name={noteOpen ? 'chevron-up' : 'chevron-down'} size={14} color={colors.inkSecondary} />
           </Pressable>
           {noteOpen ? (
-            <Text style={[styles.noteBody, { color: colors.textSecondary }]}>
+            <Text style={[styles.noteBody, { color: colors.inkSecondary }]}>
               {t(showComparison ? 'costDashboard.howCalculatedBodyComparison' : 'costDashboard.howCalculatedBody')}
             </Text>
           ) : null}
@@ -191,53 +190,31 @@ export function CostDashboard<T extends CostRow>({
 
       {periodRows.length === 0 ? (
         <AppCard style={styles.empty}>
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('costDashboard.noDataInPeriod')}</Text>
+          <Text style={[styles.emptyText, { color: colors.inkSecondary }]}>{t('costDashboard.noDataInPeriod')}</Text>
           {period !== 'all' ? (
-            <AppButton title={t('costDashboard.showAllPeriod')} variant="outline" onPress={() => handlePeriod('all')} />
+            <AppButton title={t('costDashboard.showAllPeriod')} variant="secondary" onPress={() => handlePeriod('all')} />
           ) : null}
         </AppCard>
       ) : showCharts ? (
         <>
-          <AppCard style={styles.panel}>
-            {panelTitle(t('costDashboard.evolutionTitle'))}
-            <LineChart
-              labels={buckets.map((bucket) => bucket.label)}
-              lines={lines}
-              formatValue={formatCurrency}
-              accessibilityLabel={
-                peak
-                  ? t('costDashboard.evolutionA11y', {
-                      label: peak.accessibilityLabel,
-                      value: formatCurrency(bucketTotal(peak)),
-                    })
-                  : t('costDashboard.evolutionA11yEmpty')
-              }
-            />
-          </AppCard>
-
-          <View style={twoPanels ? styles.panelRow : undefined}>
-            <AppCard style={{ ...styles.panel, ...(twoPanels ? { flex: 1.6 } : null) }}>
-              {panelTitle(t('costDashboard.stackedTitle'))}
-              <StackedBarChart
-                bars={buckets.map((bucket) => ({
-                  label: bucket.label,
-                  title: bucket.accessibilityLabel,
-                  values: [bucket.consulta, bucket.medicamentos],
-                }))}
-                series={[
-                  { label: t('costDashboard.seriesConsultation'), color: consultaColor },
-                  { label: t('costDashboard.seriesMedications'), color: medicamentosColor },
-                ]}
+          <View style={wide ? styles.panelRow : undefined}>
+            <AppCard style={{ ...styles.panel, ...(wide ? { flex: 1.6 } : null) }}>
+              {panelTitle(t('costDashboard.evolutionTitle'))}
+              <LineChart
+                labels={buckets.map((bucket) => bucket.label)}
+                lines={lines}
                 formatValue={formatCurrency}
-                totalLabel={t('costDashboard.totalLabel')}
-                accessibilityLabel={t('costDashboard.stackedA11y', {
-                  consulta: formatCurrency(consulta),
-                  medicamentos: formatCurrency(medicamentos),
-                })}
+                accessibilityLabel={
+                  peak
+                    ? t('costDashboard.evolutionA11y', {
+                        label: peak.accessibilityLabel,
+                        value: formatCurrency(bucketTotal(peak)),
+                      })
+                    : t('costDashboard.evolutionA11yEmpty')
+                }
               />
             </AppCard>
-
-            <AppCard style={{ ...styles.panel, ...(twoPanels ? { flex: 1 } : null) }}>
+            <AppCard style={{ ...styles.panel, ...(wide ? { flex: 1 } : null) }}>
               {panelTitle(t('costDashboard.compositionTitle'))}
               <DonutChart
                 slices={[
@@ -252,6 +229,27 @@ export function CostDashboard<T extends CostRow>({
               />
             </AppCard>
           </View>
+
+          <AppCard style={styles.panel}>
+            {panelTitle(t('costDashboard.stackedTitle'))}
+            <StackedBarChart
+              bars={buckets.map((bucket) => ({
+                label: bucket.label,
+                title: bucket.accessibilityLabel,
+                values: [bucket.consulta, bucket.medicamentos],
+              }))}
+              series={[
+                { label: t('costDashboard.seriesConsultation'), color: consultaColor },
+                { label: t('costDashboard.seriesMedications'), color: medicamentosColor },
+              ]}
+              formatValue={formatCurrency}
+              totalLabel={t('costDashboard.totalLabel')}
+              accessibilityLabel={t('costDashboard.stackedA11y', {
+                consulta: formatCurrency(consulta),
+                medicamentos: formatCurrency(medicamentos),
+              })}
+            />
+          </AppCard>
         </>
       ) : null}
 
@@ -259,7 +257,7 @@ export function CostDashboard<T extends CostRow>({
 
       {periodRows.length > 0 ? (
         <>
-          <Text style={[commonStyles.eyebrow, styles.sectionTitle, { color: colors.primary }]}>
+          <Text style={[commonStyles.eyebrow, styles.sectionTitle, { color: colors.inkSecondary }]}>
             {t('costDashboard.breakdownTitle')}
           </Text>
           {periodRows.slice(0, visibleCount).map(renderRow)}
@@ -280,12 +278,12 @@ export function CostDashboard<T extends CostRow>({
 const styles = StyleSheet.create({
   note: { marginBottom: spacing.sm },
   noteToggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, alignSelf: 'flex-start' },
-  noteTitle: { fontSize: fontSize.xs, fontWeight: '600' },
+  noteTitle: { fontSize: fontSize.xs, ...font('semibold') },
   noteBody: { fontSize: fontSize.xs, lineHeight: 17, marginTop: spacing.xs, marginLeft: 20 },
   kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.sm },
   panel: { marginBottom: spacing.sm },
   panelRow: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' },
-  panelTitle: { fontSize: fontSize.md, fontWeight: '700', marginBottom: spacing.sm },
+  panelTitle: { fontSize: fontSize.md, ...font('bold'), marginBottom: spacing.sm },
   empty: { alignItems: 'center', gap: spacing.sm },
   emptyText: { textAlign: 'center' },
   sectionTitle: { marginTop: spacing.lg, marginBottom: spacing.sm },

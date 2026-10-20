@@ -4,7 +4,7 @@ import { AppButton } from './AppButton';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useDeleteConsulta } from '../hooks/useConsultas';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
 
 interface Props {
   visible: boolean;
@@ -44,11 +44,11 @@ export function DeleteConsultaModal({ visible, consultaId, onClose, onDeleted }:
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <View style={styles.backdrop}>
+      <View style={[styles.backdrop, { backgroundColor: colors.scrim }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
-        <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.title, { color: colors.text }]}>{t('consultaDetail.deleteConfirmTitle')}</Text>
-          <Text style={{ color: colors.textSecondary, marginBottom: spacing.md }}>
+        <View style={[styles.sheet, { backgroundColor: colors.raised }]}>
+          <Text style={[styles.title, { color: colors.ink }]}>{t('consultaDetail.deleteConfirmTitle')}</Text>
+          <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md }}>
             {t('consultaDetail.deleteConfirmMessage', { id: consultaId })}
           </Text>
 
@@ -76,11 +76,11 @@ export function DeleteConsultaModal({ visible, consultaId, onClose, onDeleted }:
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' },
+  backdrop: { flex: 1, justifyContent: 'flex-end' },
   sheet: {
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: spacing.lg,
   },
-  title: { fontSize: fontSize.lg, fontWeight: '800', marginBottom: spacing.xs },
+  title: { fontSize: fontSize.lg, ...font('bold'), marginBottom: spacing.xs },
 });

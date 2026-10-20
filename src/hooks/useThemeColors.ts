@@ -2,6 +2,6 @@ import { useTheme } from '../context/ThemeContext';
 import { lightColors, darkColors } from '../styles/colors';
 
 export function useThemeColors() {
-  const { mode } = useTheme();
-  return mode === 'dark' ? darkColors : lightColors;
+  const { scheme } = useTheme();
+  return scheme === 'dark' ? darkColors : lightColors;
 }

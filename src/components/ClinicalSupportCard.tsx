@@ -13,7 +13,8 @@ import { parseSourceUrl } from '../utils/sourceUrl';
 import { describeInsightFeedbackError } from '../utils/errorMessages';
 import { severidadeLabel } from '../utils/severidade';
 import { formatNumber } from '../utils/localeFormat';
-import { spacing, fontSize, radius } from '../styles/theme';
+import { spacing, fontSize, radius, font, iconSize } from '../styles/theme';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 interface Props {
   support: ClinicalSupportResponse;
@@ -49,7 +50,7 @@ function AiUsageComparisonSection({ consultaId, total }: { consultaId: number; t
       label: t('clinicalSupportCard.tokensCurrentAnalysis'),
       value: total,
       valueLabel: formatNumber(total),
-      color: colors.primary,
+      color: colors.ai,
     },
   ];
   if (hasComparison && average != null) {
@@ -58,7 +59,7 @@ function AiUsageComparisonSection({ consultaId, total }: { consultaId: number; t
       label: t('clinicalSupportCard.tokensRecentAverage'),
       value: average,
       valueLabel: formatNumber(Math.round(average)),
-      color: colors.textSecondary,
+      color: colors.inkSecondary,
     });
   }
 
@@ -80,20 +81,41 @@ function AiUsageComparisonSection({ consultaId, total }: { consultaId: number; t
 
   return (
     <View style={styles.tokensSection}>
-      <Text style={[styles.label, { color: colors.textSecondary }]}>{t('clinicalSupportCard.tokensTitle')}</Text>
-      <Text style={[styles.tokensMainValue, { color: colors.text }]}>{formatNumber(total)}</Text>
+      <Text style={[styles.label, { color: colors.inkSecondary }]}>{t('clinicalSupportCard.tokensTitle')}</Text>
+      <Text style={[styles.tokensMainValue, { color: colors.ink }]}>{formatNumber(total)}</Text>
 
       {hasComparison ? (
         <>
           <HorizontalBars rows={rows} />
-          <Text style={[styles.tokensSampleCaption, { color: colors.textSecondary }]}>
+          <Text style={[styles.tokensSampleCaption, { color: colors.inkSecondary }]}>
             {t('clinicalSupportCard.tokensSampleCaption', { count: sample.sampleSize })}
           </Text>
           {comparisonSentence ? (
-            <Text style={[styles.tokensComparisonText, { color: colors.text }]}>{comparisonSentence}</Text>
+            <Text style={[styles.tokensComparisonText, { color: colors.ink }]}>{comparisonSentence}</Text>
           ) : null}
         </>
       ) : null}
+    </View>
+  );
+}
+
+/** Sources stay secondary to the reasoning: a collapsed footer, opened on demand. */
+function SourcesFooter({ title, children }: { title: string; children: React.ReactNode }) {
+  const colors = useThemeColors();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <View style={styles.sourcesSection}>
+      <Pressable
+        onPress={() => setOpen((value) => !value)}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        style={(state: InteractionState) => [styles.sourcesToggle, focusRing(state, colors)]}
+      >
+        <Text style={[styles.label, styles.sourcesLabel, { color: colors.inkSecondary }]}>{title}</Text>
+        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={iconSize.sm} color={colors.inkSecondary} />
+      </Pressable>
+      {open ? children : null}
     </View>
   );
 }
@@ -155,27 +177,30 @@ export function ClinicalSupportCard({ support }: Props) {
   const tokensTotal = support.tokens?.total ?? null;
 
   return (
-    <AppCard>
-      <Text style={[styles.title, { color: colors.primary }]}>{t('clinicalSupportCard.title')}</Text>
-      <Text style={[styles.disclaimer, { color: colors.textSecondary }]}>
+    <AppCard style={{ backgroundColor: colors.aiTint }}>
+      <View style={styles.header}>
+        <Ionicons name="sparkles-outline" size={iconSize.md} color={colors.ai} />
+        <Text style={[styles.title, { color: colors.ai }]}>{t('clinicalSupportCard.title')}</Text>
+      </View>
+      <Text style={[styles.disclaimer, { color: colors.inkSecondary }]}>
         {t('clinicalSupportCard.disclaimer')}
       </Text>
 
-      <Text style={[styles.label, { color: colors.textSecondary }]}>{t('clinicalSupportCard.hypothesis')}</Text>
-      <Text style={[styles.value, { color: colors.text }]}>{support.hipoteseDiagnostica}</Text>
+      <Text style={[styles.label, { color: colors.inkSecondary }]}>{t('clinicalSupportCard.hypothesis')}</Text>
+      <Text style={[styles.value, { color: colors.ink }]}>{support.hipoteseDiagnostica}</Text>
 
-      <Text style={[styles.label, { color: colors.textSecondary }]}>{t('clinicalSupportCard.severity')}</Text>
-      <Text style={[styles.value, { color: colors.text }]}>{severidadeLabel(support.severidadeSugerida)}</Text>
+      <Text style={[styles.label, { color: colors.inkSecondary }]}>{t('clinicalSupportCard.severity')}</Text>
+      <Text style={[styles.value, { color: colors.ink }]}>{severidadeLabel(support.severidadeSugerida)}</Text>
 
       {support.confianca != null ? (
         <>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>{t('clinicalSupportCard.confidence')}</Text>
-          <Text style={[styles.value, { color: colors.text }]}>{support.confianca}%</Text>
+          <Text style={[styles.label, { color: colors.inkSecondary }]}>{t('clinicalSupportCard.confidence')}</Text>
+          <Text style={[styles.value, { color: colors.ink }]}>{support.confianca}%</Text>
         </>
       ) : null}
 
-      <Text style={[styles.label, { color: colors.textSecondary }]}>{t('clinicalSupportCard.insight')}</Text>
-      <Text style={[styles.value, { color: colors.text }]}>{support.insightClinico}</Text>
+      <Text style={[styles.label, { color: colors.inkSecondary }]}>{t('clinicalSupportCard.insight')}</Text>
+      <Text style={[styles.value, { color: colors.ink }]}>{support.insightClinico}</Text>
 
       {/* V19 — "Consumo da IA ArkIve": total + comparison against recent
           analyses. Never fetches/triggers anything beyond read-only GETs
@@ -187,26 +212,20 @@ export function ClinicalSupportCard({ support }: Props) {
       ) : null}
 
       {referencias.length > 0 ? (
-        <View style={styles.sourcesSection}>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>
-            {t('clinicalSupportCard.ragReferencesTitle')}
-          </Text>
+        <SourcesFooter title={t('clinicalSupportCard.ragReferencesTitle')}>
           {referencias.map((referencia, index) => (
             <View key={`${index}-${referencia.titulo}`} style={styles.sourceRow}>
-              <Text style={[styles.bullet, { color: colors.textSecondary }]}>{'•'}</Text>
-              <Text style={[styles.sourceText, { color: colors.textSecondary }]}>
-                {referencia.fonte ? `${referencia.fonte} — ${referencia.titulo}` : referencia.titulo}
+              <Text style={[styles.bullet, { color: colors.inkSecondary }]}>{'•'}</Text>
+              <Text style={[styles.sourceText, { color: colors.inkSecondary }]}>
+                {referencia.fonte ? `${referencia.fonte} · ${referencia.titulo}` : referencia.titulo}
               </Text>
             </View>
           ))}
-        </View>
+        </SourcesFooter>
       ) : null}
 
       {fontes.length > 0 ? (
-        <View style={styles.sourcesSection}>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>
-            {t('clinicalSupportCard.externalSourcesTitle')}
-          </Text>
+        <SourcesFooter title={t('clinicalSupportCard.externalSourcesTitle')}>
           {fontes.map((fonte, index) => {
             const parsed = parseSourceUrl(fonte);
             if (parsed) {
@@ -222,8 +241,8 @@ export function ClinicalSupportCard({ support }: Props) {
                   accessibilityLabel={parsed.url}
                   style={styles.sourceRow}
                 >
-                  <Ionicons name="open-outline" size={14} color={colors.primary} />
-                  <Text style={[styles.sourceText, { color: colors.primary }]} numberOfLines={1}>
+                  <Ionicons name="open-outline" size={14} color={colors.ai} />
+                  <Text style={[styles.sourceText, { color: colors.ai }]} numberOfLines={1}>
                     {parsed.hostname}
                   </Text>
                 </Pressable>
@@ -231,18 +250,18 @@ export function ClinicalSupportCard({ support }: Props) {
             }
             return (
               <View key={`${index}-${fonte}`} style={styles.sourceRow}>
-                <Text style={[styles.sourceText, { color: colors.textSecondary }]} numberOfLines={1}>
+                <Text style={[styles.sourceText, { color: colors.inkSecondary }]} numberOfLines={1}>
                   {fonte}
                 </Text>
               </View>
             );
           })}
-        </View>
+        </SourcesFooter>
       ) : null}
 
       {isVeterinario ? (
         <View style={styles.feedbackSection}>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>
+          <Text style={[styles.label, { color: colors.inkSecondary }]}>
             {t('clinicalSupportCard.feedbackQuestion')}
           </Text>
           <View style={styles.feedbackButtons}>
@@ -252,17 +271,18 @@ export function ClinicalSupportCard({ support }: Props) {
               accessibilityRole="button"
               accessibilityLabel={t('clinicalSupportCard.feedbackUsefulLabel')}
               accessibilityState={{ selected: isUseful, disabled: feedbackMutation.isPending }}
-              style={({ pressed }) => [
+              style={(state: InteractionState) => [
                 styles.feedbackButton,
-                { borderColor: colors.border },
-                isUseful ? { borderColor: colors.success, backgroundColor: colors.successTint } : null,
-                pressed && !feedbackMutation.isPending ? styles.feedbackButtonPressed : null,
+                isUseful
+                  ? { borderColor: colors.ai, backgroundColor: colors.ai }
+                  : { borderColor: colors.line, backgroundColor: isActive(state) ? colors.surface : 'transparent' },
+                focusRing(state, colors),
               ]}
             >
               <Ionicons
                 name={isUseful ? 'thumbs-up' : 'thumbs-up-outline'}
                 size={22}
-                color={isUseful ? colors.success : colors.textSecondary}
+                color={isUseful ? colors.onInk : colors.inkSecondary}
               />
             </Pressable>
 
@@ -272,21 +292,22 @@ export function ClinicalSupportCard({ support }: Props) {
               accessibilityRole="button"
               accessibilityLabel={t('clinicalSupportCard.feedbackNotUsefulLabel')}
               accessibilityState={{ selected: isNotUseful, disabled: feedbackMutation.isPending }}
-              style={({ pressed }) => [
+              style={(state: InteractionState) => [
                 styles.feedbackButton,
-                { borderColor: colors.border },
-                isNotUseful ? { borderColor: colors.error, backgroundColor: colors.errorTint } : null,
-                pressed && !feedbackMutation.isPending ? styles.feedbackButtonPressed : null,
+                isNotUseful
+                  ? { borderColor: colors.ai, backgroundColor: colors.ai }
+                  : { borderColor: colors.line, backgroundColor: isActive(state) ? colors.surface : 'transparent' },
+                focusRing(state, colors),
               ]}
             >
               <Ionicons
                 name={isNotUseful ? 'thumbs-down' : 'thumbs-down-outline'}
                 size={22}
-                color={isNotUseful ? colors.error : colors.textSecondary}
+                color={isNotUseful ? colors.onInk : colors.inkSecondary}
               />
             </Pressable>
 
-            {feedbackMutation.isPending ? <ActivityIndicator size="small" color={colors.primary} /> : null}
+            {feedbackMutation.isPending ? <ActivityIndicator size="small" color={colors.ai} /> : null}
           </View>
 
           {feedbackError ? (
@@ -299,23 +320,26 @@ export function ClinicalSupportCard({ support }: Props) {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: fontSize.md, fontWeight: '700', marginBottom: spacing.xs },
+  header: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs },
+  title: { fontSize: fontSize.md, ...font('semibold') },
   disclaimer: { fontSize: fontSize.xs, lineHeight: 17, marginBottom: spacing.sm },
   label: {
     fontSize: fontSize.xs,
-    fontWeight: '600',
+    ...font('semibold'),
     textTransform: 'uppercase',
     letterSpacing: 0.3,
     marginTop: spacing.sm,
   },
   value: { fontSize: fontSize.sm, marginTop: 2 },
   tokensSection: { marginTop: spacing.sm },
-  tokensMainValue: { fontSize: fontSize.lg, fontWeight: '700', marginTop: 2, marginBottom: spacing.sm },
+  tokensMainValue: { fontSize: fontSize.lg, ...font('bold'), marginTop: 2, marginBottom: spacing.sm },
   tokensSampleCaption: { fontSize: fontSize.xs, marginTop: spacing.xs },
   tokensComparisonText: { fontSize: fontSize.sm, marginTop: spacing.xs, lineHeight: 19 },
   // Deliberately no card-per-source, no border, no background — a compact
   // vertical list stays visually secondary to the reasoning above it.
   sourcesSection: { marginTop: spacing.sm },
+  sourcesToggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minHeight: 44, borderRadius: radius.sm },
+  sourcesLabel: { marginTop: 0 },
   sourceRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -335,11 +359,10 @@ const styles = StyleSheet.create({
   feedbackButton: {
     width: 44,
     height: 44,
-    borderRadius: radius.md,
+    borderRadius: radius.full,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  feedbackButtonPressed: { opacity: 0.7 },
   feedbackErrorText: { fontSize: fontSize.xs, marginTop: spacing.xs },
 });

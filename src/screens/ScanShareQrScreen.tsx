@@ -1,11 +1,15 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Platform, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { AppButton } from '../components/AppButton';
+import { AppCard } from '../components/AppCard';
+import { ListRow } from '../components/ListRow';
+import { EnterShareCodeScreen } from './EnterShareCodeScreen';
+import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { usePendingShare } from '../context/PendingShareContext';
@@ -26,13 +30,19 @@ import { spacing } from '../styles/theme';
  * it instead unmounts the camera immediately and correctly, and there is no
  * reason to navigate "back" into a scanner that already did its job.
  */
-type ScanShareQrNavigationParamList = { ConvitePaciente: undefined };
+type ScanShareQrNavigationParamList = { ConvitePaciente: undefined; InserirCodigoConvite: undefined };
 
+/** Web has no webcam reader (P4): sharing there goes through the text code only. */
 export function ScanShareQrScreen() {
+  return Platform.OS === 'web' ? <EnterShareCodeScreen /> : <CameraScanner />;
+}
+
+function CameraScanner() {
   const navigation = useNavigation<NativeStackNavigationProp<ScanShareQrNavigationParamList>>();
   const colors = useThemeColors();
   const { t } = useTranslation();
   const { setPendingToken, markPresented } = usePendingShare();
+  const { status } = useAuth();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanError, setScanError] = useState('');
   const scanLockedRef = useRef(false);
@@ -65,7 +75,7 @@ export function ScanShareQrScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('scanShareQr.title')} />
-        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl }}>
+        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
           {t('scanShareQr.checkingPermission')}
         </Text>
       </View>
@@ -77,7 +87,7 @@ export function ScanShareQrScreen() {
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('scanShareQr.title')} />
         <ScreenContainer>
-          <Text style={{ color: colors.text, marginBottom: spacing.md, lineHeight: 20 }}>
+          <Text style={{ color: colors.ink, marginBottom: spacing.md, lineHeight: 20 }}>
             {permission.canAskAgain
               ? t('scanShareQr.permissionExplanation')
               : t('scanShareQr.permissionDeniedPermanently')}
@@ -101,11 +111,11 @@ export function ScanShareQrScreen() {
           onBarcodeScanned={handleBarcodeScanned}
         />
         <View style={styles.frameOverlay} pointerEvents="none">
-          <View style={[styles.frame, { borderColor: '#FFFFFF' }]} />
+          <View style={[styles.frame, { borderColor: colors.onCamera }]} />
         </View>
       </View>
       <ScreenContainer>
-        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: spacing.sm }}>
+        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginBottom: spacing.sm }}>
           {t('scanShareQr.instructions')}
         </Text>
         {scanError ? (
@@ -113,8 +123,17 @@ export function ScanShareQrScreen() {
             <Text style={{ color: colors.error, textAlign: 'center', marginBottom: spacing.sm }}>
               {scanError}
             </Text>
-            <AppButton title={t('scanShareQr.scanAgain')} variant="outline" onPress={handleScanAgain} />
+            <AppButton title={t('scanShareQr.scanAgain')} variant="secondary" onPress={handleScanAgain} />
           </>
+        ) : null}
+        {status === 'authenticated' ? (
+          <AppCard style={styles.footerCard}>
+            <ListRow
+              icon="keypad-outline"
+              title={t('enterShareCode.entryLink')}
+              onPress={() => navigation.navigate('InserirCodigoConvite')}
+            />
+          </AppCard>
         ) : null}
       </ScreenContainer>
     </View>
@@ -136,6 +155,7 @@ const styles = StyleSheet.create({
     width: 220,
     height: 220,
     borderWidth: 3,
-    borderRadius: 16,
+    borderRadius: 20,
   },
+  footerCard: { padding: 0, overflow: 'hidden', marginTop: spacing.md },
 });

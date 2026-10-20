@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { AppButton } from '../components/AppButton';
+import { AppInput } from '../components/AppInput';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { usePendingShare } from '../context/PendingShareContext';
-import { spacing, radius, fontSize } from '../styles/theme';
+import { parsePatientShareUrl } from '../utils/shareLink';
+import { spacing, layout } from '../styles/theme';
+import { commonStyles } from '../styles/common';
 
 /**
- * Manual-code fallback for VETERINARIO-to-VETERINARIO invitations — the
+ * Manual-code fallback for invitations (VETERINARIO and RESPONSAVEL) — the
  * backend has no shorter code for this sprint, so the "code" pasted here is
  * the same raw share token `CreateShareScreen` offers via "Copiar código".
  * There is no second sharing model: this screen does nothing but trim the
@@ -34,6 +38,7 @@ export function EnterShareCodeScreen() {
   const { setPendingToken, markPresented } = usePendingShare();
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
+  const wide = useBreakpoint() === 'wide';
 
   const handleContinue = () => {
     const trimmed = code.trim();
@@ -41,35 +46,37 @@ export function EnterShareCodeScreen() {
       setError(t('enterShareCode.errorEmpty'));
       return;
     }
-    setPendingToken(trimmed);
-    markPresented(trimmed);
+    // A pasted share link is accepted too; anything else is sent as the raw token.
+    const token = parsePatientShareUrl(trimmed) ?? trimmed;
+    setPendingToken(token);
+    markPresented(token);
     navigation.navigate('ConvitePaciente');
   };
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('enterShareCode.title')} />
-      <ScreenContainer>
-        <Text style={{ color: colors.textSecondary, marginBottom: spacing.md, lineHeight: 20 }}>
+      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
+        <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md, lineHeight: 20 }}>
           {t('enterShareCode.instructions')}
         </Text>
 
-        <Text style={[styles.label, { color: colors.text }]}>{t('enterShareCode.codeLabel')}</Text>
-        <TextInput
+        <AppInput
+          label={t('enterShareCode.codeLabel')}
           value={code}
           onChangeText={(value) => {
             setCode(value);
             if (error) setError('');
           }}
           placeholder={t('enterShareCode.codePlaceholder')}
-          placeholderTextColor={colors.textSecondary}
+          error={error || undefined}
           autoCapitalize="none"
           autoCorrect={false}
           multiline
-          style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface }]}
+          submitBehavior="submit"
+          onSubmitEditing={handleContinue}
+          style={commonStyles.arkiveId}
         />
-
-        {error ? <Text style={{ color: colors.error, marginTop: spacing.sm }}>{error}</Text> : null}
 
         <AppButton title={t('enterShareCode.continueButton')} onPress={handleContinue} style={styles.continueButton} />
       </ScreenContainer>
@@ -79,14 +86,5 @@ export function EnterShareCodeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  label: { fontSize: fontSize.sm, fontWeight: '600', marginBottom: spacing.xs },
-  input: {
-    minHeight: 56,
-    borderWidth: 1.5,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: fontSize.md,
-  },
   continueButton: { marginTop: spacing.md },
 });

@@ -35,7 +35,7 @@ export function ChangePasswordScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('changePassword.voluntaryTitle')} />
       <ScreenContainer>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+        <Text style={[styles.subtitle, { color: colors.inkSecondary }]}>
           {t('changePassword.voluntarySubtitle')}
         </Text>
 

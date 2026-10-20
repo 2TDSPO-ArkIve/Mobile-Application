@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../i18n/useTranslation';
-import { spacing, fontSize } from '../../styles/theme';
+import { spacing, fontSize, font } from '../../styles/theme';
 
 export interface HorizontalBarRow {
   key: string | number;
@@ -49,13 +49,13 @@ export function HorizontalBars({ rows, showRank, showShare, collapseAfter = DEFA
           <>
             <View style={styles.header}>
               {showRank ? (
-                <Text style={[styles.rank, { color: colors.textSecondary }]}>{index + 1}</Text>
+                <Text style={[styles.rank, { color: colors.inkSecondary }]}>{index + 1}</Text>
               ) : null}
-              <Text style={[styles.label, { color: colors.text }]} numberOfLines={1}>
+              <Text style={[styles.label, { color: colors.ink }]} numberOfLines={1}>
                 {row.label}
               </Text>
-              <Text style={[styles.value, { color: colors.text }]}>{valueLabel}</Text>
-              {share ? <Text style={[styles.share, { color: colors.textSecondary }]}>{share}</Text> : null}
+              <Text style={[styles.value, { color: colors.ink }]}>{valueLabel}</Text>
+              {share ? <Text style={[styles.share, { color: colors.inkSecondary }]}>{share}</Text> : null}
             </View>
             {/* The % width is taken from this track, so the rank indent never pushes the bar past the card. */}
             <View style={showRank && styles.barIndented}>
@@ -91,7 +91,7 @@ export function HorizontalBars({ rows, showRank, showShare, collapseAfter = DEFA
           accessibilityState={{ expanded }}
           style={styles.toggle}
         >
-          <Text style={[styles.toggleText, { color: colors.primary }]}>
+          <Text style={[styles.toggleText, { color: colors.ink }]}>
             {expanded
               ? t('costDashboard.showFirst', { count: collapseAfter })
               : t('costDashboard.showAll', { count: rows.length })}
@@ -108,10 +108,10 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
   rank: { width: 18, fontSize: fontSize.xs, fontVariant: ['tabular-nums'] },
   label: { fontSize: fontSize.sm, flex: 1 },
-  value: { fontSize: fontSize.sm, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  value: { fontSize: fontSize.sm, ...font('semibold'), fontVariant: ['tabular-nums'] },
   share: { fontSize: fontSize.xs, fontVariant: ['tabular-nums'], minWidth: 40, textAlign: 'right' },
   bar: { height: 4, borderRadius: 2, marginTop: spacing.xs, opacity: BAR_OPACITY },
   barIndented: { marginLeft: 18 + spacing.sm },
   toggle: { alignSelf: 'flex-start', paddingVertical: spacing.xs },
-  toggleText: { fontSize: fontSize.sm, fontWeight: '600' },
+  toggleText: { fontSize: fontSize.sm, ...font('semibold') },
 });

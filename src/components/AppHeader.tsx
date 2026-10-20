@@ -6,7 +6,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { HeaderIconButton } from './HeaderIconButton';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
 import type { AppStackParamList } from '../interfaces/navigation';
 
 export interface HeaderAction {
@@ -27,9 +27,8 @@ interface Props {
 }
 
 /**
- * White surface with a thin bottom border — the ArkIve default. Title is
- * dark on white; back/action affordances are primary blue on white, never
- * the reverse (no solid brand-colored bar behind white text).
+ * `surface` with a thin `line` bottom border. Title and back/action
+ * affordances are `ink`; never a solid accent bar behind light text.
  */
 export function AppHeader({ title, showBack = true, actions }: Props) {
   const colors = useThemeColors();
@@ -44,7 +43,7 @@ export function AppHeader({ title, showBack = true, actions }: Props) {
         {
           paddingTop: insets.top + spacing.sm,
           backgroundColor: colors.surface,
-          borderBottomColor: colors.border,
+          borderBottomColor: colors.line,
         },
       ]}
     >
@@ -60,12 +59,12 @@ export function AppHeader({ title, showBack = true, actions }: Props) {
             accessibilityRole="button"
             accessibilityLabel="Voltar"
           >
-            <Text style={[styles.iconText, { color: colors.primary }]}>←</Text>
+            <Text style={[styles.iconText, { color: colors.ink }]}>←</Text>
           </Pressable>
         ) : (
           <View style={styles.iconBtn} />
         )}
-        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+        <Text style={[styles.title, { color: colors.ink }]} numberOfLines={1}>
           {title}
         </Text>
         {actions && actions.length > 0 ? (
@@ -105,8 +104,8 @@ const styles = StyleSheet.create({
   },
   title: {
     flex: 1,
-    fontSize: fontSize.xl,
-    fontWeight: '800',
+    fontSize: fontSize.lg,
+    ...font('semibold'),
     textAlign: 'center',
   },
   iconBtn: {
@@ -114,6 +113,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconText: { fontSize: 24, fontWeight: '600' },
+  iconText: { fontSize: 24, ...font('semibold') },
   actionsRow: { flexDirection: 'row' },
 });

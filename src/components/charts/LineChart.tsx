@@ -98,8 +98,8 @@ export function LineChart({ labels, lines, formatValue, accessibilityLabel }: Pr
                 width={width}
                 plotHeight={plotHeight}
                 maxValue={maxValue}
-                color={colors.border}
-                labelColor={colors.textSecondary}
+                color={colors.line}
+                labelColor={colors.inkSecondary}
               />
               {active != null ? (
                 <Line
@@ -107,7 +107,7 @@ export function LineChart({ labels, lines, formatValue, accessibilityLabel }: Pr
                   x2={x(active)}
                   y1={0}
                   y2={plotHeight}
-                  stroke={colors.textSecondary}
+                  stroke={colors.inkSecondary}
                   strokeWidth={1}
                   strokeDasharray="3 3"
                 />
@@ -158,7 +158,7 @@ export function LineChart({ labels, lines, formatValue, accessibilityLabel }: Pr
                     x={x(i)}
                     y={HEIGHT - 4}
                     fontSize={10}
-                    fill={colors.textSecondary}
+                    fill={colors.inkSecondary}
                     textAnchor="middle"
                   >
                     {label}

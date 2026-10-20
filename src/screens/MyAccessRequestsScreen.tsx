@@ -10,6 +10,7 @@ import { AppButton } from '../components/AppButton';
 import { StatusBadge } from '../components/StatusBadge';
 import { EmptyState } from '../components/EmptyState';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { useMyAccessRequests, useCreateAccessRequest } from '../hooks/usePatientAccessRequests';
 import { useLookupPatientByArkiveId } from '../hooks/usePatients';
@@ -21,7 +22,8 @@ import { normalizeArkivePatientId, isPlausibleArkivePatientId } from '../utils/a
 import { ApiError } from '../services/apiClient';
 import type { AccessRequestDto } from '../services/patientAccessRequestService';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, layout } from '../styles/theme';
+import { commonStyles } from '../styles/common';
 
 /** Java's own 30s polling cadence precedent (notification/unread-count) — compensates for a confirmed gap: the requesting veterinarian is never sent a notification when a Responsible approves/rejects their request, so this screen refetches on its own while open. */
 const POLL_MS = 30_000;
@@ -82,27 +84,27 @@ function AccessRequestRow({ request }: { request: AccessRequestDto }) {
   return (
     <AppCard>
       <View style={styles.headerRow}>
-        <Text style={[styles.arkiveIdText, { color: colors.text }]} selectable numberOfLines={1}>
+        <Text style={[styles.arkiveIdText, { color: colors.ink }]} selectable numberOfLines={1}>
           {patientArkiveIdLine({ arkivePatientId: request.arkivePatientId })}
         </Text>
         <StatusBadge label={presentation.label} tone={presentation.tone} />
       </View>
 
       {request.animalNome ? (
-        <Text style={[styles.field, { color: colors.text }]}>
+        <Text style={[styles.field, { color: colors.ink }]}>
           {t('myAccessRequests.patientLabel', { name: request.animalNome })}
         </Text>
       ) : (
-        <Text style={[styles.field, { color: colors.textSecondary }]}>{t('myAccessRequests.patientPendingLabel')}</Text>
+        <Text style={[styles.field, { color: colors.inkSecondary }]}>{t('myAccessRequests.patientPendingLabel')}</Text>
       )}
 
       {!Number.isNaN(requestedDate.getTime()) ? (
-        <Text style={[styles.field, { color: colors.textSecondary }]}>
+        <Text style={[styles.field, { color: colors.inkSecondary }]}>
           {t('myAccessRequests.requestedAtLabel', { date: formatDateTime(requestedDate) })}
         </Text>
       ) : null}
       {resolvedDate && !Number.isNaN(resolvedDate.getTime()) ? (
-        <Text style={[styles.field, { color: colors.textSecondary }]}>
+        <Text style={[styles.field, { color: colors.inkSecondary }]}>
           {t('myAccessRequests.resolvedAtLabel', { date: formatDateTime(resolvedDate) })}
         </Text>
       ) : null}
@@ -112,7 +114,7 @@ function AccessRequestRow({ request }: { request: AccessRequestDto }) {
           {openError ? <Text style={[styles.field, { color: colors.error }]}>{openError}</Text> : null}
           <AppButton
             title={t('myAccessRequests.openPatientButton')}
-            variant="outline"
+            variant="secondary"
             onPress={handleOpenPatient}
             loading={lookup.isPending}
             disabled={lookup.isPending}
@@ -204,7 +206,7 @@ function NewAccessRequestSection() {
       <View style={styles.newRequestActions}>
         <AppButton
           title={t('myAccessRequests.newRequestCancel')}
-          variant="outline"
+          variant="secondary"
           onPress={() => {
             setOpen(false);
             setInput('');
@@ -230,21 +232,22 @@ export function MyAccessRequestsScreen() {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const { data, isPending, isError, error, refetch } = useMyAccessRequests(undefined, { refetchInterval: POLL_MS });
+  const wide = useBreakpoint() === 'wide';
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('myAccessRequests.title')} />
-      <ScreenContainer>
+      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
         <NewAccessRequestSection />
 
         {isPending ? (
-          <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl }}>
+          <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
             {t('myAccessRequests.loading')}
           </Text>
         ) : isError ? (
           <>
             <EmptyState title={t('myAccessRequests.loadErrorTitle')} message={describeAccessRequestListError(error)} />
-            <AppButton title={t('common.tryAgain')} variant="outline" onPress={() => refetch()} />
+            <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
           </>
         ) : !data || data.length === 0 ? (
           <EmptyState title={t('myAccessRequests.emptyTitle')} message={t('myAccessRequests.emptyMessage')} />
@@ -259,7 +262,7 @@ export function MyAccessRequestsScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm, gap: spacing.sm },
-  arkiveIdText: { fontSize: fontSize.sm, fontFamily: 'monospace', flexShrink: 1 },
+  arkiveIdText: { fontSize: fontSize.sm, ...commonStyles.arkiveId, flexShrink: 1 },
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
   openButton: { marginTop: spacing.sm },
   newRequestToggle: { marginBottom: spacing.md },

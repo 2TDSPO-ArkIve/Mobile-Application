@@ -2,57 +2,61 @@ import React from 'react';
 import { View, Pressable, StyleSheet, ViewStyle } from 'react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { radius, spacing } from '../styles/theme';
-import { shadows } from '../styles/shadows';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 import type { ColorPalette } from '../styles/colors';
 
 interface Props {
   children: React.ReactNode;
   onPress?: () => void;
   style?: ViewStyle;
-  /**
-   * Left-border accent color — used to distinguish AI-support cards
-   * (primary) from veterinarian-confirmed conclusion cards (success),
-   * without changing the card's neutral surface otherwise.
-   */
-  accentColor?: string;
+  /** 4 px bar along the top edge, clipped by the radius: the veterinarian's signature (revisão achado 13). */
+  topBar?: string;
   /** Forces a specific palette instead of the app's current theme — see AppButton's note on the same prop. */
   colors?: ColorPalette;
 }
 
-export function AppCard({ children, onPress, style, accentColor, colors: colorsOverride }: Props) {
+/** Plano B §3.4: radius 20, no border, no shadow at rest; separated from `background` by tone. */
+export function AppCard({ children, onPress, style, topBar, colors: colorsOverride }: Props) {
   const themeColors = useThemeColors();
   const colors = colorsOverride ?? themeColors;
 
   const cardStyle = [
     styles.card,
-    {
-      backgroundColor: colors.surface,
-      borderColor: colors.border,
-    },
-    accentColor ? { borderLeftWidth: 4, borderLeftColor: accentColor } : null,
+    { backgroundColor: colors.surface },
+    topBar ? styles.clipped : null,
     style,
   ];
+  const content = (
+    <>
+      {topBar ? <View style={[styles.topBar, { backgroundColor: topBar }]} /> : null}
+      {children}
+    </>
+  );
 
   if (onPress) {
     return (
       <Pressable
         onPress={onPress}
-        style={({ pressed }) => [...cardStyle, pressed && { backgroundColor: colors.primaryTint }]}
+        style={(state: InteractionState) => [
+          ...cardStyle,
+          isActive(state) && { backgroundColor: colors.sunken },
+          focusRing(state, colors),
+        ]}
       >
-        {children}
+        {content}
       </Pressable>
     );
   }
 
-  return <View style={cardStyle}>{children}</View>;
+  return <View style={cardStyle}>{content}</View>;
 }
 
 const styles = StyleSheet.create({
   card: {
-    borderWidth: 1,
-    borderRadius: radius.md,
+    borderRadius: radius.card,
     padding: spacing.md,
     marginBottom: spacing.sm,
-    ...shadows.sm,
   },
+  clipped: { overflow: 'hidden' },
+  topBar: { position: 'absolute', top: 0, left: 0, right: 0, height: 4 },
 });

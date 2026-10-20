@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import { spacing, radius, fontSize } from './theme';
+import { Platform, StyleSheet } from 'react-native';
+import { spacing, radius, fontSize, font } from './theme';
 import { shadows } from './shadows';
 
 export const commonStyles = StyleSheet.create({
@@ -31,22 +31,22 @@ export const commonStyles = StyleSheet.create({
   },
   title: {
     fontSize: fontSize.xxl,
-    fontWeight: '800',
+    ...font('bold'),
   },
   subtitle: {
     fontSize: fontSize.md,
-    fontWeight: '500',
+    ...font('medium'),
   },
   sectionTitle: {
     fontSize: fontSize.lg,
-    fontWeight: '700',
+    ...font('bold'),
     marginBottom: spacing.sm,
     marginTop: spacing.md,
   },
   /** Small uppercase section label, e.g. above a card group on Consultation Detail. */
   eyebrow: {
     fontSize: fontSize.xs,
-    fontWeight: '700',
+    ...font('bold'),
     textTransform: 'uppercase',
     letterSpacing: 0.7,
   },
@@ -57,7 +57,7 @@ export const commonStyles = StyleSheet.create({
   },
   label: {
     fontSize: fontSize.sm,
-    fontWeight: '600',
+    ...font('semibold'),
     marginBottom: spacing.xs,
   },
   helperText: {
@@ -66,7 +66,7 @@ export const commonStyles = StyleSheet.create({
   },
   errorText: {
     fontSize: fontSize.xs,
-    fontWeight: '600',
+    ...font('semibold'),
     marginTop: spacing.xs,
   },
   fab: {
@@ -79,5 +79,14 @@ export const commonStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...shadows.md,
+  },
+  /**
+   * ArkIve ID (`ARK-PET-…`, 38 characters): Jakarta 500 with tabular digits
+   * (decisão P3), breaking at any character so it never overflows.
+   */
+  arkiveId: {
+    ...font('medium'),
+    fontVariant: ['tabular-nums'],
+    ...(Platform.OS === 'web' ? ({ wordBreak: 'break-all' } as object) : null),
   },
 });

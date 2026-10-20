@@ -1,4 +1,5 @@
-export type ThemeMode = 'light' | 'dark';
+export type ThemeMode = 'system' | 'light' | 'dark';
+export type ColorScheme = 'light' | 'dark';
 
 export interface ThemePreferences {
   mode: ThemeMode;

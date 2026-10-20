@@ -7,6 +7,9 @@ import { ScreenContainer } from '../components/ScreenContainer';
 import { AppCard } from '../components/AppCard';
 import { AppButton } from '../components/AppButton';
 import { EmptyState } from '../components/EmptyState';
+import { ArkiveIdField } from '../components/ArkiveIdField';
+import { ListRow } from '../components/ListRow';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
@@ -14,8 +17,8 @@ import { usePatient } from '../hooks/usePatients';
 import { useAnimalTutores } from '../hooks/useTutores';
 import { AnimalObservationCard } from '../components/AnimalObservationCard';
 import { formatAge } from '../utils/localeFormat';
-import { patientArkiveIdLine } from '../utils/patientDisplay';
-import { spacing, fontSize } from '../styles/theme';
+import { patientSummaryLine } from '../utils/patientDisplay';
+import { spacing, fontSize, font, layout } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
 /**
@@ -57,6 +60,7 @@ export function PatientDetailScreen() {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const { isVeterinario, isResponsavel } = useAuth();
+  const wide = useBreakpoint() === 'wide';
   const { data: patient, isPending, isError, error, refetch } = usePatient(route.params.patientId);
   const { data: tutores } = useAnimalTutores(patient?.id ?? null);
   const currentTutor = tutores?.find((rel) => rel.principal === 'S') ?? tutores?.[0] ?? null;
@@ -65,7 +69,7 @@ export function PatientDetailScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('patientDetail.title')} />
-        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl }}>
+        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
           {t('patientDetail.loading')}
         </Text>
       </View>
@@ -81,7 +85,7 @@ export function PatientDetailScreen() {
             title={t('patientDetail.loadErrorTitle')}
             message={error instanceof Error ? error.message : t('patientDetail.notFound')}
           />
-          <AppButton title={t('common.tryAgain')} variant="outline" onPress={() => refetch()} />
+          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
         </ScreenContainer>
       </View>
     );
@@ -89,62 +93,49 @@ export function PatientDetailScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <AppHeader title={patient.nome} />
-      <ScreenContainer>
+      <AppHeader title={t('patientDetail.title')} />
+      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
+        {/* Cover. The ArkIve id is permanent, opaque and NOT secret — readable,
+            copyable, never masked; a neutral message (never the database id)
+            shows if it's unexpectedly missing. */}
+        <View style={styles.cover}>
+          <Text style={[styles.coverName, { color: colors.ink }]} numberOfLines={2}>
+            {patient.nome}
+          </Text>
+          <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md }}>{patientSummaryLine(patient)}</Text>
+          <ArkiveIdField arkivePatientId={patient.arkivePatientId} />
+        </View>
+
         <AppCard>
-          <Text style={[commonStyles.eyebrow, { color: colors.primary, marginBottom: spacing.sm }]}>
+          <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
             {t('patientDetail.dataSection')}
           </Text>
-          <Text style={[styles.field, { color: colors.text }]}>{t('patientDetail.nameLabel', { name: patient.nome })}</Text>
-          <Text style={[styles.field, { color: colors.text }]}>
-            {t('patientDetail.speciesLabel', { species: patient.especieNome })}
-          </Text>
-          <Text style={[styles.field, { color: colors.text }]}>
-            {t('patientDetail.breedLabel', { breed: patient.racaNome ?? t('common.notInformedFeminine') })}
-          </Text>
-          <Text style={[styles.field, { color: colors.text }]}>
-            {t('patientDetail.sexLabel', {
-              sex:
-                patient.sexo === 'M'
-                  ? t('common.male')
-                  : patient.sexo === 'F'
-                    ? t('common.female')
-                    : t('common.notInformed'),
-            })}
-          </Text>
-          <Text style={[styles.field, { color: colors.text }]}>
-            {t('patientDetail.neuteredLabel', { value: patient.castrado === 'S' ? t('common.yes') : t('common.no') })}
-          </Text>
-          {patient.dataNascimento ? (
-            <Text style={[styles.field, { color: colors.text }]}>
-              {t('patientDetail.ageLabel', { value: formatAge(patient.dataNascimento) })}
-            </Text>
-          ) : null}
-          <Text style={[styles.field, { color: colors.textSecondary }]}>
-            {currentTutor
-              ? t('patientDetail.tutorLabel', { name: currentTutor.responsavelNome })
-              : t('patientDetail.tutorNone')}
-          </Text>
-          {patient.clinicaNome ? (
-            <Text style={[styles.field, { color: colors.textSecondary }]}>
-              {t('patientDetail.clinicLabel', { clinic: patient.clinicaNome })}
-            </Text>
-          ) : null}
-          <View style={styles.arkiveIdWrap}>
-            <Text style={[styles.arkiveIdLabel, { color: colors.textSecondary }]}>
-              {t('patientDetail.arkiveIdLabel')}
-            </Text>
-            {/* Permanent, opaque, NOT secret — selectable/readable text, never masked or treated as a credential. A neutral message (never the database id) is shown if the ArkIve id is unexpectedly missing. */}
-            <Text style={[styles.arkiveIdValue, { color: colors.text }]} selectable>
-              {patientArkiveIdLine(patient)}
-            </Text>
+          <View style={styles.fields}>
+            {[
+              [t('patientDetail.speciesLabel'), patient.especieNome],
+              [t('patientDetail.breedLabel'), patient.racaNome ?? t('common.notInformedFeminine')],
+              [
+                t('patientDetail.sexLabel'),
+                patient.sexo === 'M' ? t('common.male') : patient.sexo === 'F' ? t('common.female') : t('common.notInformed'),
+              ],
+              [t('patientDetail.neuteredLabel'), patient.castrado === 'S' ? t('common.yes') : t('common.no')],
+              ...(patient.dataNascimento ? [[t('patientDetail.ageLabel'), formatAge(patient.dataNascimento)]] : []),
+              [t('patientDetail.tutorField'), currentTutor ? currentTutor.responsavelNome : t('patientDetail.tutorNone')],
+              ...(patient.clinicaNome ? [[t('patientDetail.clinicLabel'), patient.clinicaNome]] : []),
+            ].map(([label, value]) => (
+              <View key={label} style={styles.fieldItem}>
+                <Text style={[styles.fieldLabel, { color: colors.inkSecondary }]}>{label}</Text>
+                <Text style={[styles.fieldValue, { color: colors.ink }]}>{value}</Text>
+              </View>
+            ))}
           </View>
         </AppCard>
 
         {isVeterinario ? (
           <AppButton
             title={t('patientDetail.editButton')}
-            variant="outline"
+            variant="secondary"
+            icon="create-outline"
             onPress={() => navigation.navigate('EditarPaciente', { patientId: patient.id })}
           />
         ) : null}
@@ -153,57 +144,66 @@ export function PatientDetailScreen() {
             animal is one they're actively linked to (e.g. vs. one shared
             with them read-only) — Java alone decides via
             `exigirResponsavelVinculado` (403 if not linked), same pattern as
-            every other button below. Never inferred client-side from the
+            every other action below. Never inferred client-side from the
             numeric id alone. */}
         {isResponsavel ? (
           <AppButton
             title={t('patientDetail.editAnimalButton')}
-            variant="outline"
+            variant="secondary"
+            icon="create-outline"
             onPress={() => navigation.navigate('EditarAnimal', { patientId: patient.id })}
           />
         ) : null}
 
+        <Text style={[commonStyles.eyebrow, styles.groupLabel, { color: colors.inkSecondary }]}>
+          {t('patientDetail.clinicalGroup')}
+        </Text>
+        <AppCard style={styles.group}>
+          {/* Same shared action for both roles — Java authorizes RESPONSAVEL
+              read access to `GET /api/animais/{id}/historico` identically to
+              VETERINARIO; not gated by `isVeterinario`. */}
+          <ListRow
+            icon="time-outline"
+            title={t('patientDetail.historyButton')}
+            onPress={() => navigation.navigate('HistoricoPaciente', { patientId: patient.id })}
+          />
+          {/* Same cross-role read-only dashboard — `GET /api/animais/{id}/custos` is authorized identically for VETERINARIO/RESPONSAVEL; price EDITING stays exclusive to the veterinarian's own consultation/prescription forms, never here. */}
+          <ListRow
+            icon="cash-outline"
+            title={t('patientDetail.costsButton')}
+            onPress={() => navigation.navigate('CustosPaciente', { patientId: patient.id })}
+          />
+          {/* New permanent report history (Java V18) — RESPONSAVEL-only entry
+              point here, deliberately distinct from the pending-observation
+              card below: "Relatos e observações" (this row) is a growing,
+              permanent history; "Observações para a próxima consulta" (the
+              card below) is a single note Java snapshots into one consultation
+              and clears. Never two entries with the same label, never merged
+              into one feature. The veterinarian's own entry point to the same
+              read-only history lives on ConsultaDetailScreen's eye icon, not
+              here. */}
+          {isResponsavel ? (
+            <ListRow
+              icon="document-text-outline"
+              title={t('patientDetail.reportsButton')}
+              onPress={() => navigation.navigate('RelatosAnimal', { patientId: patient.id })}
+            />
+          ) : null}
+        </AppCard>
+
         {/* Both VETERINARIO and RESPONSAVEL may share a patient they
             legitimately have access to — confirmed against
             `ClinicalAccessService.exigirCriacaoCompartilhamentoAnimal`. */}
-        <AppButton
-          title={t('patientDetail.shareButton')}
-          variant="outline"
-          onPress={() => navigation.navigate('CompartilharPaciente', { patientId: patient.id })}
-        />
-
-        {/* Same shared action for both roles — Java authorizes RESPONSAVEL
-            read access to `GET /api/animais/{id}/historico` identically to
-            VETERINARIO; this button is not gated by `isVeterinario`. */}
-        <AppButton
-          title={t('patientDetail.historyButton')}
-          variant="outline"
-          onPress={() => navigation.navigate('HistoricoPaciente', { patientId: patient.id })}
-        />
-
-        {/* Same cross-role read-only dashboard — `GET /api/animais/{id}/custos` is authorized identically for VETERINARIO/RESPONSAVEL; price EDITING stays exclusive to the veterinarian's own consultation/prescription forms, never here. */}
-        <AppButton
-          title={t('patientDetail.costsButton')}
-          variant="outline"
-          onPress={() => navigation.navigate('CustosPaciente', { patientId: patient.id })}
-        />
-
-        {/* New permanent report history (Java V18) — RESPONSAVEL-only entry
-            point here, deliberately distinct from the pending-observation
-            card below: "Relatos e observações" (this button) is a growing,
-            permanent history; "Observações para a próxima consulta" (the
-            card below) is a single note Java snapshots into one consultation
-            and clears. Never two buttons with the same label, never merged
-            into one feature. The veterinarian's own entry point to the same
-            read-only history lives on ConsultaDetailScreen's eye icon, not
-            here. */}
-        {isResponsavel ? (
-          <AppButton
-            title={t('patientDetail.reportsButton')}
-            variant="outline"
-            onPress={() => navigation.navigate('RelatosAnimal', { patientId: patient.id })}
+        <Text style={[commonStyles.eyebrow, styles.groupLabel, { color: colors.inkSecondary }]}>
+          {t('patientDetail.shareGroup')}
+        </Text>
+        <AppCard style={styles.group}>
+          <ListRow
+            icon="share-social-outline"
+            title={t('patientDetail.shareButton')}
+            onPress={() => navigation.navigate('CompartilharPaciente', { patientId: patient.id })}
           />
-        ) : null}
+        </AppCard>
 
         {/* RESPONSAVEL-only pending note for the NEXT consultation — see
             AnimalObservationCard's own doc comment for the pending-vs-snapshot
@@ -218,8 +218,13 @@ export function PatientDetailScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  field: { fontSize: fontSize.sm, marginTop: spacing.xs },
-  arkiveIdWrap: { marginTop: spacing.sm },
-  arkiveIdLabel: { fontSize: fontSize.xs, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  arkiveIdValue: { fontSize: fontSize.sm, fontFamily: 'monospace', marginTop: 2 },
+  cover: { paddingVertical: spacing.md, marginBottom: spacing.sm },
+  coverName: { fontSize: 28, lineHeight: 34, ...font('bold'), marginBottom: spacing.xs },
+  // Two columns of label over value; long values wrap inside their column.
+  fields: { flexDirection: 'row', flexWrap: 'wrap', rowGap: spacing.md },
+  fieldItem: { width: '50%', paddingRight: spacing.sm },
+  fieldLabel: { fontSize: fontSize.xs },
+  fieldValue: { fontSize: fontSize.md, ...font('medium'), marginTop: 2 },
+  groupLabel: { marginTop: spacing.lg, marginBottom: spacing.sm },
+  group: { padding: 0, overflow: 'hidden' },
 });

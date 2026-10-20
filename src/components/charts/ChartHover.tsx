@@ -3,7 +3,7 @@ import { View, Text, Pressable, Platform, StyleSheet } from 'react-native';
 import { G, Line, Text as SvgText } from 'react-native-svg';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { formatCurrencyShort } from './chartFormat';
-import { radius, spacing, fontSize } from '../../styles/theme';
+import { radius, spacing, fontSize, font } from '../../styles/theme';
 import { shadows } from '../../styles/shadows';
 
 export const AXIS_WIDTH = 52;
@@ -102,9 +102,9 @@ export function ChartTooltip({
   return (
     <View
       pointerEvents="none"
-      style={[styles.tooltip, shadows.md, { left, width, backgroundColor: colors.surface, borderColor: colors.border }]}
+      style={[styles.tooltip, shadows.md, { left, width, backgroundColor: colors.raised, borderColor: colors.line }]}
     >
-      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+      <Text style={[styles.title, { color: colors.ink }]}>{title}</Text>
       {rows.map((row) => (
         <View key={row.label} style={styles.row}>
           <View
@@ -113,10 +113,10 @@ export function ChartTooltip({
               row.dashed ? { borderColor: row.color, borderWidth: 1, borderStyle: 'dashed' } : { backgroundColor: row.color },
             ]}
           />
-          <Text style={[styles.label, { color: colors.textSecondary }]} numberOfLines={1}>
+          <Text style={[styles.label, { color: colors.inkSecondary }]} numberOfLines={1}>
             {row.label}
           </Text>
-          <Text style={[styles.value, { color: colors.text }]}>{row.value}</Text>
+          <Text style={[styles.value, { color: colors.ink }]}>{row.value}</Text>
         </View>
       ))}
     </View>
@@ -132,9 +132,9 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  title: { fontSize: fontSize.xs, fontWeight: '700', marginBottom: spacing.xs },
+  title: { fontSize: fontSize.xs, ...font('bold'), marginBottom: spacing.xs },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: 2 },
   swatch: { width: 10, height: 10, borderRadius: 2 },
   label: { fontSize: fontSize.xs, flex: 1 },
-  value: { fontSize: fontSize.xs, fontWeight: '700' },
+  value: { fontSize: fontSize.xs, ...font('bold') },
 });

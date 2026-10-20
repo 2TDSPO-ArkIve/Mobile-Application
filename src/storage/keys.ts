@@ -1,5 +1,7 @@
 export const STORAGE_KEYS = {
   theme: '@arkive/theme',
+  /** Desktop sidebar collapsed to the icon rail (revisão §5.2). */
+  sidebarCollapsed: '@arkive/sidebar-collapsed',
   /** Non-sensitive UX preference (pt-BR/en-US for voice dictation) — AsyncStorage is appropriate; this never touches SecureStore. */
   voiceLocale: '@arkive/voice-locale',
   /**

@@ -9,19 +9,14 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { spacing, radius, fontSize } from '../styles/theme';
-import type { ColorPalette } from '../styles/colors';
+import { spacing, radius, fontSize, font } from '../styles/theme';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 /**
- * `outline` is kept as an alias for the ArkIve "secondary" treatment
- * (neutral surface + border) rather than renamed across every screen that
- * already uses it for "the button that isn't the primary action" (Salvar,
- * Cancelar, Tentar novamente, Editar, ...). `ghost` is available for
- * genuinely minimal/tertiary actions where even a border is too much
- * weight — nothing currently uses it, but it's part of the documented
- * ArkIve button system.
+ * Plano B §3.4: primary is solid `ink`, secondary is `sunken` with `ink`
+ * text, tertiary (`ghost`) is `accent` text only.
  */
-type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
 interface Props {
   title: string;
@@ -35,8 +30,6 @@ interface Props {
   accessibilityLabel?: string;
   /** Optional leading icon (Ionicons name) — e.g. a secondary action like "Cadastrar novo paciente". */
   icon?: React.ComponentProps<typeof Ionicons>['name'];
-  /** Forces a specific palette instead of the app's current theme — e.g. LoginScreen/RegisterScreen pinning `lightColors` so pre-auth screens never pick up the user's dark-mode preference. */
-  colors?: ColorPalette;
 }
 
 export function AppButton({
@@ -49,50 +42,18 @@ export function AppButton({
   style,
   accessibilityLabel,
   icon,
-  colors: colorsOverride,
 }: Props) {
-  const themeColors = useThemeColors();
-  const colors = colorsOverride ?? themeColors;
-  const isSecondary = variant === 'secondary' || variant === 'outline';
+  const colors = useThemeColors();
 
-  const appearance: Record<Variant, { bg: string; border?: string; text: string; pressedBg: string; pressedBorder?: string; pressedText?: string }> = {
-    primary: {
-      bg: colors.primary,
-      text: '#FFFFFF',
-      pressedBg: colors.primaryDark,
-    },
-    secondary: {
-      bg: colors.background,
-      border: colors.border,
-      text: colors.text,
-      pressedBg: colors.primaryTint,
-      pressedBorder: colors.primaryLight,
-      pressedText: colors.primary,
-    },
-    outline: {
-      bg: colors.background,
-      border: colors.border,
-      text: colors.text,
-      pressedBg: colors.primaryTint,
-      pressedBorder: colors.primaryLight,
-      pressedText: colors.primary,
-    },
-    ghost: {
-      bg: 'transparent',
-      text: colors.textSecondary,
-      pressedBg: colors.background,
-    },
-    danger: {
-      bg: colors.errorTint,
-      border: colors.error,
-      text: colors.error,
-      pressedBg: colors.errorTint,
-      pressedBorder: colors.errorDark,
-      pressedText: colors.errorDark,
-    },
+  const appearance: Record<Variant, { bg: string; activeBg: string; text: string }> = {
+    primary: { bg: colors.ink, activeBg: colors.ink, text: colors.onInk },
+    secondary: { bg: colors.sunken, activeBg: colors.line, text: colors.ink },
+    ghost: { bg: 'transparent', activeBg: colors.accentTint, text: colors.accent },
+    danger: { bg: colors.errorTint, activeBg: colors.errorTint, text: colors.error },
   };
 
   const current = appearance[variant];
+  const solid = current.bg === current.activeBg;
 
   return (
     <Pressable
@@ -100,20 +61,20 @@ export function AppButton({
       disabled={disabled || loading}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? title}
-      style={({ pressed }) => [
+      style={(state: InteractionState) => [
         styles.btn,
         size === 'small' && styles.btnSmall,
         {
-          backgroundColor: pressed ? current.pressedBg : current.bg,
-          borderColor: pressed ? (current.pressedBorder ?? current.border) : current.border,
-          borderWidth: current.border ? 1.5 : 0,
-          opacity: disabled ? 0.56 : 1,
+          backgroundColor: isActive(state) ? current.activeBg : current.bg,
+          // Solid fills (primary, danger) darken by opacity; the rest change tone.
+          opacity: disabled ? 0.56 : !solid ? 1 : state.pressed ? 0.8 : state.hovered ? 0.9 : 1,
         },
+        focusRing(state, colors),
         style,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={isSecondary ? colors.primary : current.text} />
+        <ActivityIndicator color={current.text} />
       ) : (
         <View style={styles.content}>
           {icon ? (
@@ -143,8 +104,8 @@ const styles = StyleSheet.create({
   btn: {
     minHeight: 44,
     paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: spacing.xs,
@@ -152,10 +113,10 @@ const styles = StyleSheet.create({
   btnSmall: {
     minHeight: 32,
     paddingVertical: 6,
-    paddingHorizontal: 10,
+    paddingHorizontal: spacing.md,
   },
   content: { flexDirection: 'row', alignItems: 'center' },
   icon: { marginRight: spacing.xs },
-  text: { fontSize: fontSize.md, fontWeight: '700' },
+  text: { fontSize: fontSize.md, ...font('semibold') },
   textSmall: { fontSize: fontSize.sm },
 });

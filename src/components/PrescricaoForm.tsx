@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
 import { AppCard } from './AppCard';
 import { AppInput } from './AppInput';
 import { AppButton } from './AppButton';
+import { ChipGroup } from './ChipGroup';
 import { DateField } from './DateField';
 import { MoneyField } from './MoneyField';
 import { useThemeColors } from '../hooks/useThemeColors';
@@ -11,7 +12,7 @@ import type { PrescricaoRequestInput, ViaAdministracao } from '../services/presc
 import { VIA_ADMINISTRACAO_OPTIONS, viaAdministracaoLabel } from '../utils/viaAdministracao';
 import { parseMoneyInput, moneyToInputValue } from '../utils/money';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
-import { spacing, fontSize, radius } from '../styles/theme';
+import { spacing, fontSize } from '../styles/theme';
 
 export interface PrescricaoFormValues {
   medicamento: string;
@@ -139,11 +140,11 @@ export function PrescricaoForm({
 
   return (
     <AppCard>
-      <Text style={[styles.context, { color: colors.textSecondary }]}>
+      <Text style={[styles.context, { color: colors.inkSecondary }]}>
         {patientName}
         {consultaLabel ? ` · ${consultaLabel}` : ''}
       </Text>
-      <Text style={[styles.contextArkiveId, { color: colors.textSecondary }]} selectable>
+      <Text style={[styles.contextArkiveId, { color: colors.inkSecondary }]} selectable>
         {patientArkiveIdLine({ arkivePatientId: patientArkiveId ?? null })}
       </Text>
 
@@ -171,27 +172,13 @@ export function PrescricaoForm({
         editable={!isSubmitting}
       />
 
-      <Text style={[styles.label, { color: colors.text }]}>{t('prescricaoForm.viaLabel')}</Text>
-      <View style={styles.chipRow}>
-        {VIA_ADMINISTRACAO_OPTIONS.map((option) => (
-          <Pressable
-            key={option}
-            disabled={isSubmitting}
-            onPress={() => setViaAdministracao(option)}
-            style={[
-              styles.chip,
-              {
-                backgroundColor: viaAdministracao === option ? colors.primary : colors.surface,
-                borderColor: colors.border,
-              },
-            ]}
-          >
-            <Text style={{ color: viaAdministracao === option ? '#FFF' : colors.text }}>
-              {viaAdministracaoLabel(option)}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+      <ChipGroup
+        label={t('prescricaoForm.viaLabel')}
+        options={VIA_ADMINISTRACAO_OPTIONS.map((value) => ({ value, label: viaAdministracaoLabel(value) }))}
+        value={viaAdministracao}
+        onChange={(value) => setViaAdministracao(value as ViaAdministracao)}
+        disabled={isSubmitting}
+      />
 
       <DateField label={t('prescricaoForm.dataInicioLabel')} value={dataInicio} onChange={setDataInicio} />
 
@@ -233,7 +220,4 @@ export function PrescricaoForm({
 const styles = StyleSheet.create({
   context: { fontSize: fontSize.xs },
   contextArkiveId: { fontSize: fontSize.xs, marginBottom: spacing.md, marginTop: 2 },
-  label: { fontSize: fontSize.sm, fontWeight: '600', marginBottom: spacing.sm },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.md },
-  chip: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.md, borderWidth: 1 },
 });

@@ -4,7 +4,7 @@ import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/d
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../i18n/useTranslation';
-import { spacing, radius, fontSize } from '../styles/theme';
+import { spacing, radius, fontSize, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 import { ClockGlyph } from './CalendarGlyph';
 import { formatTime } from '../utils/localeFormat';
@@ -19,7 +19,7 @@ interface Props {
 /** Same bottom-sheet-Modal / local-draft architecture as DateField — see the note there. */
 export function TimeField({ label, value, onChange, error }: Props) {
   const colors = useThemeColors();
-  const { mode } = useTheme();
+  const { scheme } = useTheme();
   const { t, language } = useTranslation();
   const [iosOpen, setIosOpen] = useState(false);
   const [draft, setDraft] = useState<Date>(value ?? new Date());
@@ -45,32 +45,32 @@ export function TimeField({ label, value, onChange, error }: Props) {
 
   return (
     <View style={styles.wrap}>
-      <Text style={[commonStyles.label, { color: colors.text }]}>{label}</Text>
+      <Text style={[commonStyles.label, { color: colors.ink }]}>{label}</Text>
       <Pressable
         onPress={openPicker}
         style={[
           styles.field,
-          { backgroundColor: colors.surface, borderColor: error ? colors.error : colors.inputBorder },
+          { backgroundColor: colors.sunken, borderColor: error ? colors.error : 'transparent' },
         ]}
       >
-        <Text style={{ color: value ? colors.text : colors.textSecondary, fontSize: fontSize.md }}>
+        <Text style={{ color: value ? colors.ink : colors.inkSecondary, fontSize: fontSize.md }}>
           {value ? formatTime(value) : t('date.timePlaceholder')}
         </Text>
-        <ClockGlyph color={colors.primary} />
+        <ClockGlyph color={colors.ink} />
       </Pressable>
       {error ? <Text style={[commonStyles.errorText, { color: colors.error }]}>{error}</Text> : null}
 
       {Platform.OS === 'ios' ? (
         <Modal visible={iosOpen} transparent animationType="slide" onRequestClose={() => setIosOpen(false)}>
-          <View style={styles.modalRoot}>
+          <View style={[styles.modalRoot, { backgroundColor: colors.scrim }]}>
             <Pressable style={StyleSheet.absoluteFill} onPress={() => setIosOpen(false)} />
-            <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
-              <View style={[styles.sheetHeader, { borderBottomColor: colors.border }]}>
+            <View style={[styles.sheet, { backgroundColor: colors.raised }]}>
+              <View style={[styles.sheetHeader, { borderBottomColor: colors.line }]}>
                 <Pressable onPress={() => setIosOpen(false)}>
-                  <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>{t('date.pickerCancel')}</Text>
+                  <Text style={{ color: colors.inkSecondary, fontSize: fontSize.sm }}>{t('date.pickerCancel')}</Text>
                 </Pressable>
                 <Pressable onPress={confirm}>
-                  <Text style={{ color: colors.primary, fontWeight: '700', fontSize: fontSize.sm }}>
+                  <Text style={{ color: colors.ink, ...font('bold'), fontSize: fontSize.sm }}>
                     {t('date.pickerDone')}
                   </Text>
                 </Pressable>
@@ -81,8 +81,8 @@ export function TimeField({ label, value, onChange, error }: Props) {
                 is24Hour={language !== 'en-US'}
                 display="spinner"
                 locale={language}
-                themeVariant={mode === 'dark' ? 'dark' : 'light'}
-                textColor={colors.text}
+                themeVariant={scheme === 'dark' ? 'dark' : 'light'}
+                textColor={colors.ink}
                 style={styles.picker}
                 onValueChange={(_event, selected) => setDraft(selected)}
               />
@@ -101,13 +101,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     minHeight: 44,
-    borderRadius: radius.sm,
+    borderRadius: radius.field,
     borderWidth: 1.5,
     paddingHorizontal: spacing.md,
   },
   // See DateField.native.tsx — the backdrop must be position:'absolute',
   // never flex:1, or the sheet gets zero layout height.
-  modalRoot: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' },
+  modalRoot: { flex: 1, justifyContent: 'flex-end' },
   sheet: { borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
   picker: { width: '100%', height: 216 },
   sheetHeader: {

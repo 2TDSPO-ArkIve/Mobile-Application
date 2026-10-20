@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { AppInput } from './AppInput';
 import { AppButton } from './AppButton';
+import { SegmentedControl } from './SegmentedControl';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import type { FinalizarConsultaRequest, Severidade } from '../services/consultaService';
-import { spacing, fontSize, radius } from '../styles/theme';
+import { spacing, fontSize, font, radius } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 /**
  * V19 — `AUSENTE` is now a real, explicit `Severidade` value Java accepts
@@ -80,10 +82,10 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
 
   return (
     <View style={styles.root}>
-      <Text style={[styles.intro, { color: colors.textSecondary }]}>{t('conclusion.intro')}</Text>
+      <Text style={[styles.intro, { color: colors.inkSecondary }]}>{t('conclusion.intro')}</Text>
 
       <View style={styles.section}>
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
+        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
           {t('conclusion.diagnosisLabel')}
         </Text>
         <AppInput
@@ -94,57 +96,38 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
           multiline
         />
         <View style={styles.quickFillRow}>
-          <Pressable
-            onPress={() => handleQuickFill(t('conclusion.routineOption'))}
-            disabled={isSubmitting}
-            accessibilityRole="button"
-          >
-            <Text style={[styles.quickFillText, { color: colors.primary }]}>{t('conclusion.routineOption')}</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => handleQuickFill(t('conclusion.noDiseaseOption'))}
-            disabled={isSubmitting}
-            accessibilityRole="button"
-          >
-            <Text style={[styles.quickFillText, { color: colors.primary }]}>{t('conclusion.noDiseaseOption')}</Text>
-          </Pressable>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
-          {t('conclusion.severityLabel')}
-        </Text>
-        <View style={styles.severityRow}>
-          {SEVERIDADE_VALUES.map((value) => (
+          {[t('conclusion.routineOption'), t('conclusion.noDiseaseOption')].map((option) => (
             <Pressable
-              key={value}
+              key={option}
+              onPress={() => handleQuickFill(option)}
               disabled={isSubmitting}
-              onPress={() => setSeveridade(value)}
-              style={[
-                styles.severityOption,
-                {
-                  backgroundColor: severidade === value ? colors.primary : colors.surface,
-                  borderColor: severidade === value ? colors.primary : colors.border,
-                },
+              accessibilityRole="button"
+              style={(state: InteractionState) => [
+                styles.chip,
+                { backgroundColor: isActive(state) ? colors.line : colors.sunken },
+                focusRing(state, colors),
               ]}
             >
-              <Text
-                numberOfLines={1}
-                style={[
-                  styles.severityLabel,
-                  { color: severidade === value ? '#FFFFFF' : colors.text },
-                ]}
-              >
-                {t(`severidade.${value}`)}
-              </Text>
+              <Text style={[styles.chipText, { color: colors.ink }]}>{option}</Text>
             </Pressable>
           ))}
         </View>
       </View>
 
       <View style={styles.section}>
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
+        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
+          {t('conclusion.severityLabel')}
+        </Text>
+        <SegmentedControl
+          options={SEVERIDADE_VALUES.map((value) => ({ value, label: t(`severidade.${value}`) }))}
+          value={severidade}
+          onChange={setSeveridade}
+          disabled={isSubmitting}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
           {t('conclusion.conclusionLabel')}
         </Text>
         <AppInput
@@ -181,19 +164,14 @@ const styles = StyleSheet.create({
   // marginBottom, not the section's own rhythm).
   section: { marginBottom: spacing.xl },
   sectionLabel: { marginBottom: spacing.sm },
-  quickFillRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.xs, flexWrap: 'wrap' },
-  quickFillText: { fontSize: fontSize.sm, fontWeight: '600' },
-  severityRow: { flexDirection: 'row', gap: spacing.sm },
-  severityOption: {
-    flex: 1,
-    minHeight: 44,
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    alignItems: 'center',
+  quickFillRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm, flexWrap: 'wrap' },
+  chip: {
+    minHeight: 36,
     justifyContent: 'center',
-    paddingHorizontal: spacing.xs,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.full,
   },
-  severityLabel: { fontSize: fontSize.sm, fontWeight: '700' },
+  chipText: { fontSize: fontSize.sm, ...font('medium') },
   conclusaoInput: { minHeight: 120, textAlignVertical: 'top' },
   error: { fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.md },
   submitButton: { marginTop: spacing.sm },

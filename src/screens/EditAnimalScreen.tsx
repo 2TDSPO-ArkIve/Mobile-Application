@@ -51,7 +51,7 @@ export function EditAnimalScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('animalForm.editTitle')} />
-        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl }}>
+        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
           {t('patientDetail.loading')}
         </Text>
       </View>
@@ -67,7 +67,7 @@ export function EditAnimalScreen() {
             title={t('patientDetail.loadErrorTitle')}
             message={loadError instanceof Error ? loadError.message : t('patientDetail.notFound')}
           />
-          <AppButton title={t('common.tryAgain')} variant="outline" onPress={() => refetch()} />
+          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
         </ScreenContainer>
       </View>
     );

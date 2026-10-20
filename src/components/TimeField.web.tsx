@@ -32,7 +32,7 @@ export function TimeField({ label, value, onChange, error }: Props) {
 
   return (
     <View style={styles.wrap}>
-      <Text style={[commonStyles.label, { color: colors.text }]}>{label}</Text>
+      <Text style={[commonStyles.label, { color: colors.ink }]}>{label}</Text>
       <input
         type="time"
         value={toInputValue(value)}
@@ -41,14 +41,14 @@ export function TimeField({ label, value, onChange, error }: Props) {
           display: 'block',
           width: '100%',
           height: 44,
-          borderRadius: radius.sm,
-          border: `1.5px solid ${error ? colors.error : colors.inputBorder}`,
+          borderRadius: radius.field,
+          border: `1.5px solid ${error ? colors.error : 'transparent'}`,
           paddingLeft: spacing.md,
           paddingRight: spacing.md,
           fontSize: fontSize.md,
           fontFamily: 'inherit',
-          color: colors.text,
-          backgroundColor: colors.surface,
+          color: colors.ink,
+          backgroundColor: colors.sunken,
           boxSizing: 'border-box',
         }}
       />

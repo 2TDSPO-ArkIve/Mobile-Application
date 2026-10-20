@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
@@ -15,7 +15,8 @@ import { useClinicalVoiceRecording } from '../hooks/useClinicalVoiceRecording';
 import { startOfToday } from '../utils/consultaScheduling';
 import { describeAnimalReportCreateError } from '../utils/errorMessages';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
+import { commonStyles } from '../styles/common';
 
 const MAX_TEXTO_LENGTH = 2000;
 
@@ -116,13 +117,13 @@ export function NewAnimalReportScreen() {
       <AppHeader title={t('animalReports.newTitle')} />
       <ScreenContainer>
         {patientPending ? (
-          <Text style={{ color: colors.textSecondary, marginBottom: spacing.md }}>
+          <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md }}>
             {t('animalReports.loadingPatient')}
           </Text>
         ) : patient ? (
           <>
-            <Text style={[styles.patientName, { color: colors.text }]}>{patient.nome}</Text>
-            <Text style={[styles.patientArkiveId, { color: colors.textSecondary }]} selectable>
+            <Text style={[styles.patientName, { color: colors.ink }]}>{patient.nome}</Text>
+            <Text style={[styles.patientArkiveId, { color: colors.inkSecondary }]} selectable>
               {patientArkiveIdLine(patient)}
             </Text>
           </>
@@ -140,7 +141,7 @@ export function NewAnimalReportScreen() {
           error={validationError || undefined}
           style={styles.textarea}
         />
-        <Text style={[styles.charCount, { color: colors.textSecondary }]}>
+        <Text style={[styles.charCount, { color: colors.inkSecondary }]}>
           {t('animalReports.charCount', { count: texto.length })}
         </Text>
 
@@ -151,7 +152,7 @@ export function NewAnimalReportScreen() {
           maximumDate={startOfToday()}
           onClear={() => setDataOcorrencia(null)}
         />
-        <Text style={[styles.occurrenceHelper, { color: colors.textSecondary }]}>
+        <Text style={[styles.occurrenceHelper, { color: colors.inkSecondary }]}>
           {t('animalReports.occurrenceDateHelper')}
         </Text>
 
@@ -179,28 +180,25 @@ export function NewAnimalReportScreen() {
             />
 
             {voice.status === 'idle' || voice.status === 'error' ? (
-              <Pressable
+              <AppButton
+                title={t('animalReports.backToTextButton')}
+                variant="ghost"
                 onPress={() => setShowVoice(false)}
                 style={styles.backToTextLink}
-                accessibilityRole="button"
-              >
-                <Text style={{ color: colors.primary, fontWeight: '600' }}>
-                  {t('animalReports.backToTextButton')}
-                </Text>
-              </Pressable>
+              />
             ) : null}
 
             {voice.status === 'error' && voice.errorMessage ? (
               <View style={styles.errorBlock}>
                 <Text style={{ color: colors.error, textAlign: 'center' }}>{voice.errorMessage}</Text>
                 {voice.permanentlyDenied ? (
-                  <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xs }}>
+                  <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xs }}>
                     {t('animalReports.micPermissionDenied')}
                   </Text>
                 ) : voice.canRetry ? (
                   <AppButton
                     title={t('animalReports.retryTranscription')}
-                    variant="outline"
+                    variant="secondary"
                     onPress={() => voice.retry(language)}
                   />
                 ) : null}
@@ -229,13 +227,13 @@ export function NewAnimalReportScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  patientName: { fontSize: fontSize.md, fontWeight: '700', textAlign: 'center' },
-  patientArkiveId: { fontSize: fontSize.xs, fontFamily: 'monospace', textAlign: 'center', marginBottom: spacing.md },
+  patientName: { fontSize: fontSize.md, ...font('bold'), textAlign: 'center' },
+  patientArkiveId: { fontSize: fontSize.xs, ...commonStyles.arkiveId, textAlign: 'center', marginBottom: spacing.md },
   textarea: { minHeight: 140, textAlignVertical: 'top', paddingTop: spacing.sm },
-  charCount: { fontSize: fontSize.xs, textAlign: 'right', marginTop: -spacing.sm, marginBottom: spacing.md },
+  charCount: { fontSize: fontSize.xs, fontVariant: ['tabular-nums'], textAlign: 'right', marginTop: -spacing.sm, marginBottom: spacing.md },
   occurrenceHelper: { fontSize: fontSize.xs, marginTop: -spacing.xs, marginBottom: spacing.md },
   voiceSection: { alignItems: 'center', marginBottom: spacing.md },
-  backToTextLink: { marginTop: spacing.sm, padding: spacing.sm },
+  backToTextLink: { marginTop: spacing.sm },
   errorBlock: { marginTop: spacing.md, width: '100%' },
   submitButton: { marginTop: spacing.lg },
 });

@@ -19,8 +19,7 @@ interface Props {
 
 /**
  * The one minimalist auxiliary/navigation action control in the app —
- * transparent background, icon only, no circle, no shadow, theme-primary
- * color. Used both by `AppHeader`'s `actions` prop and directly by the
+ * transparent background, icon only, no circle, no shadow, `ink` color. Used both by `AppHeader`'s `actions` prop and directly by the
  * handful of tab-root screens (Consultas/Pacientes) whose title row sits
  * below `HomeHeader` rather than inside `AppHeader` itself, so every "+"/
  * refresh/settings affordance in the app renders identically regardless of
@@ -42,9 +41,9 @@ export function HeaderIconButton({ icon, onPress, accessibilityLabel, disabled, 
       style={({ pressed }) => [styles.btn, pressed && !disabled ? { opacity: 0.6 } : null]}
     >
       {loading ? (
-        <ActivityIndicator size="small" color={colors.primary} />
+        <ActivityIndicator size="small" color={colors.ink} />
       ) : (
-        <Ionicons name={icon} size={ICON_SIZE} color={disabled ? colors.textSecondary : colors.primary} />
+        <Ionicons name={icon} size={ICON_SIZE} color={disabled ? colors.inkSecondary : colors.ink} />
       )}
       {badgeCount != null ? <NotificationBadge count={badgeCount} /> : null}
     </Pressable>

@@ -16,7 +16,8 @@ import { describeAccessRequestListError } from '../utils/errorMessages';
 import { formatDateTime } from '../utils/localeFormat';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AccessRequestDto } from '../services/patientAccessRequestService';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
+import { commonStyles } from '../styles/common';
 
 type RouteParamList = { SolicitacoesAcessoRecebidas: { focusRequestId?: number } | undefined };
 
@@ -54,30 +55,30 @@ function AccessRequestRow({
   const isPending = request.status === 'PENDING';
 
   return (
-    <AppCard style={highlighted ? { borderColor: colors.primary, borderWidth: 2 } : undefined}>
+    <AppCard style={highlighted ? { borderColor: colors.accent, borderWidth: 2 } : undefined}>
       <View style={styles.headerRow}>
-        <Text style={[styles.patientName, { color: colors.text }]} numberOfLines={1}>
+        <Text style={[styles.patientName, { color: colors.ink }]} numberOfLines={1}>
           {request.animalNome ?? '—'}
         </Text>
         <StatusBadge label={presentation.label} tone={presentation.tone} />
       </View>
-      <Text style={[styles.arkiveIdText, { color: colors.textSecondary }]} selectable>
+      <Text style={[styles.arkiveIdText, { color: colors.inkSecondary }]} selectable>
         {patientArkiveIdLine({ arkivePatientId: request.arkivePatientId })}
       </Text>
 
-      <Text style={[styles.field, { color: colors.text }]}>
+      <Text style={[styles.field, { color: colors.ink }]}>
         {t('accessRequestsReceived.requesterLabel', { name: request.veterinarioNome })}
       </Text>
-      <Text style={[styles.field, { color: colors.textSecondary }]}>
+      <Text style={[styles.field, { color: colors.inkSecondary }]}>
         {t('accessRequestsReceived.crmvLabel', { value: request.crmv })}
       </Text>
       {!Number.isNaN(requestedDate.getTime()) ? (
-        <Text style={[styles.field, { color: colors.textSecondary }]}>
+        <Text style={[styles.field, { color: colors.inkSecondary }]}>
           {t('accessRequestsReceived.requestedAtLabel', { date: formatDateTime(requestedDate) })}
         </Text>
       ) : null}
       {resolvedDate && !Number.isNaN(resolvedDate.getTime()) ? (
-        <Text style={[styles.field, { color: colors.textSecondary }]}>
+        <Text style={[styles.field, { color: colors.inkSecondary }]}>
           {t('accessRequestsReceived.resolvedAtLabel', { date: formatDateTime(resolvedDate) })}
         </Text>
       ) : null}
@@ -87,7 +88,7 @@ function AccessRequestRow({
           <AppButton title={t('accessRequestsReceived.approveButton')} onPress={onApprove} style={styles.actionButton} />
           <AppButton
             title={t('accessRequestsReceived.rejectButton')}
-            variant="danger"
+            variant="secondary"
             onPress={onReject}
             style={styles.actionButton}
           />
@@ -127,7 +128,7 @@ export function AccessRequestsScreen() {
       <AppHeader title={t('accessRequestsReceived.title')} />
       <ScreenContainer>
         {isPending ? (
-          <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl }}>
+          <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
             {t('accessRequestsReceived.loading')}
           </Text>
         ) : isError ? (
@@ -136,7 +137,7 @@ export function AccessRequestsScreen() {
               title={t('accessRequestsReceived.loadErrorTitle')}
               message={describeAccessRequestListError(error)}
             />
-            <AppButton title={t('common.tryAgain')} variant="outline" onPress={() => refetch()} />
+            <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
           </>
         ) : !orderedData || orderedData.length === 0 ? (
           <EmptyState
@@ -172,9 +173,9 @@ export function AccessRequestsScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm },
-  patientName: { fontSize: fontSize.md, fontWeight: '700', flexShrink: 1 },
-  arkiveIdText: { fontSize: fontSize.xs, fontFamily: 'monospace', marginTop: 2, marginBottom: spacing.sm },
-  field: { fontSize: fontSize.sm, marginTop: spacing.xs },
+  patientName: { fontSize: fontSize.md, ...font('bold'), flexShrink: 1 },
+  arkiveIdText: { fontSize: fontSize.xs, ...commonStyles.arkiveId, marginTop: 2, marginBottom: spacing.sm },
+  field: { fontSize: fontSize.sm, marginTop: spacing.xs, fontVariant: ['tabular-nums'] },
   actionsRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
   actionButton: { flex: 1 },
 });

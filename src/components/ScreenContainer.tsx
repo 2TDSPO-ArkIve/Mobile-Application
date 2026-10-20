@@ -3,15 +3,14 @@ import { KeyboardAvoidingView, Platform, ScrollView, View, StyleSheet, ViewStyle
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { commonStyles } from '../styles/common';
-import type { ColorPalette } from '../styles/colors';
 
 interface Props {
   children: React.ReactNode;
   scroll?: boolean;
   style?: ViewStyle;
   edges?: ('top' | 'bottom' | 'left' | 'right')[];
-  /** Forces a specific palette instead of the app's current theme — see AppButton's note on the same prop. */
-  colors?: ColorPalette;
+  /** Overrides the screen background (e.g. `aiTint` while the AI works). */
+  background?: string;
 }
 
 export function ScreenContainer({
@@ -19,10 +18,9 @@ export function ScreenContainer({
   scroll = true,
   style,
   edges = ['bottom'],
-  colors: colorsOverride,
+  background,
 }: Props) {
-  const themeColors = useThemeColors();
-  const colors = colorsOverride ?? themeColors;
+  const colors = useThemeColors();
 
   const content = scroll ? (
     <ScrollView
@@ -60,7 +58,7 @@ export function ScreenContainer({
 
   return (
     <SafeAreaView
-      style={[styles.safe, { backgroundColor: colors.background }]}
+      style={[styles.safe, { backgroundColor: background ?? colors.background }]}
       edges={edges}
     >
       {body}

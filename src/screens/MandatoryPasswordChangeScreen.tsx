@@ -40,7 +40,7 @@ export function MandatoryPasswordChangeScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('changePassword.title')} showBack={false} />
       <ScreenContainer>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+        <Text style={[styles.subtitle, { color: colors.inkSecondary }]}>
           {t('changePassword.subtitle')}
         </Text>
 

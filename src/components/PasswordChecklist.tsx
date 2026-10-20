@@ -41,9 +41,9 @@ export function PasswordChecklist({ password }: { password: string }) {
             <Ionicons
               name={met ? 'checkmark-circle' : 'ellipse-outline'}
               size={16}
-              color={met ? colors.success : colors.textSecondary}
+              color={met ? colors.success : colors.inkSecondary}
             />
-            <Text style={[styles.text, { color: met ? colors.success : colors.textSecondary }]}>
+            <Text style={[styles.text, { color: met ? colors.success : colors.inkSecondary }]}>
               {t(RULE_LABEL_KEY[rule.key])}
             </Text>
           </View>

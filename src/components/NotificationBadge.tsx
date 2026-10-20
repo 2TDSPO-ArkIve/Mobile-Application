@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { radius, fontSize } from '../styles/theme';
+import { radius, fontSize, font } from '../styles/theme';
 
 const MAX_DISPLAYED_COUNT = 9;
 
@@ -22,7 +22,7 @@ export function NotificationBadge({ count }: Props) {
 
   return (
     <View style={[styles.badge, { backgroundColor: colors.error, borderColor: colors.surface }]}>
-      <Text style={styles.text}>{label}</Text>
+      <Text style={[styles.text, { color: colors.onInk }]}>{label}</Text>
     </View>
   );
 }
@@ -41,9 +41,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    color: '#FFFFFF',
     fontSize: fontSize.xs - 3,
-    fontWeight: '700',
+    ...font('bold'),
     lineHeight: fontSize.xs,
   },
 });

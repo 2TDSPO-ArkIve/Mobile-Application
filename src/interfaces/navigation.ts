@@ -60,6 +60,7 @@ export type ResponsavelAppStackParamList = {
   CompartilharPaciente: { patientId: number };
   ConvitePaciente: undefined;
   EscanearConvite: undefined;
+  InserirCodigoConvite: undefined;
   /** Explicit ArkIve-ID lookup — retrieval only, same read-authorization rule as every other patient fetch; never creates/imports a patient. */
   BuscarPacienteArkive: undefined;
   /** Chunk 7 — incoming access requests this Responsible is currently eligible to decide on (`GET /api/solicitacoes-acesso`, Java-scoped). `focusRequestId` highlights one row when reached from a `SOLICITACAO_ACESSO` notification tap — it never fetches a single request on its own; the full, correctly-scoped list already contains it. */
@@ -91,7 +92,7 @@ export type AppStackParamList = {
   CompartilharPaciente: { patientId: number };
   ConvitePaciente: undefined;
   EscanearConvite: undefined;
-  /** Manual invitation-code entry — VETERINARIO-only fallback transport alongside QR/link; no route params (reads/writes `PendingShareContext` directly, same as `EscanearConvite`). */
+  /** Manual invitation-code entry — fallback transport alongside QR/link (also registered in ResponsavelAppStack); no route params (reads/writes `PendingShareContext` directly, same as `EscanearConvite`). */
   InserirCodigoConvite: undefined;
   /** Explicit ArkIve-ID lookup — retrieval only, same read-authorization rule as every other patient fetch; never creates/imports a patient. */
   BuscarPacienteArkive: undefined;

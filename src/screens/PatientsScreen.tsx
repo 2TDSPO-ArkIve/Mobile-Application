@@ -7,15 +7,15 @@ import { ScreenContainer } from '../components/ScreenContainer';
 import { SearchBar } from '../components/SearchBar';
 import { AppCard } from '../components/AppCard';
 import { AppButton } from '../components/AppButton';
-import { HeaderIconButton } from '../components/HeaderIconButton';
 import { EmptyState } from '../components/EmptyState';
 import { LoadMoreButton } from '../components/LoadMoreButton';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { useMyPatients } from '../hooks/usePatients';
 import { patientSummaryLine, patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font, radius, layout } from '../styles/theme';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -39,6 +39,7 @@ export function PatientsScreen() {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
+  const wide = useBreakpoint() === 'wide';
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
@@ -58,32 +59,33 @@ export function PatientsScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <HomeHeader />
 
-      <ScreenContainer>
-        <View style={styles.titleRow}>
-          <Text style={[styles.pageTitle, { color: colors.text }]} numberOfLines={1}>
-            {t('patientsList.title')}
-          </Text>
-          <HeaderIconButton
-            icon="person-add"
-            onPress={() => navigation.navigate('NovoPaciente')}
-            accessibilityLabel={t('patientsList.addAccessibilityLabel')}
-          />
-        </View>
+      <ScreenContainer style={wide ? { maxWidth: layout.contentMax } : undefined}>
+        <Text style={[styles.pageTitle, { color: colors.ink }]} numberOfLines={1}>
+          {t('patientsList.title')}
+        </Text>
 
         <SearchBar value={searchInput} onChangeText={setSearchInput} placeholder={t('patientsList.searchPlaceholder')} />
 
-        {/* Visible secondary action, not tucked behind an icon — retrieval
-            only (same read-authorization rule as any other patient fetch),
-            never a shortcut to create/import a patient. */}
-        <AppButton
-          title={t('patientsList.lookupByArkiveId')}
-          variant="outline"
-          onPress={() => navigation.navigate('BuscarPacienteArkive')}
-          style={styles.lookupButton}
-        />
+        {/* "Buscar por ID ArkIve" is retrieval only (same read-authorization
+            rule as any other patient fetch), never a shortcut to
+            create/import a patient. */}
+        <View style={styles.actionsRow}>
+          <AppButton
+            title={t('patientsList.registerButton')}
+            icon="person-add-outline"
+            onPress={() => navigation.navigate('NovoPaciente')}
+            style={styles.action}
+          />
+          <AppButton
+            title={t('patientsList.lookupByArkiveId')}
+            variant="secondary"
+            onPress={() => navigation.navigate('BuscarPacienteArkive')}
+            style={styles.action}
+          />
+        </View>
 
         {isPending ? (
-          <Text style={{ color: colors.textSecondary, textAlign: 'center' }}>
+          <Text style={{ color: colors.inkSecondary, textAlign: 'center' }}>
             {t('patientsList.loading')}
           </Text>
         ) : isError ? (
@@ -105,11 +107,24 @@ export function PatientsScreen() {
                 key={animal.id}
                 onPress={() => navigation.navigate('PacienteDetalhe', { patientId: animal.id })}
               >
-                <Text style={{ color: colors.text, fontWeight: '700' }}>{animal.nome}</Text>
-                <Text style={{ color: colors.textSecondary }}>{patientSummaryLine(animal)}</Text>
-                <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, marginTop: spacing.xs }}>
-                  {patientArkiveIdLine(animal)}
-                </Text>
+                <View style={styles.cardRow}>
+                  <View style={[styles.initial, { backgroundColor: colors.accentTint }]}>
+                    <Text style={[styles.initialText, { color: colors.accent }]}>
+                      {animal.nome.trim().charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <View style={styles.cardText}>
+                    <Text style={{ color: colors.ink, ...font('bold') }} numberOfLines={1}>
+                      {animal.nome}
+                    </Text>
+                    <Text style={{ color: colors.inkSecondary }} numberOfLines={1}>
+                      {patientSummaryLine(animal)}
+                    </Text>
+                    <Text style={{ color: colors.inkSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
+                      {patientArkiveIdLine(animal)}
+                    </Text>
+                  </View>
+                </View>
               </AppCard>
             ))}
             <LoadMoreButton query={patientsQuery} />
@@ -122,15 +137,11 @@ export function PatientsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  pageTitle: {
-    flex: 1,
-    fontSize: fontSize.xl,
-    fontWeight: '800',
-  },
-  lookupButton: { marginBottom: spacing.sm },
+  pageTitle: { fontSize: fontSize.xl, ...font('bold'), marginBottom: spacing.md },
+  actionsRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
+  action: { flex: 1 },
+  cardRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  initial: { width: 44, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  initialText: { fontSize: fontSize.lg, ...font('bold') },
+  cardText: { flex: 1, gap: 2 },
 });

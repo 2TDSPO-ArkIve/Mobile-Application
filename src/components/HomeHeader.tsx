@@ -6,8 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { NotificationBell } from './NotificationBell';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { useTheme } from '../context/ThemeContext';
-import { spacing, fontSize, radius } from '../styles/theme';
+import { spacing, fontSize, radius, font, layout } from '../styles/theme';
 import type { AppStackParamList } from '../interfaces/navigation';
 
 /**
@@ -16,7 +15,6 @@ import type { AppStackParamList } from '../interfaces/navigation';
  */
 export function HomeHeader() {
   const colors = useThemeColors();
-  const { mode } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation =
     useNavigation<NativeStackNavigationProp<AppStackParamList>>();
@@ -28,7 +26,7 @@ export function HomeHeader() {
         {
           paddingTop: insets.top + spacing.sm,
           backgroundColor: colors.surface,
-          borderBottomColor: colors.border,
+          borderBottomColor: colors.line,
         },
       ]}
     >
@@ -37,14 +35,9 @@ export function HomeHeader() {
           source={require('../assets/branding/favicon.png')}
           style={styles.logo}
           resizeMode="contain"
-          // Unlike the pre-auth Login/Register screens (deliberately pinned
-          // to pure black regardless of theme), this header is in-app and
-          // already follows the user's dark-mode preference — the mark must
-          // flip to white in night mode or it disappears against the dark
-          // surface behind it.
-          tintColor={mode === 'dark' ? '#FFFFFF' : '#000000'}
+          tintColor={colors.ink}
         />
-        <Text style={[styles.brand, { color: colors.text }]} numberOfLines={1}>
+        <Text style={[styles.brand, { color: colors.ink }]} numberOfLines={1}>
           ArkIve
         </Text>
 
@@ -52,11 +45,11 @@ export function HomeHeader() {
 
         <Pressable
           onPress={() => navigation.navigate('Perfil')}
-          style={[styles.iconBtn, { borderColor: colors.border }]}
+          style={[styles.iconBtn, { borderColor: colors.line }]}
           accessibilityRole="button"
           accessibilityLabel="Perfil"
         >
-          <Ionicons name="person-circle-outline" size={26} color={colors.primary} />
+          <Ionicons name="person-circle-outline" size={26} color={colors.ink} />
         </Pressable>
       </View>
     </View>
@@ -71,7 +64,7 @@ const styles = StyleSheet.create({
   },
   inner: {
     width: '100%',
-    maxWidth: 720,
+    maxWidth: layout.contentMax,
     alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
@@ -82,7 +75,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     marginRight: spacing.sm,
   },
-  brand: { flex: 1, fontSize: fontSize.xl, fontWeight: '800' },
+  brand: { flex: 1, fontSize: fontSize.xl, ...font('bold') },
   iconBtn: {
     width: 44,
     height: 44,

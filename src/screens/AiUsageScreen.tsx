@@ -2,18 +2,19 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { AppCard } from '../components/AppCard';
 import { EmptyState } from '../components/EmptyState';
 import { HorizontalBars, type HorizontalBarRow } from '../components/charts/HorizontalBars';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { useRecentAiUsageSample } from '../hooks/useAiUsage';
 import { formatNumber } from '../utils/localeFormat';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize } from '../styles/theme';
-import { commonStyles } from '../styles/common';
+import { spacing, fontSize, font, iconSize, layout } from '../styles/theme';
 
 /**
  * "Configurações → IA ArkIve → Uso da IA" — VETERINARIO-only (gated both at
@@ -39,55 +40,55 @@ export function AiUsageScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const sample = useRecentAiUsageSample();
+  const wide = useBreakpoint() === 'wide';
 
   const rows: HorizontalBarRow[] = sample.entries.map(({ consulta, tokensTotal }) => ({
     key: consulta.id,
     label: `${consulta.animalNome} · #${consulta.id}`,
     value: tokensTotal,
     valueLabel: formatNumber(tokensTotal),
-    color: colors.primary,
+    color: colors.ai,
     onPress: () => navigation.navigate('ConsultaDetalhe', { consultaId: consulta.id }),
   }));
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('aiUsage.title')} />
-      <ScreenContainer>
-        <Text style={[styles.intro, { color: colors.textSecondary }]}>{t('aiUsage.intro')}</Text>
+      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
+        <Text style={[styles.intro, { color: colors.inkSecondary }]}>{t('aiUsage.intro')}</Text>
 
         {sample.isPending ? (
-          <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl }}>
+          <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
             {t('aiUsage.loading')}
           </Text>
         ) : sample.sampleSize === 0 ? (
           <EmptyState title={t('aiUsage.emptyTitle')} message={t('aiUsage.emptyMessage')} />
         ) : (
           <>
-            <AppCard style={styles.summaryCard}>
+            <AppCard style={{ ...styles.summaryCard, backgroundColor: colors.aiTint }}>
+              <Ionicons name="sparkles-outline" size={iconSize.md} color={colors.ai} style={styles.summaryIcon} />
               <View style={styles.summaryRow}>
                 <View style={styles.summaryItem}>
-                  <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                  <Text style={[styles.summaryLabel, { color: colors.inkSecondary }]}>
                     {t('aiUsage.totalTokensLabel')}
                   </Text>
-                  <Text style={[styles.summaryValue, { color: colors.text }]}>
+                  <Text style={[styles.summaryValue, { color: colors.ink }]}>
                     {formatNumber(sample.totalTokens)}
                   </Text>
                 </View>
                 <View style={styles.summaryItem}>
-                  <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                  <Text style={[styles.summaryLabel, { color: colors.inkSecondary }]}>
                     {t('aiUsage.sampleSizeLabel')}
                   </Text>
-                  <Text style={[styles.summaryValue, { color: colors.text }]}>{sample.sampleSize}</Text>
+                  <Text style={[styles.summaryValue, { color: colors.ink }]}>{sample.sampleSize}</Text>
                 </View>
               </View>
-              <Text style={[styles.summaryCaption, { color: colors.textSecondary }]}>
+              <Text style={[styles.summaryCaption, { color: colors.inkSecondary }]}>
                 {t('aiUsage.sampleCaption')}
               </Text>
             </AppCard>
 
-            <Text
-              style={[commonStyles.eyebrow, { color: colors.primary, marginTop: spacing.lg, marginBottom: spacing.sm }]}
-            >
+            <Text style={[styles.listTitle, { color: colors.ink }]}>
               {t('aiUsage.listTitle')}
             </Text>
             <AppCard>
@@ -104,9 +105,11 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   intro: { fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.md, lineHeight: 19 },
   summaryCard: { marginBottom: spacing.sm },
+  summaryIcon: { alignSelf: 'center', marginBottom: spacing.sm },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-around' },
   summaryItem: { alignItems: 'center' },
-  summaryLabel: { fontSize: fontSize.xs, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
-  summaryValue: { fontSize: fontSize.lg, fontWeight: '700', marginTop: spacing.xs },
+  summaryLabel: { fontSize: fontSize.xs },
+  summaryValue: { fontSize: fontSize.xl, ...font('bold'), fontVariant: ['tabular-nums'], marginTop: spacing.xs },
+  listTitle: { fontSize: 16, ...font('semibold'), marginTop: spacing.lg, marginBottom: spacing.sm },
   summaryCaption: { fontSize: fontSize.xs, marginTop: spacing.sm, textAlign: 'center' },
 });

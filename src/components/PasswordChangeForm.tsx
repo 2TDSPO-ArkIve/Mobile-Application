@@ -31,6 +31,7 @@ export function PasswordChangeForm({ submitLabel, submittingLabel, onSuccess, on
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{ newPassword?: string; confirmPassword?: string }>({});
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -38,14 +39,17 @@ export function PasswordChangeForm({ submitLabel, submittingLabel, onSuccess, on
     if (submitting) return; // guards against a double-tap firing two change-password requests
     setError('');
 
-    if (!newPassword || !confirmPassword) {
-      setError(t('changePassword.validationRequired'));
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError(t('changePassword.validationMismatch'));
-      return;
-    }
+    const required = t('changePassword.validationRequired');
+    const errors = {
+      newPassword: newPassword ? undefined : required,
+      confirmPassword: !confirmPassword
+        ? required
+        : newPassword && newPassword !== confirmPassword
+          ? t('changePassword.validationMismatch')
+          : undefined,
+    };
+    setFieldErrors(errors);
+    if (errors.newPassword || errors.confirmPassword) return;
 
     setSubmitting(true);
     onSubmittingChange?.(true);
@@ -70,6 +74,7 @@ export function PasswordChangeForm({ submitLabel, submittingLabel, onSuccess, on
         onChangeText={setNewPassword}
         secureTextEntry
         editable={!submitting}
+        error={fieldErrors.newPassword}
       />
 
       <AppInput
@@ -79,6 +84,7 @@ export function PasswordChangeForm({ submitLabel, submittingLabel, onSuccess, on
         onChangeText={setConfirmPassword}
         secureTextEntry
         editable={!submitting}
+        error={fieldErrors.confirmPassword}
       />
 
       {error ? <Text style={[styles.error, { color: colors.error }]}>{error}</Text> : null}

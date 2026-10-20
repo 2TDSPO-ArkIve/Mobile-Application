@@ -36,15 +36,15 @@ export function SearchBar({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={colors.textSecondary}
+        placeholderTextColor={colors.inkSecondary}
         returnKeyType="search"
         onSubmitEditing={handleSubmit}
         style={[
           styles.input,
           {
-            backgroundColor: colors.surface,
-            borderColor: colors.inputBorder,
-            color: colors.text,
+            backgroundColor: colors.sunken,
+            borderColor: 'transparent',
+            color: colors.ink,
           },
         ]}
       />
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   input: {
     minHeight: 44,
     borderWidth: 1.5,
-    borderRadius: radius.sm,
+    borderRadius: radius.field,
     paddingHorizontal: spacing.md,
     fontSize: fontSize.md,
   },

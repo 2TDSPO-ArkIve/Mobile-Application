@@ -30,12 +30,14 @@ export function formatRgInput(raw: string): string {
 }
 
 /**
- * A clearly test-format alphanumeric identifier compatible with Java's
- * structural validation (`[A-Z0-9]{5,14}`) — labeled as a TEST EXAMPLE, not
- * a verified synthetic identity, and not meant to resemble any real state's
- * actual RG issuing format.
+ * A random test RG in the São Paulo layout the placeholder shows
+ * (`12.345.678-X`): eight digits plus SSP-SP's mod-11 check digit (weights
+ * 2–9, digit = 11 − remainder; 10 is `X`, 11 is `0`). Normalized, it is 9 characters, so it also
+ * passes Java's `[A-Z0-9]{5,14}`.
  */
 export function generateTestRg(): string {
-  const digits = Array.from({ length: 8 }, () => Math.floor(Math.random() * 10)).join('');
-  return `TST${digits}`;
+  const digits = Array.from({ length: 8 }, () => Math.floor(Math.random() * 10));
+  const check = (11 - (digits.reduce((sum, digit, i) => sum + digit * (i + 2), 0) % 11)) % 11;
+  const d = digits.join('');
+  return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5)}-${check === 10 ? 'X' : check}`;
 }

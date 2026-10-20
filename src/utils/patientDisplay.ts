@@ -44,3 +44,13 @@ export function patientSummaryLine(animal: AnimalDto): string {
 export function patientArkiveIdLine(animal: Pick<AnimalDto, 'arkivePatientId'>): string {
   return animal.arkivePatientId ?? t('patientDisplay.arkiveIdMissing');
 }
+
+/** Up to two initials of a person's name, for the identity mark (sidebar, profile). */
+export function nameInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]!.toUpperCase())
+    .join('');
+}

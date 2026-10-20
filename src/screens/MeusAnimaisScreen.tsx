@@ -9,14 +9,18 @@ import { AppCard } from '../components/AppCard';
 import { AppButton } from '../components/AppButton';
 import { EmptyState } from '../components/EmptyState';
 import { LoadMoreButton } from '../components/LoadMoreButton';
+import { ListRow } from '../components/ListRow';
+import { StatusBadge } from '../components/StatusBadge';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useBreakpoint } from '../hooks/useBreakpoint';
+import { useReceivedAccessRequests } from '../hooks/usePatientAccessRequests';
 import { useTranslation } from '../i18n/useTranslation';
 import { useMyAnimals } from '../hooks/usePatients';
 import { usePendingShareAutoReturn } from '../hooks/useShares';
 import { useUnreadNotificationCount } from '../hooks/useNotifications';
 import { patientSummaryLine, patientArkiveIdLine } from '../utils/patientDisplay';
 import type { ResponsavelAppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font, radius, layout } from '../styles/theme';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -45,6 +49,7 @@ export function MeusAnimaisScreen() {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<ResponsavelAppStackParamList>>();
+  const wide = useBreakpoint() === 'wide';
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
@@ -63,6 +68,8 @@ export function MeusAnimaisScreen() {
   const { isPending, isError, error } = animalsQuery;
   const data = animalsQuery.data?.pages.flatMap((page) => page.content);
   const { data: unreadCount } = useUnreadNotificationCount();
+  // ponytail: counts the first page only (default page size); fine while pending requests stay few.
+  const pendingCount = useReceivedAccessRequests({ status: 'PENDING' }).data?.length ?? 0;
 
   const hasSearch = trimmedSearch.length > 0;
 
@@ -89,38 +96,50 @@ export function MeusAnimaisScreen() {
         ]}
       />
 
-      <ScreenContainer>
+      <ScreenContainer style={wide ? { maxWidth: layout.contentMax } : undefined}>
         <SearchBar value={searchInput} onChangeText={setSearchInput} placeholder={t('myAnimals.searchPlaceholder')} />
 
-        <AppButton
-          title={t('myAnimals.createButton')}
-          icon="add"
-          onPress={() => navigation.navigate('CadastrarAnimal')}
-          style={styles.lookupButton}
-        />
+        {/* "Buscar por ID ArkIve" opens an already-authorized shared patient: retrieval only, never a path to creating a new animal. */}
+        <View style={styles.actionsRow}>
+          <AppButton
+            title={t('myAnimals.createButton')}
+            icon="add"
+            onPress={() => navigation.navigate('CadastrarAnimal')}
+            style={styles.action}
+          />
+          <AppButton
+            title={t('myAnimals.lookupByArkiveId')}
+            variant="secondary"
+            onPress={() => navigation.navigate('BuscarPacienteArkive')}
+            style={styles.action}
+          />
+        </View>
 
-        {/* Useful for verifying/opening an already-authorized shared patient — retrieval only, never a path to creating a new animal (that's the button above). */}
-        <AppButton
-          title={t('myAnimals.lookupByArkiveId')}
-          variant="outline"
-          onPress={() => navigation.navigate('BuscarPacienteArkive')}
-          style={styles.lookupButton}
-        />
-
-        {/* Chunk 7 — a veterinarian may have requested access to one of this
-            Responsible's animals; this is where they review and approve/
-            reject it. Surfaced directly on the root screen (not tucked into
-            the account screen) since, unlike most account-level settings,
-            a pending request is time-sensitive and actionable. */}
-        <AppButton
-          title={t('accessRequestsReceived.entryPointButton')}
-          variant="outline"
-          onPress={() => navigation.navigate('SolicitacoesAcessoRecebidas')}
-          style={styles.lookupButton}
-        />
+        {/* Chunk 7: a veterinarian may have requested access to one of this
+            Responsible's animals. Surfaced on the root screen (not the
+            account screen) since a pending request is time-sensitive. */}
+        <AppCard style={styles.group}>
+          <ListRow
+            icon="shield-checkmark-outline"
+            title={t('accessRequestsReceived.entryPointButton')}
+            trailing={
+              pendingCount > 0 ? (
+                <StatusBadge
+                  tone="warning"
+                  label={
+                    pendingCount === 1
+                      ? t('accessRequestsReceived.pendingCountOne')
+                      : t('accessRequestsReceived.pendingCount', { count: pendingCount })
+                  }
+                />
+              ) : undefined
+            }
+            onPress={() => navigation.navigate('SolicitacoesAcessoRecebidas')}
+          />
+        </AppCard>
 
         {isPending ? (
-          <Text style={{ color: colors.textSecondary, textAlign: 'center' }}>
+          <Text style={{ color: colors.inkSecondary, textAlign: 'center' }}>
             {t('myAnimals.loading')}
           </Text>
         ) : isError ? (
@@ -132,6 +151,8 @@ export function MeusAnimaisScreen() {
           <EmptyState
             title={t('myAnimals.emptyTitle')}
             message={hasSearch ? t('myAnimals.emptySearchMessage') : t('myAnimals.emptyMessage')}
+            actionLabel={hasSearch ? undefined : t('myAnimals.createButton')}
+            onAction={hasSearch ? undefined : () => navigation.navigate('CadastrarAnimal')}
           />
         ) : (
           <>
@@ -140,11 +161,24 @@ export function MeusAnimaisScreen() {
                 key={animal.id}
                 onPress={() => navigation.navigate('PacienteDetalhe', { patientId: animal.id })}
               >
-                <Text style={{ color: colors.text, fontWeight: '700' }}>{animal.nome}</Text>
-                <Text style={{ color: colors.textSecondary }}>{patientSummaryLine(animal)}</Text>
-                <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, marginTop: spacing.xs }}>
-                  {patientArkiveIdLine(animal)}
-                </Text>
+                <View style={styles.cardRow}>
+                  <View style={[styles.initial, { backgroundColor: colors.accentTint }]}>
+                    <Text style={[styles.initialText, { color: colors.accent }]}>
+                      {animal.nome.trim().charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <View style={styles.cardText}>
+                    <Text style={{ color: colors.ink, ...font('bold') }} numberOfLines={1}>
+                      {animal.nome}
+                    </Text>
+                    <Text style={{ color: colors.inkSecondary }} numberOfLines={1}>
+                      {patientSummaryLine(animal)}
+                    </Text>
+                    <Text style={{ color: colors.inkSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
+                      {patientArkiveIdLine(animal)}
+                    </Text>
+                  </View>
+                </View>
               </AppCard>
             ))}
             <LoadMoreButton query={animalsQuery} />
@@ -157,5 +191,11 @@ export function MeusAnimaisScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  lookupButton: { marginBottom: spacing.sm },
+  actionsRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
+  action: { flex: 1 },
+  group: { padding: 0, overflow: 'hidden', marginBottom: spacing.md },
+  cardRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  initial: { width: 44, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  initialText: { fontSize: fontSize.lg, ...font('bold') },
+  cardText: { flex: 1, gap: 2 },
 });

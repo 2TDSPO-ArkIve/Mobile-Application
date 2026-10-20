@@ -5,7 +5,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useSearchResponsaveis } from '../hooks/useTutores';
 import type { ResponsavelLookupDto } from '../services/responsavelService';
-import { spacing, radius, fontSize } from '../styles/theme';
+import { spacing, radius, fontSize, font } from '../styles/theme';
 
 const SEARCH_DEBOUNCE_MS = 300;
 const MIN_QUERY_LENGTH = 2;
@@ -52,10 +52,10 @@ export function TutorSearchModal({ visible, onClose, onSelect }: Props) {
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={[styles.root, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { borderBottomColor: colors.border }]}>
-          <Text style={[styles.title, { color: colors.text }]}>{t('tutor.searchModalTitle')}</Text>
+        <View style={[styles.header, { borderBottomColor: colors.line }]}>
+          <Text style={[styles.title, { color: colors.ink }]}>{t('tutor.searchModalTitle')}</Text>
           <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={t('common.close')}>
-            <Text style={{ color: colors.primary, fontWeight: '700' }}>{t('common.close')}</Text>
+            <Text style={{ color: colors.accent, ...font('bold') }}>{t('common.close')}</Text>
           </Pressable>
         </View>
 
@@ -63,24 +63,24 @@ export function TutorSearchModal({ visible, onClose, onSelect }: Props) {
           <SearchBar value={query} onChangeText={setQuery} placeholder={t('tutor.searchPlaceholder')} />
 
           {trimmed.length < MIN_QUERY_LENGTH ? (
-            <Text style={{ color: colors.textSecondary }}>{t('tutor.searchMinLength')}</Text>
+            <Text style={{ color: colors.inkSecondary }}>{t('tutor.searchMinLength')}</Text>
           ) : isPending || isFetching ? (
-            <Text style={{ color: colors.textSecondary }}>{t('tutor.searchLoading')}</Text>
+            <Text style={{ color: colors.inkSecondary }}>{t('tutor.searchLoading')}</Text>
           ) : data && data.length > 0 ? (
             <ScrollView>
               {data.map((tutor) => (
                 <Pressable
                   key={tutor.id}
                   onPress={() => handleSelect(tutor)}
-                  style={[styles.row, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  style={[styles.row, { backgroundColor: colors.surface, borderColor: colors.line }]}
                 >
-                  <Text style={{ color: colors.text, fontWeight: '700' }}>{tutor.nome}</Text>
-                  <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>{tutor.email}</Text>
+                  <Text style={{ color: colors.ink, ...font('bold') }}>{tutor.nome}</Text>
+                  <Text style={{ color: colors.inkSecondary, fontSize: fontSize.sm }}>{tutor.email}</Text>
                 </Pressable>
               ))}
             </ScrollView>
           ) : (
-            <Text style={{ color: colors.textSecondary }}>{t('tutor.searchNoResults')}</Text>
+            <Text style={{ color: colors.inkSecondary }}>{t('tutor.searchNoResults')}</Text>
           )}
         </View>
       </View>
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xl,
     borderBottomWidth: 1,
   },
-  title: { fontSize: fontSize.lg, fontWeight: '800' },
+  title: { fontSize: fontSize.lg, ...font('bold') },
   body: { flex: 1, padding: spacing.lg },
   row: {
     borderWidth: 1,

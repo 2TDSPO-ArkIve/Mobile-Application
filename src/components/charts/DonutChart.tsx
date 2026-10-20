@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle, G } from 'react-native-svg';
 import { useThemeColors } from '../../hooks/useThemeColors';
-import { spacing, fontSize } from '../../styles/theme';
+import { spacing, fontSize, font } from '../../styles/theme';
 
 export interface DonutSlice {
   label: string;
@@ -51,7 +51,7 @@ export function DonutChart({ slices, formatValue, accessibilityLabel }: Props) {
       <Svg width={SIZE} height={SIZE}>
         <G rotation={-90} origin={`${SIZE / 2}, ${SIZE / 2}`}>
           {arcs.length === 0 ? (
-            <Circle cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} stroke={colors.border} strokeWidth={STROKE} fill="none" />
+            <Circle cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} stroke={colors.line} strokeWidth={STROKE} fill="none" />
           ) : null}
           {arcs.map((arc) => (
             <Circle
@@ -72,13 +72,13 @@ export function DonutChart({ slices, formatValue, accessibilityLabel }: Props) {
         {slices.map((slice) => (
           <View key={slice.label} style={styles.legendRow}>
             <View style={[styles.swatch, { backgroundColor: slice.color }]} />
-            <Text style={[styles.legendLabel, { color: colors.text }]} numberOfLines={1}>
+            <Text style={[styles.legendLabel, { color: colors.ink }]} numberOfLines={1}>
               {slice.label}{' '}
-              <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs }}>
+              <Text style={{ color: colors.inkSecondary, fontSize: fontSize.xs }}>
                 {total > 0 ? Math.round((slice.value / total) * 100) : 0}%
               </Text>
             </Text>
-            <Text style={[styles.legendValue, { color: colors.text }]}>{formatValue(slice.value)}</Text>
+            <Text style={[styles.legendValue, { color: colors.ink }]}>{formatValue(slice.value)}</Text>
           </View>
         ))}
       </View>
@@ -96,5 +96,5 @@ const styles = StyleSheet.create({
   legendRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   swatch: { width: 10, height: 10, borderRadius: 3 },
   legendLabel: { flex: 1, fontSize: fontSize.sm },
-  legendValue: { fontSize: fontSize.sm, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  legendValue: { fontSize: fontSize.sm, ...font('semibold'), fontVariant: ['tabular-nums'] },
 });
