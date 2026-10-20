@@ -11,7 +11,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { spacing, radius, fontSize, font } from '../styles/theme';
 import { focusRing, isActive, type InteractionState } from '../styles/interaction';
-import type { ColorPalette } from '../styles/colors';
 
 /**
  * Plano B §3.4: primary is solid `ink`, secondary is `sunken` with `ink`
@@ -32,8 +31,6 @@ interface Props {
   accessibilityLabel?: string;
   /** Optional leading icon (Ionicons name) — e.g. a secondary action like "Cadastrar novo paciente". */
   icon?: React.ComponentProps<typeof Ionicons>['name'];
-  /** Forces a specific palette instead of the app's current theme — e.g. LoginScreen/RegisterScreen pinning `lightColors` until they follow the theme (6.1, 6.2). */
-  colors?: ColorPalette;
 }
 
 export function AppButton({
@@ -46,10 +43,8 @@ export function AppButton({
   style,
   accessibilityLabel,
   icon,
-  colors: colorsOverride,
 }: Props) {
-  const themeColors = useThemeColors();
-  const colors = colorsOverride ?? themeColors;
+  const colors = useThemeColors();
 
   const secondary = { bg: colors.sunken, activeBg: colors.line, text: colors.ink };
   const appearance: Record<Variant, { bg: string; activeBg: string; text: string }> = {

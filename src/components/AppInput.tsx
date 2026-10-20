@@ -3,30 +3,17 @@ import { View, Text, TextInput, StyleSheet, TextInputProps } from 'react-native'
 import { useThemeColors } from '../hooks/useThemeColors';
 import { spacing, radius, fontSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
-import type { ColorPalette } from '../styles/colors';
+import { Ionicons } from '@expo/vector-icons';
 
 interface Props extends TextInputProps {
   /** Omit when a heading elsewhere already labels this field — avoids a redundant/duplicate label. */
   label?: string;
   error?: string;
   helperText?: string;
-  /** Overrides the label's theme-derived color — e.g. LoginScreen forcing pure black regardless of the user's dark-mode preference. */
-  labelColor?: string;
-  /**
-   * Forces a specific palette instead of the app's current theme — e.g.
-   * LoginScreen passing `lightColors`, since that screen must render
-   * identically regardless of the user's dark-mode preference. Without
-   * this, only the label/text color could be forced (via `labelColor`);
-   * the input's own background/border/placeholder color always came from
-   * the live theme regardless, which is what let a dark-mode input box
-   * render inside an otherwise-forced-light card.
-   */
-  colors?: ColorPalette;
 }
 
-export function AppInput({ label, error, helperText, labelColor, colors: colorsOverride, style, onFocus, onBlur, editable, ...props }: Props) {
-  const themeColors = useThemeColors();
-  const colors = colorsOverride ?? themeColors;
+export function AppInput({ label, error, helperText, style, onFocus, onBlur, editable, ...props }: Props) {
+  const colors = useThemeColors();
   const [focused, setFocused] = useState(false);
 
   // Typed via TextInputProps itself (not a named FocusEvent/BlurEvent import)
@@ -48,7 +35,7 @@ export function AppInput({ label, error, helperText, labelColor, colors: colorsO
   return (
     <View style={[styles.wrap, editable === false && styles.disabled]}>
       {label ? (
-        <Text style={[commonStyles.label, { color: labelColor ?? colors.ink }]}>{label}</Text>
+        <Text style={[commonStyles.label, { color: colors.ink }]}>{label}</Text>
       ) : null}
       <TextInput
         placeholderTextColor={colors.inkSecondary}
@@ -67,7 +54,10 @@ export function AppInput({ label, error, helperText, labelColor, colors: colorsO
         {...props}
       />
       {error ? (
-        <Text style={[commonStyles.errorText, { color: colors.error }]}>{error}</Text>
+        <View style={styles.errorRow}>
+          <Ionicons name="alert-circle" size={14} color={colors.error} style={styles.errorIcon} />
+          <Text style={[commonStyles.errorText, styles.errorText, { color: colors.error }]}>{error}</Text>
+        </View>
       ) : helperText ? (
         <Text style={[commonStyles.helperText, { color: colors.inkSecondary }]}>
           {helperText}
@@ -80,6 +70,9 @@ export function AppInput({ label, error, helperText, labelColor, colors: colorsO
 const styles = StyleSheet.create({
   wrap: { marginBottom: spacing.sm },
   disabled: { opacity: 0.56 },
+  errorRow: { flexDirection: 'row', gap: spacing.xs },
+  errorIcon: { marginTop: spacing.xs },
+  errorText: { flex: 1 },
   input: {
     minHeight: 44,
     borderRadius: radius.field,

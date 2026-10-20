@@ -1,20 +1,11 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Image,
-  Pressable,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { AppInput } from '../components/AppInput';
 import { AppButton } from '../components/AppButton';
+import { AuthLayout } from '../components/AuthLayout';
+import { SegmentedControl } from '../components/SegmentedControl';
 import { PasswordChecklist } from '../components/PasswordChecklist';
 import { useRegisterVeterinario, useRegisterResponsavel } from '../hooks/useRegister';
 import { useTranslation } from '../i18n/useTranslation';
@@ -24,10 +15,9 @@ import { formatRgInput, normalizeRg, isValidRg, generateTestRg } from '../utils/
 import { formatPhoneInput } from '../utils/phoneMask';
 import { isPasswordValid } from '../utils/passwordPolicy';
 import { mapVeterinarioRegistrationError, mapResponsavelRegistrationError } from '../utils/errorMessages';
-import { lightColors } from '../styles/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 import type { AuthStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, radius } from '../styles/theme';
-import { shadows } from '../styles/shadows';
 
 type Role = 'VETERINARIO' | 'RESPONSAVEL';
 type TipoDocumento = 'CPF' | 'RG';
@@ -64,15 +54,12 @@ const TELEFONE_MAX = 20;
  * first-login change. Both roles validate their password against the same
  * `PasswordPolicy` rules Java enforces (8–72 chars, upper/lower/digit) via
  * the shared `passwordPolicy.ts`/`PasswordChecklist`.
- *
- * Same forced-`lightColors` pre-authentication treatment as every other
- * Auth-stack screen.
  */
 export function RegisterScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const route = useRoute<RouteProp<AuthStackParamList, 'Cadastro' | 'CadastroResponsavel'>>();
   const { t } = useTranslation();
-  const colors = lightColors;
+  const colors = useThemeColors();
 
   const registerVeterinarioMutation = useRegisterVeterinario();
   const registerResponsavelMutation = useRegisterResponsavel();
@@ -378,390 +365,273 @@ export function RegisterScreen() {
     tipoDocumento === 'CPF' ? t('registerResponsavel.cpfLabel') : t('registerResponsavel.rgLabel');
 
   return (
-    <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
-      <StatusBar style="dark" />
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, shadows.md]}>
-            <View style={styles.logoWrap}>
-              <Image
-                source={require('../assets/branding/definitive.png')}
-                style={styles.logo}
-                resizeMode="contain"
-                tintColor={colors.ink}
+    <AuthLayout panelHeight={0.22}>
+      {registeredEmail ? (
+        <>
+          <Text style={[styles.title, { color: colors.ink }]}>
+            {registeredRole === 'VETERINARIO' ? t('register.successTitle') : t('registerResponsavel.successTitle')}
+          </Text>
+          {registeredRole === 'VETERINARIO' ? (
+            <>
+              <Text style={[styles.message, { color: colors.inkSecondary }]}>
+                {t('register.successEmailLine', { email: registeredEmail })}
+              </Text>
+              <Text style={[styles.message, { color: colors.inkSecondary }]}>
+                {t('register.successMessage')}
+              </Text>
+            </>
+          ) : (
+            <Text style={[styles.message, { color: colors.inkSecondary }]}>
+              {t('registerResponsavel.successMessage', { email: registeredEmail })}
+            </Text>
+          )}
+          <AppButton title={t('register.goToLogin')} onPress={goToLogin} />
+        </>
+      ) : (
+        <>
+          <Text style={[styles.title, { color: colors.ink }]}>{t('register.unifiedTitle')}</Text>
+
+          <SegmentedControl
+            label={t('register.roleSectionLabel')}
+            options={[
+              { value: 'VETERINARIO', label: t('register.roleVeterinario') },
+              { value: 'RESPONSAVEL', label: t('register.roleResponsavel') },
+            ]}
+            value={role}
+            onChange={handleSelectRole}
+          />
+
+          {role === 'VETERINARIO' ? (
+            <>
+              <AppInput
+                label={t('register.nomeLabel')}
+                placeholder={t('register.nomePlaceholder')}
+                value={vetNome}
+                onChangeText={(value) =>
+                  handleLiveChange('nome', setVetNome, value, !!touched.nome, validateVetNome)
+                }
+                onBlur={() => handleLiveBlur('nome', () => validateVetNome(vetNome))}
+                maxLength={NOME_MAX}
+                autoCorrect={false}
+                error={fieldErrors.nome}
               />
-            </View>
 
-            {registeredEmail ? (
-              <>
-                <Text style={[styles.title, { color: colors.text }]}>
-                  {registeredRole === 'VETERINARIO' ? t('register.successTitle') : t('registerResponsavel.successTitle')}
+              <AppInput
+                label={t('register.crmvLabel')}
+                placeholder={t('register.crmvPlaceholder')}
+                value={crmv}
+                onChangeText={(value) =>
+                  handleLiveChange('crmv', setCrmv, value, !!touched.crmv, validateCrmv)
+                }
+                onBlur={() => handleLiveBlur('crmv', () => validateCrmv(crmv))}
+                maxLength={CRMV_MAX}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                error={fieldErrors.crmv}
+              />
+
+              <AppInput
+                label={t('register.emailLabel')}
+                placeholder={t('register.emailPlaceholder')}
+                value={vetEmail}
+                onChangeText={(value) =>
+                  handleLiveChange('email', setVetEmail, value, !!touched.email, validateVetEmail)
+                }
+                onBlur={() => handleLiveBlur('email', () => validateVetEmail(vetEmail))}
+                maxLength={EMAIL_MAX}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                error={fieldErrors.email}
+              />
+
+              <AppInput
+                label={t('registerResponsavel.senhaLabel')}
+                placeholder={t('registerResponsavel.senhaPlaceholder')}
+                value={vetSenha}
+                onChangeText={(value) =>
+                  handlePasswordChange(
+                    setVetSenha,
+                    vetConfirmarSenha,
+                    value,
+                    !!touched.senha,
+                    !!touched.confirmacaoSenha
+                  )
+                }
+                onBlur={() => handleLiveBlur('senha', () => validatePassword(vetSenha))}
+                maxLength={72}
+                secureTextEntry
+                error={fieldErrors.senha}
+              />
+              <PasswordChecklist password={vetSenha} />
+
+              <AppInput
+                label={t('registerResponsavel.confirmarSenhaLabel')}
+                placeholder={t('registerResponsavel.confirmarSenhaPlaceholder')}
+                value={vetConfirmarSenha}
+                onChangeText={(value) =>
+                  handleLiveChange(
+                    'confirmacaoSenha',
+                    setVetConfirmarSenha,
+                    value,
+                    !!touched.confirmacaoSenha,
+                    (v) => validateConfirmacao(v, vetSenha)
+                  )
+                }
+                onBlur={() =>
+                  handleLiveBlur('confirmacaoSenha', () => validateConfirmacao(vetConfirmarSenha, vetSenha))
+                }
+                maxLength={72}
+                secureTextEntry
+                error={fieldErrors.confirmacaoSenha}
+              />
+
+              {formError ? <Text style={[styles.error, { color: colors.error }]}>{formError}</Text> : null}
+
+              <AppButton
+                title={t('register.submit')}
+                onPress={handleRegisterVeterinario}
+                loading={isSubmitting}
+                disabled={isSubmitting}
+              />
+            </>
+          ) : (
+            <>
+              <AppInput
+                label={t('registerResponsavel.nomeLabel')}
+                placeholder={t('registerResponsavel.nomePlaceholder')}
+                value={resNome}
+                onChangeText={(value) =>
+                  handleLiveChange('nome', setResNome, value, !!touched.nome, validateResNome)
+                }
+                onBlur={() => handleLiveBlur('nome', () => validateResNome(resNome))}
+                maxLength={NOME_MAX}
+                autoCorrect={false}
+                error={fieldErrors.nome}
+              />
+
+              <Text style={[styles.academicWarning, { color: colors.error, borderColor: colors.error }]}>
+                {t('registerResponsavel.academicWarning')}
+              </Text>
+
+              <SegmentedControl
+                label={t('registerResponsavel.tipoDocumentoLabel')}
+                options={[
+                  { value: 'CPF', label: 'CPF' },
+                  { value: 'RG', label: 'RG' },
+                ]}
+                value={tipoDocumento}
+                onChange={handleSelectTipoDocumento}
+              />
+
+              <AppInput
+                label={documentoLabel}
+                placeholder={documentoPlaceholder}
+                value={documentoInput}
+                onChangeText={handleDocumentoChange}
+                onBlur={() => handleLiveBlur('documento', () => validateDocumento(tipoDocumento, documentoInput))}
+                maxLength={tipoDocumento === 'CPF' ? 14 : 20}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                keyboardType={tipoDocumento === 'CPF' ? 'number-pad' : 'default'}
+                error={fieldErrors.documento}
+              />
+
+              <Pressable onPress={handleGenerateTestDocument} accessibilityRole="button">
+                <Text style={[styles.generateLink, { color: colors.accent }]}>
+                  {t('registerResponsavel.generateTestDocument')}
                 </Text>
-                {registeredRole === 'VETERINARIO' ? (
-                  <>
-                    <Text style={[styles.message, { color: colors.textSecondary }]}>
-                      {t('register.successEmailLine', { email: registeredEmail })}
-                    </Text>
-                    <Text style={[styles.message, { color: colors.textSecondary }]}>
-                      {t('register.successMessage')}
-                    </Text>
-                  </>
-                ) : (
-                  <Text style={[styles.message, { color: colors.textSecondary }]}>
-                    {t('registerResponsavel.successMessage', { email: registeredEmail })}
-                  </Text>
-                )}
-                <AppButton title={t('register.goToLogin')} onPress={goToLogin} colors={lightColors} />
-              </>
-            ) : (
-              <>
-                <Text style={[styles.title, { color: colors.text }]}>{t('register.unifiedTitle')}</Text>
+              </Pressable>
 
-                <Text style={[styles.roleSectionLabel, { color: '#000000' }]}>{t('register.roleSectionLabel')}</Text>
-                <View style={styles.segmentedRow}>
-                  {(['VETERINARIO', 'RESPONSAVEL'] as const).map((value) => {
-                    const selected = role === value;
-                    return (
-                      <Pressable
-                        key={value}
-                        onPress={() => handleSelectRole(value)}
-                        accessibilityRole="button"
-                        accessibilityState={{ selected }}
-                        accessibilityLabel={value === 'VETERINARIO' ? t('register.roleVeterinario') : t('register.roleResponsavel')}
-                        style={[
-                          styles.segment,
-                          { backgroundColor: selected ? colors.primary : colors.surface, borderColor: selected ? colors.primary : colors.border },
-                        ]}
-                      >
-                        <Text style={{ color: selected ? '#FFFFFF' : '#000000', fontWeight: selected ? '700' : '600', fontSize: fontSize.md }}>
-                          {value === 'VETERINARIO' ? t('register.roleVeterinario') : t('register.roleResponsavel')}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
+              <AppInput
+                label={t('registerResponsavel.emailLabel')}
+                placeholder={t('registerResponsavel.emailPlaceholder')}
+                value={resEmail}
+                onChangeText={(value) =>
+                  handleLiveChange('email', setResEmail, value, !!touched.email, validateResEmail)
+                }
+                onBlur={() => handleLiveBlur('email', () => validateResEmail(resEmail))}
+                maxLength={EMAIL_MAX}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                error={fieldErrors.email}
+              />
 
-                {role === 'VETERINARIO' ? (
-                  <>
-                    <AppInput
-                      label={t('register.nomeLabel')}
-                      labelColor="#000000"
-                      colors={lightColors}
-                      style={styles.inputText}
-                      placeholder={t('register.nomePlaceholder')}
-                      value={vetNome}
-                      onChangeText={(value) =>
-                        handleLiveChange('nome', setVetNome, value, !!touched.nome, validateVetNome)
-                      }
-                      onBlur={() => handleLiveBlur('nome', () => validateVetNome(vetNome))}
-                      maxLength={NOME_MAX}
-                      autoCorrect={false}
-                      error={fieldErrors.nome}
-                    />
+              <AppInput
+                label={t('registerResponsavel.telefoneLabel')}
+                placeholder={t('registerResponsavel.telefonePlaceholder')}
+                value={telefoneInput}
+                onChangeText={handleTelefoneChange}
+                onBlur={() => handleLiveBlur('telefone', () => validateTelefone(telefoneInput))}
+                maxLength={15}
+                keyboardType="phone-pad"
+                error={fieldErrors.telefone}
+              />
 
-                    <AppInput
-                      label={t('register.crmvLabel')}
-                      labelColor="#000000"
-                      colors={lightColors}
-                      style={styles.inputText}
-                      placeholder={t('register.crmvPlaceholder')}
-                      value={crmv}
-                      onChangeText={(value) =>
-                        handleLiveChange('crmv', setCrmv, value, !!touched.crmv, validateCrmv)
-                      }
-                      onBlur={() => handleLiveBlur('crmv', () => validateCrmv(crmv))}
-                      maxLength={CRMV_MAX}
-                      autoCapitalize="characters"
-                      autoCorrect={false}
-                      error={fieldErrors.crmv}
-                    />
+              <AppInput
+                label={t('registerResponsavel.senhaLabel')}
+                placeholder={t('registerResponsavel.senhaPlaceholder')}
+                value={senha}
+                onChangeText={(value) =>
+                  handlePasswordChange(setSenha, confirmarSenha, value, !!touched.senha, !!touched.confirmacaoSenha)
+                }
+                onBlur={() => handleLiveBlur('senha', () => validatePassword(senha))}
+                maxLength={72}
+                secureTextEntry
+                error={fieldErrors.senha}
+              />
+              <PasswordChecklist password={senha} />
 
-                    <AppInput
-                      label={t('register.emailLabel')}
-                      labelColor="#000000"
-                      colors={lightColors}
-                      style={styles.inputText}
-                      placeholder={t('register.emailPlaceholder')}
-                      value={vetEmail}
-                      onChangeText={(value) =>
-                        handleLiveChange('email', setVetEmail, value, !!touched.email, validateVetEmail)
-                      }
-                      onBlur={() => handleLiveBlur('email', () => validateVetEmail(vetEmail))}
-                      maxLength={EMAIL_MAX}
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      keyboardType="email-address"
-                      error={fieldErrors.email}
-                    />
+              <AppInput
+                label={t('registerResponsavel.confirmarSenhaLabel')}
+                placeholder={t('registerResponsavel.confirmarSenhaPlaceholder')}
+                value={confirmarSenha}
+                onChangeText={(value) =>
+                  handleLiveChange(
+                    'confirmacaoSenha',
+                    setConfirmarSenha,
+                    value,
+                    !!touched.confirmacaoSenha,
+                    (v) => validateConfirmacao(v, senha)
+                  )
+                }
+                onBlur={() => handleLiveBlur('confirmacaoSenha', () => validateConfirmacao(confirmarSenha, senha))}
+                maxLength={72}
+                secureTextEntry
+                error={fieldErrors.confirmacaoSenha}
+              />
 
-                    <AppInput
-                      label={t('registerResponsavel.senhaLabel')}
-                      labelColor="#000000"
-                      colors={lightColors}
-                      style={styles.inputText}
-                      placeholder={t('registerResponsavel.senhaPlaceholder')}
-                      value={vetSenha}
-                      onChangeText={(value) =>
-                        handlePasswordChange(
-                          setVetSenha,
-                          vetConfirmarSenha,
-                          value,
-                          !!touched.senha,
-                          !!touched.confirmacaoSenha
-                        )
-                      }
-                      onBlur={() => handleLiveBlur('senha', () => validatePassword(vetSenha))}
-                      maxLength={72}
-                      secureTextEntry
-                      error={fieldErrors.senha}
-                    />
-                    <PasswordChecklist password={vetSenha} />
+              {formError ? <Text style={[styles.error, { color: colors.error }]}>{formError}</Text> : null}
 
-                    <AppInput
-                      label={t('registerResponsavel.confirmarSenhaLabel')}
-                      labelColor="#000000"
-                      colors={lightColors}
-                      style={styles.inputText}
-                      placeholder={t('registerResponsavel.confirmarSenhaPlaceholder')}
-                      value={vetConfirmarSenha}
-                      onChangeText={(value) =>
-                        handleLiveChange(
-                          'confirmacaoSenha',
-                          setVetConfirmarSenha,
-                          value,
-                          !!touched.confirmacaoSenha,
-                          (v) => validateConfirmacao(v, vetSenha)
-                        )
-                      }
-                      onBlur={() =>
-                        handleLiveBlur('confirmacaoSenha', () => validateConfirmacao(vetConfirmarSenha, vetSenha))
-                      }
-                      maxLength={72}
-                      secureTextEntry
-                      error={fieldErrors.confirmacaoSenha}
-                    />
+              <AppButton
+                title={t('registerResponsavel.submit')}
+                onPress={handleRegisterResponsavel}
+                loading={isSubmitting}
+                disabled={isSubmitting}
+              />
+            </>
+          )}
+        </>
+      )}
 
-                    {formError ? <Text style={[styles.error, { color: colors.error }]}>{formError}</Text> : null}
-
-                    <AppButton
-                      title={t('register.submit')}
-                      onPress={handleRegisterVeterinario}
-                      loading={isSubmitting}
-                      disabled={isSubmitting}
-                      colors={lightColors}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <AppInput
-                      label={t('registerResponsavel.nomeLabel')}
-                      labelColor="#000000"
-                      colors={lightColors}
-                      style={styles.inputText}
-                      placeholder={t('registerResponsavel.nomePlaceholder')}
-                      value={resNome}
-                      onChangeText={(value) =>
-                        handleLiveChange('nome', setResNome, value, !!touched.nome, validateResNome)
-                      }
-                      onBlur={() => handleLiveBlur('nome', () => validateResNome(resNome))}
-                      maxLength={NOME_MAX}
-                      autoCorrect={false}
-                      error={fieldErrors.nome}
-                    />
-
-                    <Text style={[styles.academicWarning, { color: colors.error, borderColor: colors.error }]}>
-                      {t('registerResponsavel.academicWarning')}
-                    </Text>
-
-                    <Text style={[styles.roleSectionLabel, { color: '#000000' }]}>{t('registerResponsavel.tipoDocumentoLabel')}</Text>
-                    <View style={styles.segmentedRow}>
-                      {(['CPF', 'RG'] as const).map((value) => {
-                        const selected = tipoDocumento === value;
-                        return (
-                          <Pressable
-                            key={value}
-                            onPress={() => handleSelectTipoDocumento(value)}
-                            accessibilityRole="button"
-                            accessibilityState={{ selected }}
-                            style={[
-                              styles.segment,
-                              { backgroundColor: selected ? colors.primary : colors.surface, borderColor: selected ? colors.primary : colors.border },
-                            ]}
-                          >
-                            <Text style={{ color: selected ? '#FFFFFF' : '#000000', fontWeight: selected ? '700' : '600', fontSize: fontSize.md }}>
-                              {value}
-                            </Text>
-                          </Pressable>
-                        );
-                      })}
-                    </View>
-
-                    <AppInput
-                      label={documentoLabel}
-                      labelColor="#000000"
-                      colors={lightColors}
-                      style={styles.inputText}
-                      placeholder={documentoPlaceholder}
-                      value={documentoInput}
-                      onChangeText={handleDocumentoChange}
-                      onBlur={() => handleLiveBlur('documento', () => validateDocumento(tipoDocumento, documentoInput))}
-                      maxLength={tipoDocumento === 'CPF' ? 14 : 20}
-                      autoCapitalize="characters"
-                      autoCorrect={false}
-                      keyboardType={tipoDocumento === 'CPF' ? 'number-pad' : 'default'}
-                      error={fieldErrors.documento}
-                    />
-
-                    <Pressable onPress={handleGenerateTestDocument} accessibilityRole="button">
-                      <Text style={[styles.generateLink, { color: colors.primary }]}>
-                        {t('registerResponsavel.generateTestDocument')}
-                      </Text>
-                    </Pressable>
-
-                    <AppInput
-                      label={t('registerResponsavel.emailLabel')}
-                      labelColor="#000000"
-                      colors={lightColors}
-                      style={styles.inputText}
-                      placeholder={t('registerResponsavel.emailPlaceholder')}
-                      value={resEmail}
-                      onChangeText={(value) =>
-                        handleLiveChange('email', setResEmail, value, !!touched.email, validateResEmail)
-                      }
-                      onBlur={() => handleLiveBlur('email', () => validateResEmail(resEmail))}
-                      maxLength={EMAIL_MAX}
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      keyboardType="email-address"
-                      error={fieldErrors.email}
-                    />
-
-                    <AppInput
-                      label={t('registerResponsavel.telefoneLabel')}
-                      labelColor="#000000"
-                      colors={lightColors}
-                      style={styles.inputText}
-                      placeholder={t('registerResponsavel.telefonePlaceholder')}
-                      value={telefoneInput}
-                      onChangeText={handleTelefoneChange}
-                      onBlur={() => handleLiveBlur('telefone', () => validateTelefone(telefoneInput))}
-                      maxLength={15}
-                      keyboardType="phone-pad"
-                      error={fieldErrors.telefone}
-                    />
-
-                    <AppInput
-                      label={t('registerResponsavel.senhaLabel')}
-                      labelColor="#000000"
-                      colors={lightColors}
-                      style={styles.inputText}
-                      placeholder={t('registerResponsavel.senhaPlaceholder')}
-                      value={senha}
-                      onChangeText={(value) =>
-                        handlePasswordChange(setSenha, confirmarSenha, value, !!touched.senha, !!touched.confirmacaoSenha)
-                      }
-                      onBlur={() => handleLiveBlur('senha', () => validatePassword(senha))}
-                      maxLength={72}
-                      secureTextEntry
-                      error={fieldErrors.senha}
-                    />
-                    <PasswordChecklist password={senha} />
-
-                    <AppInput
-                      label={t('registerResponsavel.confirmarSenhaLabel')}
-                      labelColor="#000000"
-                      colors={lightColors}
-                      style={styles.inputText}
-                      placeholder={t('registerResponsavel.confirmarSenhaPlaceholder')}
-                      value={confirmarSenha}
-                      onChangeText={(value) =>
-                        handleLiveChange(
-                          'confirmacaoSenha',
-                          setConfirmarSenha,
-                          value,
-                          !!touched.confirmacaoSenha,
-                          (v) => validateConfirmacao(v, senha)
-                        )
-                      }
-                      onBlur={() => handleLiveBlur('confirmacaoSenha', () => validateConfirmacao(confirmarSenha, senha))}
-                      maxLength={72}
-                      secureTextEntry
-                      error={fieldErrors.confirmacaoSenha}
-                    />
-
-                    {formError ? <Text style={[styles.error, { color: colors.error }]}>{formError}</Text> : null}
-
-                    <AppButton
-                      title={t('registerResponsavel.submit')}
-                      onPress={handleRegisterResponsavel}
-                      loading={isSubmitting}
-                      disabled={isSubmitting}
-                      colors={lightColors}
-                    />
-                  </>
-                )}
-              </>
-            )}
-          </View>
-
-          {!registeredEmail ? (
-            <AppButton
-              title={t('auth.registerBackButton')}
-              variant="ghost"
-              onPress={() => navigation.goBack()}
-              style={styles.backLink}
-              colors={lightColors}
-            />
-          ) : null}
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      {!registeredEmail ? (
+        <AppButton
+          title={t('auth.registerBackButton')}
+          variant="ghost"
+          onPress={() => navigation.goBack()}
+          style={styles.backLink}
+        />
+      ) : null}
+    </AuthLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
-  flex: { flex: 1 },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: spacing.lg,
-  },
-  card: {
-    width: '100%',
-    maxWidth: 480,
-    alignSelf: 'center',
-    borderWidth: 1,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-  },
-  logoWrap: {
-    width: '70%',
-    maxWidth: 90,
-    aspectRatio: 1356 / 1160,
-    alignSelf: 'center',
-    marginBottom: spacing.lg,
-  },
-  logo: { width: '100%', height: '100%' },
   title: { fontSize: fontSize.lg, fontWeight: '700', marginBottom: spacing.sm, textAlign: 'center' },
   message: { fontSize: fontSize.md, textAlign: 'center', marginBottom: spacing.lg, lineHeight: 22 },
-  inputText: { color: '#000000' },
   error: { fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.sm },
   backLink: { marginTop: spacing.sm },
-  roleSectionLabel: { fontSize: fontSize.sm, fontWeight: '600', marginBottom: spacing.xs, marginTop: spacing.xs },
-  segmentedRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
-  segment: {
-    flex: 1,
-    minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-  },
   academicWarning: {
     fontSize: fontSize.xs,
     lineHeight: 17,
