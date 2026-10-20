@@ -70,7 +70,7 @@ export function KpiCard({ label, value, hint, delta, deltaRange, highlight, styl
     <AppCard
       style={{
         ...styles.card,
-        ...(highlight ? { backgroundColor: colors.ink } : null),
+        ...(highlight ? { ...styles.highlightCard, backgroundColor: colors.ink } : null),
         ...style,
       }}
     >
@@ -92,7 +92,10 @@ export function KpiCard({ label, value, hint, delta, deltaRange, highlight, styl
 }
 
 const styles = StyleSheet.create({
-  card: { marginBottom: 0, flexGrow: 1, borderRadius: radius.lg },
+  // Minimum widths fit "R$ 99.999,99" at each size, so a narrow row wraps the
+  // card instead of truncating the value (`adjustsFontSizeToFit` is a no-op on web).
+  card: { marginBottom: 0, flexGrow: 1, borderRadius: radius.lg, minWidth: 170 },
+  highlightCard: { minWidth: 260 },
   label: { fontSize: fontSize.sm, ...font('medium') },
   value: { fontSize: fontSize.xl, ...font('bold'), fontVariant: ['tabular-nums'], marginTop: spacing.xs },
   headline: { fontSize: 34, lineHeight: 40 },
