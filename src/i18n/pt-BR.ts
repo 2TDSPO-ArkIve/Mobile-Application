@@ -455,8 +455,7 @@ export const pt = {
   },
   clinicalSupportCard: {
     title: 'Apoio à decisão clínica',
-    disclaimer:
-      'Hipótese sugerida pelo ArkIve para apoiar a avaliação — não é o diagnóstico final, nem uma prescrição. A decisão clínica e a prescrição são sempre do veterinário.',
+    disclaimer: 'Hipótese sugerida pelo ArkIve para apoiar a avaliação.',
     hypothesis: 'Hipótese diagnóstica',
     severity: 'Severidade sugerida',
     confidence: 'Confiança',
