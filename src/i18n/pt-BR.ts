@@ -16,6 +16,8 @@ export const pt = {
     edit: 'Editar',
     delete: 'Excluir',
     tryAgain: 'Tentar novamente',
+    showPassword: 'Mostrar senha',
+    hidePassword: 'Ocultar senha',
     back: 'Voltar',
     yes: 'Sim',
     no: 'Não',

@@ -14,6 +14,8 @@ export const en = {
     edit: 'Edit',
     delete: 'Delete',
     tryAgain: 'Try again',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
     back: 'Back',
     yes: 'Yes',
     no: 'No',

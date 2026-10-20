@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TextInputProps } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, TextInputProps } from 'react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { spacing, radius, fontSize } from '../styles/theme';
+import { useTranslation } from '../i18n/useTranslation';
+import { spacing, radius, fontSize, iconSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 import { Ionicons } from '@expo/vector-icons';
+import { focusRing, type InteractionState } from '../styles/interaction';
 
 interface Props extends TextInputProps {
   /** Omit when a heading elsewhere already labels this field — avoids a redundant/duplicate label. */
@@ -12,9 +14,11 @@ interface Props extends TextInputProps {
   helperText?: string;
 }
 
-export function AppInput({ label, error, helperText, style, onFocus, onBlur, editable, ...props }: Props) {
+export function AppInput({ label, error, helperText, style, onFocus, onBlur, editable, secureTextEntry, ...props }: Props) {
   const colors = useThemeColors();
+  const { t } = useTranslation();
   const [focused, setFocused] = useState(false);
+  const [revealed, setRevealed] = useState(false);
 
   // Typed via TextInputProps itself (not a named FocusEvent/BlurEvent import)
   // so this keeps compiling regardless of how RN names that type internally.
@@ -37,22 +41,37 @@ export function AppInput({ label, error, helperText, style, onFocus, onBlur, edi
       {label ? (
         <Text style={[commonStyles.label, { color: colors.ink }]}>{label}</Text>
       ) : null}
-      <TextInput
-        placeholderTextColor={colors.inkSecondary}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        editable={editable}
-        style={[
-          styles.input,
-          {
-            backgroundColor: colors.sunken,
-            borderColor,
-            color: colors.ink,
-          },
-          style,
-        ]}
-        {...props}
-      />
+      <View>
+        <TextInput
+          placeholderTextColor={colors.inkSecondary}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          editable={editable}
+          secureTextEntry={secureTextEntry && !revealed}
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.sunken,
+              borderColor,
+              color: colors.ink,
+            },
+            secureTextEntry && styles.withToggle,
+            style,
+          ]}
+          {...props}
+        />
+        {secureTextEntry ? (
+          <Pressable
+            onPress={() => setRevealed((value) => !value)}
+            disabled={editable === false}
+            accessibilityRole="button"
+            accessibilityLabel={revealed ? t('common.hidePassword') : t('common.showPassword')}
+            style={(state: InteractionState) => [styles.toggle, focusRing(state, colors)]}
+          >
+            <Ionicons name={revealed ? 'eye-off-outline' : 'eye-outline'} size={iconSize.md} color={colors.inkSecondary} />
+          </Pressable>
+        ) : null}
+      </View>
       {error ? (
         <View style={styles.errorRow}>
           <Ionicons name="alert-circle" size={14} color={colors.error} style={styles.errorIcon} />
@@ -73,6 +92,17 @@ const styles = StyleSheet.create({
   errorRow: { flexDirection: 'row', gap: spacing.xs },
   errorIcon: { marginTop: spacing.xs },
   errorText: { flex: 1 },
+  withToggle: { paddingRight: 44 },
+  toggle: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.field,
+  },
   input: {
     minHeight: 44,
     borderRadius: radius.field,
