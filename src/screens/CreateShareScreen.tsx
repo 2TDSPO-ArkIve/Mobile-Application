@@ -9,6 +9,7 @@ import { AppButton } from '../components/AppButton';
 import { EmptyState } from '../components/EmptyState';
 import { ShareQrCode } from '../components/ShareQrCode';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { usePatient } from '../hooks/usePatients';
 import { useCreatePatientShare } from '../hooks/useShares';
@@ -17,7 +18,7 @@ import { formatDateTime } from '../utils/localeFormat';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { buildPatientShareUrl } from '../utils/shareLink';
 import type { PatientAccessRole, PatientShareCreatedDto } from '../services/shareService';
-import { spacing, fontSize, radius } from '../styles/theme';
+import { spacing, fontSize, radius, font, layout } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
 const INVITATION_TYPES: PatientAccessRole[] = ['VETERINARIO', 'RESPONSAVEL'];
@@ -50,6 +51,7 @@ export function CreateShareScreen() {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const { patientId } = route.params;
+  const containerStyle = useBreakpoint() === 'wide' ? { maxWidth: layout.formMax } : undefined;
 
   const { data: patient, isPending, isError } = usePatient(patientId);
   const createShare = useCreatePatientShare(patientId);
@@ -122,7 +124,7 @@ export function CreateShareScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('shareCreate.genericTitle')} />
-        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl }}>
+        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
           {t('shareCreate.loadingPatient')}
         </Text>
       </View>
@@ -133,7 +135,7 @@ export function CreateShareScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('shareCreate.genericTitle')} />
-        <ScreenContainer>
+        <ScreenContainer style={containerStyle}>
           <EmptyState title={t('shareCreate.loadErrorTitle')} message={t('shareCreate.loadErrorMessage')} />
         </ScreenContainer>
       </View>
@@ -143,8 +145,8 @@ export function CreateShareScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('shareCreate.title', { name: patient.nome })} />
-      <ScreenContainer>
-        <Text style={[styles.arkiveIdSubtitle, { color: colors.textSecondary }]} selectable>
+      <ScreenContainer style={containerStyle}>
+        <Text style={[styles.arkiveIdSubtitle, { color: colors.inkSecondary }]} selectable>
           {patientArkiveIdLine(patient)}
         </Text>
 
@@ -153,7 +155,7 @@ export function CreateShareScreen() {
             <ShareQrCode value={buildPatientShareUrl(created.rawToken)} />
 
             <AppCard style={styles.detailsCard}>
-              <Text style={[styles.field, { color: colors.textSecondary }]}>
+              <Text style={[styles.field, { color: colors.inkSecondary }]}>
                 {t('shareCreate.recipientLabel', {
                   value:
                     created.invitationType === 'VETERINARIO'
@@ -161,30 +163,30 @@ export function CreateShareScreen() {
                       : t('shareInvitationType.RESPONSAVEL'),
                 })}
               </Text>
-              <Text style={[styles.field, { color: colors.textSecondary }]}>
+              <Text style={[styles.field, { color: colors.inkSecondary }]}>
                 {t('shareCreate.expiresAtLabel', { value: formatDateTime(new Date(created.expiresAt)) })}
               </Text>
             </AppCard>
 
             {created.invitationType === 'VETERINARIO' ? (
-              <AppButton title={t('shareCreate.copyCodeButton')} variant="outline" onPress={handleCopyCode} />
+              <AppButton title={t('shareCreate.copyCodeButton')} variant="secondary" icon="copy-outline" onPress={handleCopyCode} />
             ) : null}
 
-            <AppButton title={t('shareCreate.shareLinkButton')} onPress={handleShareLink} />
+            <AppButton title={t('shareCreate.shareLinkButton')} icon="share-outline" onPress={handleShareLink} />
 
             {copyFeedback ? (
-              <Text style={{ color: colors.primary, textAlign: 'center', marginTop: spacing.xs }}>
+              <Text style={{ color: colors.accent, textAlign: 'center', marginTop: spacing.xs }}>
                 {copyFeedback}
               </Text>
             ) : null}
 
-            <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm }}>
+            <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.sm }}>
               {t('shareCreate.doneHelper')}
             </Text>
           </>
         ) : (
           <>
-            <Text style={[commonStyles.eyebrow, { color: colors.primary, marginBottom: spacing.sm }]}>
+            <Text style={[commonStyles.eyebrow, { color: colors.accent, marginBottom: spacing.sm }]}>
               {t('shareCreate.question')}
             </Text>
 
@@ -199,10 +201,10 @@ export function CreateShareScreen() {
                 disabled={createShare.isPending}
                 style={[
                   styles.optionRow,
-                  { backgroundColor: colors.surface, borderColor: colors.border, opacity: createShare.isPending ? 0.6 : 1 },
+                  { backgroundColor: colors.surface, borderColor: colors.line, opacity: createShare.isPending ? 0.6 : 1 },
                 ]}
               >
-                <Text style={{ color: colors.text, fontWeight: '700', fontSize: fontSize.md }}>
+                <Text style={{ color: colors.ink, ...font('semibold'), fontSize: fontSize.md }}>
                   {invitationType === 'VETERINARIO'
                     ? t('shareInvitationType.VETERINARIO')
                     : t('shareInvitationType.RESPONSAVEL')}
@@ -211,7 +213,7 @@ export function CreateShareScreen() {
             ))}
 
             {createShare.isPending ? (
-              <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm }}>
+              <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.sm }}>
                 {t('shareCreate.creating')}
               </Text>
             ) : null}

@@ -9,6 +9,7 @@ import { AppButton } from '../components/AppButton';
 import { EmptyState } from '../components/EmptyState';
 import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { usePendingShare } from '../context/PendingShareContext';
 import { usePreviewPatientShare, useRedeemPatientShare } from '../hooks/useShares';
@@ -16,7 +17,7 @@ import { describePreviewShareError, describeRedeemShareError } from '../utils/er
 import { formatDateTime } from '../utils/localeFormat';
 import type { PatientShareStatus } from '../services/shareService';
 import type { TranslationKey } from '../i18n/store';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font, layout } from '../styles/theme';
 
 /**
  * Reused across THREE navigators (unauthenticated `AuthStack`, VETERINARIO
@@ -56,6 +57,7 @@ export function SharePreviewScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<SharePreviewNavigationParamList>>();
   const colors = useThemeColors();
   const { t } = useTranslation();
+  const containerStyle = useBreakpoint() === 'wide' ? { maxWidth: layout.formMax } : undefined;
   const { status, isVeterinario, isResponsavel, logout } = useAuth();
   const { pendingToken, clearPendingToken, resetPresented } = usePendingShare();
 
@@ -161,9 +163,9 @@ export function SharePreviewScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('sharePreview.title')} />
-        <ScreenContainer>
+        <ScreenContainer style={containerStyle}>
           <EmptyState title={t('sharePreview.noPendingTitle')} message={t('sharePreview.noPendingMessage')} />
-          <AppButton title={t('common.back')} variant="outline" onPress={() => navigation.goBack()} />
+          <AppButton title={t('common.back')} variant="secondary" onPress={() => navigation.goBack()} />
         </ScreenContainer>
       </View>
     );
@@ -173,7 +175,7 @@ export function SharePreviewScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('sharePreview.title')} />
-        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl }}>
+        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
           {t('sharePreview.loading')}
         </Text>
       </View>
@@ -184,12 +186,12 @@ export function SharePreviewScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('sharePreview.title')} />
-        <ScreenContainer>
+        <ScreenContainer style={containerStyle}>
           <EmptyState
             title={t('sharePreview.invalidTitle')}
             message={describePreviewShareError(previewMutation.error)}
           />
-          <AppButton title={t('sharePreview.discardButton')} variant="outline" onPress={handleDiscard} />
+          <AppButton title={t('sharePreview.discardButton')} variant="secondary" onPress={handleDiscard} />
         </ScreenContainer>
       </View>
     );
@@ -201,9 +203,9 @@ export function SharePreviewScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('sharePreview.title')} />
-        <ScreenContainer>
+        <ScreenContainer style={containerStyle}>
           <EmptyState title={t('sharePreview.invalidTitle')} message={t(statusKey)} />
-          <AppButton title={t('sharePreview.discardButton')} variant="outline" onPress={handleDiscard} />
+          <AppButton title={t('sharePreview.discardButton')} variant="secondary" onPress={handleDiscard} />
         </ScreenContainer>
       </View>
     );
@@ -224,21 +226,21 @@ export function SharePreviewScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('sharePreview.title')} />
-      <ScreenContainer>
+      <ScreenContainer style={containerStyle}>
         <AppCard>
-          <Text style={[styles.field, styles.firstField, { color: colors.text, fontWeight: '700' }]}>
+          <Text style={[styles.field, styles.firstField, { color: colors.ink, ...font('bold') }]}>
             {t('sharePreview.patientLabel', { name: preview.patientName })}
           </Text>
-          <Text style={[styles.field, { color: colors.textSecondary }]}>
+          <Text style={[styles.field, { color: colors.inkSecondary }]}>
             {t('sharePreview.speciesLabel', { value: preview.speciesName })}
           </Text>
-          <Text style={[styles.field, { color: colors.textSecondary }]}>
+          <Text style={[styles.field, { color: colors.inkSecondary }]}>
             {t('sharePreview.invitationTypeLabel', { value: invitationLabel })}
           </Text>
-          <Text style={[styles.field, { color: colors.textSecondary }]}>
+          <Text style={[styles.field, { color: colors.inkSecondary }]}>
             {t('sharePreview.invitedByLabel', { name: preview.invitedByName })}
           </Text>
-          <Text style={[styles.field, { color: colors.textSecondary }]}>
+          <Text style={[styles.field, { color: colors.inkSecondary }]}>
             {t('sharePreview.expiresAtLabel', { value: formatDateTime(new Date(preview.expiresAt)) })}
           </Text>
         </AppCard>
@@ -251,13 +253,13 @@ export function SharePreviewScreen() {
             {preview.invitationType === 'RESPONSAVEL' ? (
               <AppButton
                 title={t('sharePreview.registerResponsavelButton')}
-                variant="outline"
+                variant="secondary"
                 onPress={handleGoToRegisterResponsavel}
               />
             ) : (
               <AppButton
                 title={t('sharePreview.registerVeterinarioButton')}
-                variant="outline"
+                variant="secondary"
                 onPress={handleGoToRegisterVeterinario}
               />
             )}
@@ -268,7 +270,7 @@ export function SharePreviewScreen() {
             <Text style={[styles.mismatchMessage, { color: colors.error }]}>
               {t('sharePreview.roleMismatchMessage', { invitationType: invitationLabel })}
             </Text>
-            <AppButton title={t('sharePreview.backButton')} variant="outline" onPress={() => navigation.goBack()} />
+            <AppButton title={t('sharePreview.backButton')} variant="secondary" onPress={() => navigation.goBack()} />
             <AppButton title={t('sharePreview.logoutButton')} variant="danger" onPress={handleLogoutToSwitchAccount} />
           </>
         ) : (
