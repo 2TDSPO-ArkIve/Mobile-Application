@@ -14,7 +14,7 @@ import { spacing, layout } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
 /**
- * Manual-code fallback for VETERINARIO-to-VETERINARIO invitations — the
+ * Manual-code fallback for invitations (VETERINARIO and RESPONSAVEL) — the
  * backend has no shorter code for this sprint, so the "code" pasted here is
  * the same raw share token `CreateShareScreen` offers via "Copiar código".
  * There is no second sharing model: this screen does nothing but trim the

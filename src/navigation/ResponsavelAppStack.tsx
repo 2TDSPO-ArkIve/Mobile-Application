@@ -18,6 +18,7 @@ import { ChangePasswordScreen } from '../screens/ChangePasswordScreen';
 import { CreateShareScreen } from '../screens/CreateShareScreen';
 import { SharePreviewScreen } from '../screens/SharePreviewScreen';
 import { ScanShareQrScreen } from '../screens/ScanShareQrScreen';
+import { EnterShareCodeScreen } from '../screens/EnterShareCodeScreen';
 import { AnimalReportsScreen } from '../screens/AnimalReportsScreen';
 import { NewAnimalReportScreen } from '../screens/NewAnimalReportScreen';
 import { SidebarLayout, type SidebarItem } from '../components/Sidebar';
@@ -41,6 +42,7 @@ const SECTION: Partial<Record<keyof ResponsavelAppStackParamList, Section>> = {
   CompartilharPaciente: 'MeusAnimais',
   ConvitePaciente: 'MeusAnimais',
   EscanearConvite: 'MeusAnimais',
+  InserirCodigoConvite: 'MeusAnimais',
   Configuracoes: 'MinhaConta',
   AlterarSenha: 'MinhaConta',
 };
@@ -136,6 +138,7 @@ export function ResponsavelAppStack() {
       <Stack.Screen name="CompartilharPaciente" component={CreateShareScreen} />
       <Stack.Screen name="ConvitePaciente" component={SharePreviewScreen} />
       <Stack.Screen name="EscanearConvite" component={ScanShareQrScreen} />
+      <Stack.Screen name="InserirCodigoConvite" component={EnterShareCodeScreen} />
       <Stack.Screen name="MinhaConta" component={ResponsavelAccountScreen} />
       <Stack.Screen name="Configuracoes" component={SettingsScreen} />
       <Stack.Screen name="AlterarSenha" component={ChangePasswordScreen} />

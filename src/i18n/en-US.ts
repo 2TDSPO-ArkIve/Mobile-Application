@@ -215,7 +215,7 @@ export const en = {
   enterShareCode: {
     entryLink: 'Enter invitation code',
     title: 'Enter invitation code',
-    instructions: 'Paste or type the invitation code you received from another veterinarian.',
+    instructions: 'Paste or type the invitation code you received.',
     codeLabel: 'Invitation code',
     codePlaceholder: 'Paste the code here',
     continueButton: 'Continue',

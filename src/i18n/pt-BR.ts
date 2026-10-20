@@ -217,7 +217,7 @@ export const pt = {
   enterShareCode: {
     entryLink: 'Inserir código de convite',
     title: 'Inserir código de convite',
-    instructions: 'Cole ou digite o código de convite que você recebeu de outro veterinário.',
+    instructions: 'Cole ou digite o código de convite que você recebeu.',
     codeLabel: 'Código do convite',
     codePlaceholder: 'Cole o código aqui',
     continueButton: 'Continuar',

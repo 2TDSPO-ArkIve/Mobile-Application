@@ -36,13 +36,11 @@ const INVITATION_TYPES: PatientAccessRole[] = ['VETERINARIO', 'RESPONSAVEL'];
  * screen's own local state once created (`created.rawToken`); it is never
  * logged, never put in a query key or route param.
  *
- * For VETERINARIO invitations only, the raw token is also offered as a
- * "Copiar código" action — a legitimate manual fallback transport (the
- * recipient vet types/pastes it into `EnterShareCodeScreen`), since the
- * backend has no shorter code for this sprint; the token IS the code. This is
- * deliberately NOT shown for RESPONSAVEL invitations, where the QR/link path
- * alone is the intended tutor-onboarding UX (see `shareCreate.question` flow)
- * and a visible raw code would add nothing but exposure.
+ * The raw token is also offered as a "Copiar código" action, for both
+ * invitation types — a legitimate manual fallback transport (the recipient
+ * types/pastes it into `EnterShareCodeScreen`), since the backend has no
+ * shorter code for this sprint; the token IS the code. On web it is the only
+ * transport besides the link (P4: no webcam reader).
  */
 type CreateShareRouteParamList = { CompartilharPaciente: { patientId: number } };
 
@@ -168,9 +166,7 @@ export function CreateShareScreen() {
               </Text>
             </AppCard>
 
-            {created.invitationType === 'VETERINARIO' ? (
-              <AppButton title={t('shareCreate.copyCodeButton')} variant="secondary" icon="copy-outline" onPress={handleCopyCode} />
-            ) : null}
+            <AppButton title={t('shareCreate.copyCodeButton')} variant="secondary" icon="copy-outline" onPress={handleCopyCode} />
 
             <AppButton title={t('shareCreate.shareLinkButton')} icon="share-outline" onPress={handleShareLink} />
 

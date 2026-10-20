@@ -52,6 +52,8 @@ const baseLight = {
   neutralTint: '#ECEEEA',
 
   scrim: 'rgba(0,0,0,0.35)',
+  // Drawn over the live camera feed, so it never follows the theme.
+  onCamera: '#FFFFFF',
 };
 
 const baseDark: typeof baseLight = {
@@ -80,6 +82,7 @@ const baseDark: typeof baseLight = {
   neutralTint: '#1F2226',
 
   scrim: 'rgba(0,0,0,0.6)',
+  onCamera: '#FFFFFF',
 };
 
 function palette(base: typeof baseLight, accent: AccentTokens) {
