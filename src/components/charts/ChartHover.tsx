@@ -104,7 +104,7 @@ export function ChartTooltip({
       pointerEvents="none"
       style={[styles.tooltip, shadows.md, { left, width, backgroundColor: colors.raised, borderColor: colors.line }]}
     >
-      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+      <Text style={[styles.title, { color: colors.ink }]}>{title}</Text>
       {rows.map((row) => (
         <View key={row.label} style={styles.row}>
           <View
@@ -113,10 +113,10 @@ export function ChartTooltip({
               row.dashed ? { borderColor: row.color, borderWidth: 1, borderStyle: 'dashed' } : { backgroundColor: row.color },
             ]}
           />
-          <Text style={[styles.label, { color: colors.textSecondary }]} numberOfLines={1}>
+          <Text style={[styles.label, { color: colors.inkSecondary }]} numberOfLines={1}>
             {row.label}
           </Text>
-          <Text style={[styles.value, { color: colors.text }]}>{row.value}</Text>
+          <Text style={[styles.value, { color: colors.ink }]}>{row.value}</Text>
         </View>
       ))}
     </View>

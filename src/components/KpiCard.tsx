@@ -77,7 +77,7 @@ export function KpiCard({ label, value, hint, delta, deltaRange, highlight, styl
       <Text style={[styles.label, muted]} numberOfLines={1}>
         {label}
       </Text>
-      <Text style={[styles.value, { color: textColor }]} numberOfLines={1} adjustsFontSizeToFit>
+      <Text style={[styles.value, highlight && styles.headline, { color: textColor }]} numberOfLines={1} adjustsFontSizeToFit>
         {value}
       </Text>
       {deltaRange ? (
@@ -95,6 +95,7 @@ const styles = StyleSheet.create({
   card: { marginBottom: 0, flexGrow: 1, borderRadius: radius.lg },
   label: { fontSize: fontSize.sm, ...font('medium') },
   value: { fontSize: fontSize.xl, ...font('bold'), fontVariant: ['tabular-nums'], marginTop: spacing.xs },
+  headline: { fontSize: 34, lineHeight: 40 },
   subRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.xs },
   pill: {
     fontSize: fontSize.xs,

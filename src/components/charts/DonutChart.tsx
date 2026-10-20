@@ -72,13 +72,13 @@ export function DonutChart({ slices, formatValue, accessibilityLabel }: Props) {
         {slices.map((slice) => (
           <View key={slice.label} style={styles.legendRow}>
             <View style={[styles.swatch, { backgroundColor: slice.color }]} />
-            <Text style={[styles.legendLabel, { color: colors.text }]} numberOfLines={1}>
+            <Text style={[styles.legendLabel, { color: colors.ink }]} numberOfLines={1}>
               {slice.label}{' '}
-              <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs }}>
+              <Text style={{ color: colors.inkSecondary, fontSize: fontSize.xs }}>
                 {total > 0 ? Math.round((slice.value / total) * 100) : 0}%
               </Text>
             </Text>
-            <Text style={[styles.legendValue, { color: colors.text }]}>{formatValue(slice.value)}</Text>
+            <Text style={[styles.legendValue, { color: colors.ink }]}>{formatValue(slice.value)}</Text>
           </View>
         ))}
       </View>

@@ -23,7 +23,7 @@ export function ChartLegend({ items, style }: { items: LegendItem[]; style?: Vie
           ) : (
             <View style={[styles.dot, { backgroundColor: item.color }]} />
           )}
-          <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs }}>{item.label}</Text>
+          <Text style={{ color: colors.inkSecondary, fontSize: fontSize.xs }}>{item.label}</Text>
         </View>
       ))}
     </View>

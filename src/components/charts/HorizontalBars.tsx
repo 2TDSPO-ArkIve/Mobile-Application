@@ -49,13 +49,13 @@ export function HorizontalBars({ rows, showRank, showShare, collapseAfter = DEFA
           <>
             <View style={styles.header}>
               {showRank ? (
-                <Text style={[styles.rank, { color: colors.textSecondary }]}>{index + 1}</Text>
+                <Text style={[styles.rank, { color: colors.inkSecondary }]}>{index + 1}</Text>
               ) : null}
-              <Text style={[styles.label, { color: colors.text }]} numberOfLines={1}>
+              <Text style={[styles.label, { color: colors.ink }]} numberOfLines={1}>
                 {row.label}
               </Text>
-              <Text style={[styles.value, { color: colors.text }]}>{valueLabel}</Text>
-              {share ? <Text style={[styles.share, { color: colors.textSecondary }]}>{share}</Text> : null}
+              <Text style={[styles.value, { color: colors.ink }]}>{valueLabel}</Text>
+              {share ? <Text style={[styles.share, { color: colors.inkSecondary }]}>{share}</Text> : null}
             </View>
             {/* The % width is taken from this track, so the rank indent never pushes the bar past the card. */}
             <View style={showRank && styles.barIndented}>
