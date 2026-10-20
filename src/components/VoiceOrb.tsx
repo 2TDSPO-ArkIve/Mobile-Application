@@ -43,7 +43,7 @@ function useOrbSizes() {
 }
 
 /**
- * The signature ArkIve voice interaction — a calm indigo orb with a
+ * The signature ArkIve voice interaction — an `ink` orb (`accent` while recording, never `ai`) with a
  * microphone at rest, visibly alive while recording, and a shared pulsing
  * language for transcription/analysis waiting states. Built entirely on
  * React Native's own `Animated` API (no WebGL/canvas/extra dependency).
@@ -107,6 +107,8 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
     return () => loop.stop();
   }, [mode, breathe]);
 
+  const orbColor = mode === 'recording' ? colors.accent : colors.ink;
+
   const centerScale = Animated.add(
     breathe.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] }),
     meter.interpolate({ inputRange: [0, 1], outputRange: [0, 0.12] })
@@ -117,7 +119,7 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
     width: size,
     height: size,
     borderRadius: size / 2,
-    backgroundColor: colors.primary,
+    backgroundColor: orbColor,
     opacity: anim.interpolate({ inputRange: [0, 1], outputRange: [0.28, 0] }),
     transform: [{ scale: anim.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] }) }],
   });
@@ -158,15 +160,15 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
               width: ORB_SIZE,
               height: ORB_SIZE,
               borderRadius: ORB_SIZE / 2,
-              backgroundColor: mode === 'recording' ? colors.accent : colors.ink,
+              backgroundColor: orbColor,
               transform: [{ scale: centerScale }],
             },
           ]}
         >
           {mode === 'transcribing' || mode === 'analyzing' ? (
-            <ActivityIndicator color="#FFFFFF" />
+            <ActivityIndicator color={colors.onInk} />
           ) : (
-            <Ionicons name={mode === 'recording' ? 'mic' : 'mic-outline'} size={36} color="#FFFFFF" />
+            <Ionicons name={mode === 'recording' ? 'mic' : 'mic-outline'} size={36} color={colors.onInk} />
           )}
         </Animated.View>
       </Pressable>
@@ -174,14 +176,14 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
       {label ? (
         <View style={styles.labelRow}>
           {mode === 'recording' ? <View style={[styles.recDot, { backgroundColor: colors.error }]} /> : null}
-          <Text style={[styles.label, { color: mode === 'recording' ? colors.error : colors.textSecondary }]}>
+          <Text style={[styles.label, { color: mode === 'recording' ? colors.error : colors.inkSecondary }]}>
             {label}
           </Text>
         </View>
       ) : null}
 
       {mode === 'recording' ? (
-        <Text style={[styles.timer, { color: colors.text }]}>{formatDuration(durationSeconds)}</Text>
+        <Text style={[styles.timer, { color: colors.ink }]}>{formatDuration(durationSeconds)}</Text>
       ) : null}
     </View>
   );

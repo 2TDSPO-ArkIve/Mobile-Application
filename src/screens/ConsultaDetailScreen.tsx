@@ -193,7 +193,7 @@ export function ConsultaDetailScreen() {
               : []
           }
         />
-        <ScreenContainer>
+        <ScreenContainer style={wide ? { maxWidth: layout.contentMax } : undefined}>
           <StatusTrail status={consulta.status} />
           <ClinicalIntake
             animalNome={consulta.animalNome}
