@@ -3,6 +3,8 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { SidebarItem } from '../components/Sidebar';
 import type { BottomTabParamList } from '../interfaces/navigation';
 import { HomeScreen } from '../screens/HomeScreen';
 import { ConsultasScreen } from '../screens/ConsultasScreen';
@@ -46,9 +48,28 @@ const ICONS: Record<
  * entirely: every pixel of icon size, gap, label line-height, and safe-area
  * padding is explicit here, so there is nothing left to clip.
  */
-function CustomTabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
+function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const items = state.routes.map((route, index): SidebarItem => {
+    const { options } = descriptors[route.key];
+    const focused = state.index === index;
+    return {
+      key: route.key,
+      label: typeof options.tabBarLabel === 'string' ? options.tabBarLabel : route.name,
+      icon: ICONS[route.name as keyof BottomTabParamList],
+      onPress: () => {
+        const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+        if (!focused && !event.defaultPrevented) navigation.navigate(route.name);
+      },
+    };
+  });
+  return <TabBar items={items} activeKey={state.routes[state.index].key} />;
+}
+
+/** Shared bar, also drawn by the RESPONSAVEL stack layout. */
+export function TabBar({ items, activeKey }: { items: SidebarItem[]; activeKey: string | null }) {
   const colors = useThemeColors();
-  // From the wide band up, the sidebar (AppStack layout) replaces the tab bar.
+  const insets = useSafeAreaInsets();
+  // From the wide band up, the sidebar (stack layout) replaces the tab bar.
   if (useBreakpoint() === 'wide') return null;
 
   return (
@@ -67,38 +88,23 @@ function CustomTabBar({ state, descriptors, navigation, insets }: BottomTabBarPr
         },
       ]}
     >
-      {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key];
-        const focused = state.index === index;
+      {items.map((item) => {
+        const focused = item.key === activeKey;
         // Active tab: accent with the filled icon (Plano B F3).
         const color = focused ? colors.accent : colors.inkSecondary;
-        const label =
-          typeof options.tabBarLabel === 'string' ? options.tabBarLabel : route.name;
-        const icon = ICONS[route.name as keyof BottomTabParamList];
-
-        const handlePress = () => {
-          const event = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-            canPreventDefault: true,
-          });
-          if (!focused && !event.defaultPrevented) {
-            navigation.navigate(route.name);
-          }
-        };
 
         return (
           <Pressable
-            key={route.key}
-            onPress={handlePress}
+            key={item.key}
+            onPress={item.onPress}
             accessibilityRole="button"
             accessibilityState={focused ? { selected: true } : {}}
-            accessibilityLabel={options.tabBarAccessibilityLabel ?? label}
+            accessibilityLabel={item.label}
             style={styles.item}
           >
-            <Ionicons name={focused ? icon.active : icon.inactive} size={ICON_SIZE} color={color} />
+            <Ionicons name={focused ? item.icon.active : item.icon.inactive} size={ICON_SIZE} color={color} />
             <Text style={[styles.label, { color }]} numberOfLines={1}>
-              {label}
+              {item.label}
             </Text>
           </Pressable>
         );

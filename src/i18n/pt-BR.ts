@@ -36,6 +36,8 @@ export const pt = {
     home: 'Início',
     consultas: 'Consultas',
     pacientes: 'Pacientes',
+    buscar: 'Buscar',
+    solicitacoes: 'Solicitações',
   },
   sidebar: {
     collapse: 'Recolher menu',

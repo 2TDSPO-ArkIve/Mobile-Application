@@ -34,6 +34,8 @@ export const en = {
     home: 'Home',
     consultas: 'Visits',
     pacientes: 'Patients',
+    buscar: 'Search',
+    solicitacoes: 'Requests',
   },
   sidebar: {
     collapse: 'Collapse menu',
