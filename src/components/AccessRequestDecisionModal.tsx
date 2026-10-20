@@ -5,7 +5,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useApproveAccessRequest, useRejectAccessRequest } from '../hooks/usePatientAccessRequests';
 import { describeAccessRequestDecisionError } from '../utils/errorMessages';
-import { spacing, fontSize, font } from '../styles/theme';
+import { spacing, fontSize, font, radius } from '../styles/theme';
 
 interface Props {
   visible: boolean;
@@ -67,8 +67,8 @@ export function AccessRequestDecisionModal({ visible, requestId, action, onClose
       <View style={[styles.backdrop, { backgroundColor: colors.scrim }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
         <View style={[styles.sheet, { backgroundColor: colors.raised }]}>
-          <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-          <Text style={{ color: colors.textSecondary, marginBottom: spacing.md }}>{message}</Text>
+          <Text style={[styles.title, { color: colors.ink }]}>{title}</Text>
+          <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md }}>{message}</Text>
 
           {error ? (
             <Text style={{ color: colors.error, fontSize: fontSize.sm, marginBottom: spacing.sm }}>{error}</Text>
@@ -76,7 +76,7 @@ export function AccessRequestDecisionModal({ visible, requestId, action, onClose
 
           <AppButton
             title={isPending ? t('accessRequestDecision.submitting') : confirmLabel}
-            variant={action === 'approve' ? 'primary' : 'danger'}
+            variant={action === 'approve' ? 'primary' : 'secondary'}
             onPress={handleConfirm}
             loading={isPending}
             disabled={isPending}
@@ -91,8 +91,8 @@ export function AccessRequestDecisionModal({ visible, requestId, action, onClose
 const styles = StyleSheet.create({
   backdrop: { flex: 1, justifyContent: 'flex-end' },
   sheet: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: radius.card,
+    borderTopRightRadius: radius.card,
     padding: spacing.lg,
   },
   title: { fontSize: fontSize.lg, ...font('bold'), marginBottom: spacing.xs },
