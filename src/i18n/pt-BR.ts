@@ -18,6 +18,8 @@ export const pt = {
     tryAgain: 'Tentar novamente',
     showPassword: 'Mostrar senha',
     hidePassword: 'Ocultar senha',
+    copyArkiveId: 'Copiar ID ArkIve',
+    arkiveIdCopied: 'ID ArkIve copiado',
     back: 'Voltar',
     yes: 'Sim',
     no: 'Não',

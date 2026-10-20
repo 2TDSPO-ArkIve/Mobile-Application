@@ -16,6 +16,8 @@ export const en = {
     tryAgain: 'Try again',
     showPassword: 'Show password',
     hidePassword: 'Hide password',
+    copyArkiveId: 'Copy ArkIve ID',
+    arkiveIdCopied: 'ArkIve ID copied',
     back: 'Back',
     yes: 'Yes',
     no: 'No',

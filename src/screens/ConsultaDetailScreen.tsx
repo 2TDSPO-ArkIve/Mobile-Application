@@ -1,19 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { AppCard } from '../components/AppCard';
 import { AppButton } from '../components/AppButton';
 import { StatusBadge } from '../components/StatusBadge';
+import { StatusTrail } from '../components/StatusTrail';
+import { ArkiveIdField } from '../components/ArkiveIdField';
 import { EmptyState } from '../components/EmptyState';
 import { ClinicalIntake } from '../components/ClinicalIntake';
 import { ClinicalSupportCard } from '../components/ClinicalSupportCard';
 import { ConfirmedDiagnosisCard } from '../components/ConfirmedDiagnosisCard';
 import { CancelConsultaModal } from '../components/CancelConsultaModal';
 import { DeleteConsultaModal } from '../components/DeleteConsultaModal';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../i18n/useTranslation';
 import {
   useConsulta,
@@ -27,10 +32,10 @@ import { findConfirmedDiagnosis } from '../services/diagnosticoService';
 import { consultaStatusPresentation } from '../utils/statusPresentation';
 import { describeNarrativeSaveError } from '../utils/errorMessages';
 import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
-import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { t } from '../i18n/store';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font, layout } from '../styles/theme';
+import { shadows } from '../styles/shadows';
 import { commonStyles } from '../styles/common';
 
 function formatContextLine(dataHora: string, modalidade: string): string {
@@ -57,6 +62,9 @@ export function ConsultaDetailScreen() {
   const route = useRoute<RouteProp<AppStackParamList, 'ConsultaDetalhe'>>();
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const colors = useThemeColors();
+  const { scheme } = useTheme();
+  const insets = useSafeAreaInsets();
+  const wide = useBreakpoint() === 'wide';
   const { t } = useTranslation();
   const { consultaId } = route.params;
 
@@ -143,7 +151,7 @@ export function ConsultaDetailScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('consultaDetail.genericTitle')} />
-        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl }}>
+        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
           {t('consultaDetail.loading')}
         </Text>
       </View>
@@ -156,6 +164,7 @@ export function ConsultaDetailScreen() {
         <AppHeader title={t('consultaDetail.genericTitle')} />
         <ScreenContainer>
           <EmptyState
+            tone="error"
             title={t('consultaDetail.loadErrorTitle')}
             message={error instanceof Error ? error.message : t('consultaDetail.notFound')}
           />
@@ -185,6 +194,7 @@ export function ConsultaDetailScreen() {
           }
         />
         <ScreenContainer>
+          <StatusTrail status={consulta.status} />
           <ClinicalIntake
             animalNome={consulta.animalNome}
             animalArkivePatientId={consulta.animalArkivePatientId}
@@ -237,6 +247,106 @@ export function ConsultaDetailScreen() {
   const isFinalizada = consulta.status === 'FI';
   const isCancelada = consulta.status === 'CA';
 
+  // The one primary action of each status lives in the fixed footer.
+  const footerAction = canStart ? (
+    <AppButton title={t('consultaDetail.startConsulta')} onPress={handleStart} loading={startMutation.isPending} />
+  ) : isFinalizada ? (
+    <AppButton
+      title={t('consultaDetail.prescricoesButton')}
+      onPress={() => navigation.navigate('Prescricoes', { consultaId: consulta.id })}
+    />
+  ) : null;
+
+  const patientCard = (
+    <AppCard>
+      <View style={styles.row}>
+        <Text style={[styles.patientName, { color: colors.ink }]} numberOfLines={2}>
+          {consulta.animalNome}
+        </Text>
+        {isCancelada ? (
+          <StatusBadge label={consulta.statusDescricao} tone={consultaStatusPresentation(consulta.status).tone} />
+        ) : null}
+      </View>
+      <Text style={[styles.field, { color: colors.inkSecondary }]}>
+        {formatContextLine(consulta.dataHora, consulta.modalidade)}
+      </Text>
+      <ArkiveIdField arkivePatientId={consulta.animalArkivePatientId} />
+
+      {consulta.motivo ? (
+        <Text style={[styles.field, { color: colors.ink }]}>
+          {t('consultaDetail.reasonLabel', { reason: consulta.motivo })}
+        </Text>
+      ) : null}
+
+      {consulta.sintomas ? (
+        <Text style={[styles.field, { color: colors.inkSecondary }]}>
+          {t('consultaDetail.symptomsLabel', { symptoms: consulta.sintomas })}
+        </Text>
+      ) : null}
+
+      {consulta.peso != null ? (
+        <Text style={[styles.field, { color: colors.inkSecondary }]}>
+          {t('consultaDetail.weightLabel', { weight: consulta.peso })}
+        </Text>
+      ) : null}
+
+      {consulta.endereco ? (
+        <Text style={[styles.field, { color: colors.inkSecondary }]}>
+          {t('consultaDetail.addressLabel', { address: consulta.endereco })}
+        </Text>
+      ) : null}
+
+      {/* `null` means no cost was recorded — omitted entirely, never R$ 0,00. An explicit 0 IS a real recorded value and must still render. */}
+      {consulta.valorConsulta != null ? (
+        <View style={styles.valueBlock}>
+          <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary }]}>{t('consultaDetail.valueLabel')}</Text>
+          <Text style={[styles.field, { color: colors.ink }]}>{formatCurrency(consulta.valorConsulta)}</Text>
+        </View>
+      ) : null}
+    </AppCard>
+  );
+
+  /* `consulta.observacaoResponsavel` is a per-consultation SNAPSHOT
+     (`DS_OBS_RESPONSAVEL`) Java copies from the animal's pending note the
+     moment THIS consultation transitioned AG→EP — never the animal's
+     current/still-pending note (`observacao-responsavel` endpoint), and never
+     repeated onto any other consultation. Shown regardless of status
+     (AG/EP/FI/CA) since it's an immutable historical fact once set. */
+  const observationCard = consulta.observacaoResponsavel ? (
+    <AppCard>
+      <Text style={[styles.label, { color: colors.ink }]}>{t('consultaDetail.responsavelObservationLabel')}</Text>
+      <Text style={[styles.field, { color: colors.ink }]}>{consulta.observacaoResponsavel}</Text>
+    </AppCard>
+  ) : null;
+
+  // Narrative, then the AI card, then the veterinarian's card — the AI → vet
+  // order never changes, on any layout.
+  const clinicalRecord = isFinalizada ? (
+    <>
+      {consulta.transcricao ? (
+        <AppCard>
+          <Text style={[styles.label, { color: colors.ink }]}>{t('consultaDetail.narrativeLabel')}</Text>
+          <Text style={[styles.field, { color: colors.ink }]}>{consulta.transcricao}</Text>
+        </AppCard>
+      ) : null}
+
+      {clinicalSupport.data ? <ClinicalSupportCard support={clinicalSupport.data} /> : null}
+
+      {diagnosticos.isPending ? (
+        <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md }}>
+          {t('consultaDetail.loadingConclusion')}
+        </Text>
+      ) : confirmedDiagnosis ? (
+        <ConfirmedDiagnosisCard diagnosis={confirmedDiagnosis} conclusao={consulta.observacao} />
+      ) : null}
+    </>
+  ) : null;
+
+  const closedNote =
+    isFinalizada || isCancelada ? (
+      <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md }}>{t('consultaDetail.closedReadOnly')}</Text>
+    ) : null;
+
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader
@@ -254,108 +364,25 @@ export function ConsultaDetailScreen() {
         }
       />
 
-      <ScreenContainer>
-        <AppCard>
-          <View style={styles.row}>
-            <Text style={[styles.label, { color: colors.text }]}>{t('consultaDetail.statusLabel')}</Text>
-            <StatusBadge
-              label={consulta.statusDescricao}
-              tone={consultaStatusPresentation(consulta.status).tone}
-            />
-          </View>
+      <ScreenContainer style={wide && isFinalizada ? { maxWidth: layout.contentMax } : undefined}>
+        {isCancelada ? null : <StatusTrail status={consulta.status} />}
 
-          <Text style={[styles.field, { color: colors.text }]}>
-            {t('consultaDetail.patientLabel', { name: consulta.animalNome })}
-          </Text>
-          <Text style={[styles.field, styles.arkiveIdField, { color: colors.textSecondary }]} selectable>
-            {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
-          </Text>
-          <Text style={[styles.field, { color: colors.textSecondary }]}>
-            {consulta.modalidade === 'PRESENCIAL' ? t('home.presencial') : t('home.remota')} ·{' '}
-            {formatDate(new Date(consulta.dataHora))} {formatTime(new Date(consulta.dataHora))}
-          </Text>
-
-          {consulta.motivo ? (
-            <Text style={[styles.field, { color: colors.text }]}>
-              {t('consultaDetail.reasonLabel', { reason: consulta.motivo })}
-            </Text>
-          ) : null}
-
-          {consulta.sintomas ? (
-            <Text style={[styles.field, { color: colors.textSecondary }]}>
-              {t('consultaDetail.symptomsLabel', { symptoms: consulta.sintomas })}
-            </Text>
-          ) : null}
-
-          {consulta.peso != null ? (
-            <Text style={[styles.field, { color: colors.textSecondary }]}>
-              {t('consultaDetail.weightLabel', { weight: consulta.peso })}
-            </Text>
-          ) : null}
-
-          {consulta.endereco ? (
-            <Text style={[styles.field, { color: colors.textSecondary }]}>
-              {t('consultaDetail.addressLabel', { address: consulta.endereco })}
-            </Text>
-          ) : null}
-
-          {/* `null` means no cost was recorded — omitted entirely, never R$ 0,00. An explicit 0 IS a real recorded value and must still render. */}
-          {consulta.valorConsulta != null ? (
-            <View style={styles.valueBlock}>
-              <Text style={[styles.valueLabel, { color: colors.textSecondary }]}>
-                {t('consultaDetail.valueLabel')}
-              </Text>
-              <Text style={[styles.field, { color: colors.text }]}>{formatCurrency(consulta.valorConsulta)}</Text>
+        {wide && isFinalizada ? (
+          <View style={styles.columns}>
+            <View style={styles.main}>{clinicalRecord}</View>
+            <View style={styles.side}>
+              {patientCard}
+              {observationCard}
+              {closedNote}
             </View>
-          ) : null}
-        </AppCard>
-
-        {/* `consulta.observacaoResponsavel` is a per-consultation SNAPSHOT
-            (`DS_OBS_RESPONSAVEL`) Java copies from the animal's pending note
-            the moment THIS consultation transitioned AG→EP — never the
-            animal's current/still-pending note (`observacao-responsavel`
-            endpoint), and never repeated onto any other consultation. Shown
-            regardless of status (AG/EP/FI/CA) since it's an immutable
-            historical fact once set, not something tied to being finalized. */}
-        {consulta.observacaoResponsavel ? (
-          <AppCard>
-            <Text style={[styles.label, { color: colors.text }]}>
-              {t('consultaDetail.responsavelObservationLabel')}
-            </Text>
-            <Text style={[styles.field, { color: colors.text }]}>{consulta.observacaoResponsavel}</Text>
-          </AppCard>
-        ) : null}
-
-        {isFinalizada ? (
+          </View>
+        ) : (
           <>
-            {consulta.transcricao ? (
-              <AppCard>
-                <Text style={[styles.label, { color: colors.text }]}>{t('consultaDetail.narrativeLabel')}</Text>
-                <Text style={[styles.field, { color: colors.text }]}>{consulta.transcricao}</Text>
-              </AppCard>
-            ) : null}
-
-            {clinicalSupport.data ? <ClinicalSupportCard support={clinicalSupport.data} /> : null}
-
-            {diagnosticos.isPending ? (
-              <Text style={{ color: colors.textSecondary, marginBottom: spacing.md }}>
-                {t('consultaDetail.loadingConclusion')}
-              </Text>
-            ) : confirmedDiagnosis ? (
-              <ConfirmedDiagnosisCard diagnosis={confirmedDiagnosis} conclusao={consulta.observacao} />
-            ) : null}
-
-            <AppButton
-              title={t('consultaDetail.prescricoesButton')}
-              variant="outline"
-              onPress={() => navigation.navigate('Prescricoes', { consultaId: consulta.id })}
-            />
-
-            <Text style={{ color: colors.textSecondary, marginBottom: spacing.md }}>
-              {t('consultaDetail.closedReadOnly')}
-            </Text>
+            {patientCard}
+            {observationCard}
+            {clinicalRecord}
           </>
-        ) : null}
+        )}
 
         {isCancelada ? (
           <>
@@ -364,27 +391,14 @@ export function ConsultaDetailScreen() {
                 way the FI branch renders its own conclusion text. */}
             {consulta.observacao ? (
               <AppCard>
-                <Text style={[styles.label, { color: colors.text }]}>{t('cancelConsulta.reasonSectionLabel')}</Text>
-                <Text style={[styles.field, { color: colors.text }]}>{consulta.observacao}</Text>
+                <Text style={[styles.label, { color: colors.ink }]}>{t('cancelConsulta.reasonSectionLabel')}</Text>
+                <Text style={[styles.field, { color: colors.ink }]}>{consulta.observacao}</Text>
               </AppCard>
             ) : null}
-            <Text style={{ color: colors.textSecondary, marginBottom: spacing.md }}>
-              {t('consultaDetail.closedReadOnly')}
-            </Text>
           </>
         ) : null}
 
-        {actionError ? (
-          <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{actionError}</Text>
-        ) : null}
-
-        {canStart ? (
-          <AppButton
-            title={t('consultaDetail.startConsulta')}
-            onPress={handleStart}
-            loading={startMutation.isPending}
-          />
-        ) : null}
+        {wide && isFinalizada ? null : closedNote}
 
         {canEdit ? (
           <AppButton
@@ -394,22 +408,31 @@ export function ConsultaDetailScreen() {
           />
         ) : null}
 
-        {canDelete ? (
-          <AppButton
-            title={t('consultaDetail.deleteConsulta')}
-            variant="danger"
-            onPress={() => setDeleteModalOpen(true)}
-          />
+        {canCancel ? (
+          <AppButton title={t('cancelConsulta.action')} variant="outline" onPress={() => setCancelModalOpen(true)} />
         ) : null}
 
-        {canCancel ? (
-          <AppButton
-            title={t('cancelConsulta.action')}
-            variant="outline"
-            onPress={() => setCancelModalOpen(true)}
-          />
+        {canDelete ? (
+          <AppButton title={t('consultaDetail.deleteConsulta')} variant="danger" onPress={() => setDeleteModalOpen(true)} />
         ) : null}
       </ScreenContainer>
+
+      {footerAction ? (
+        <View
+          style={[
+            styles.footer,
+            { backgroundColor: colors.raised, paddingBottom: insets.bottom + spacing.sm },
+            scheme === 'dark' ? { borderTopWidth: 1, borderTopColor: colors.line } : shadows.md,
+          ]}
+        >
+          <View style={styles.footerInner}>
+            {actionError ? (
+              <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{actionError}</Text>
+            ) : null}
+            {footerAction}
+          </View>
+        </View>
+      ) : null}
 
       <CancelConsultaModal
         visible={cancelModalOpen}
@@ -437,17 +460,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    gap: spacing.sm,
   },
-  label: { fontSize: fontSize.md, fontWeight: '700' },
+  patientName: { flexShrink: 1, fontSize: fontSize.xl, ...font('bold') },
+  label: { fontSize: fontSize.md, ...font('bold') },
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
-  arkiveIdField: { ...commonStyles.arkiveId, fontSize: fontSize.xs },
   valueBlock: { marginTop: spacing.sm },
   cancelAction: { marginTop: spacing.lg },
-  valueLabel: {
-    fontSize: fontSize.xs,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
-  },
+  columns: { flexDirection: 'row', gap: spacing.lg },
+  main: { flex: 3 },
+  side: { flex: 2 },
+  footer: { paddingHorizontal: spacing.md, paddingTop: spacing.sm },
+  footerInner: { width: '100%', maxWidth: layout.formMax, alignSelf: 'center' },
 });
