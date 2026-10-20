@@ -1,4 +1,5 @@
 import React from 'react';
+import type { NavigationHelpers, NavigationState } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { ResponsavelAppStackParamList } from '../interfaces/navigation';
 import { MeusAnimaisScreen } from '../screens/MeusAnimaisScreen';
@@ -18,9 +19,64 @@ import { SharePreviewScreen } from '../screens/SharePreviewScreen';
 import { ScanShareQrScreen } from '../screens/ScanShareQrScreen';
 import { AnimalReportsScreen } from '../screens/AnimalReportsScreen';
 import { NewAnimalReportScreen } from '../screens/NewAnimalReportScreen';
+import { SidebarLayout } from '../components/Sidebar';
+import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useTranslation } from '../i18n/useTranslation';
 
 const Stack = createNativeStackNavigator<ResponsavelAppStackParamList>();
+
+type Section = 'MeusAnimais' | 'BuscarPacienteArkive' | 'SolicitacoesAcessoRecebidas' | 'MinhaConta';
+
+/** Sidebar item that stays active on each stacked screen; unlisted routes are their own section. */
+const SECTION: Partial<Record<keyof ResponsavelAppStackParamList, Section>> = {
+  CadastrarAnimal: 'MeusAnimais',
+  EditarAnimal: 'MeusAnimais',
+  PacienteDetalhe: 'MeusAnimais',
+  HistoricoPaciente: 'MeusAnimais',
+  CustosPaciente: 'MeusAnimais',
+  RelatosAnimal: 'MeusAnimais',
+  NovoRelatoAnimal: 'MeusAnimais',
+  CompartilharPaciente: 'MeusAnimais',
+  ConvitePaciente: 'MeusAnimais',
+  EscanearConvite: 'MeusAnimais',
+  Configuracoes: 'MinhaConta',
+  AlterarSenha: 'MinhaConta',
+};
+
+function TutorSidebarLayout({
+  state,
+  navigation,
+  children,
+}: {
+  state: NavigationState;
+  navigation: NavigationHelpers<ResponsavelAppStackParamList>;
+  children: React.ReactNode;
+}) {
+  const { t } = useTranslation();
+  const { identity } = useAuth();
+  const name = state.routes[state.index].name as keyof ResponsavelAppStackParamList;
+
+  return (
+    <SidebarLayout
+      activeKey={SECTION[name] ?? name}
+      groups={[
+        [
+          { key: 'MeusAnimais', label: t('myAnimals.title'), icon: { active: 'paw', inactive: 'paw-outline' }, onPress: () => navigation.navigate('MeusAnimais') },
+          { key: 'BuscarPacienteArkive', label: t('arkiveLookup.title'), icon: { active: 'search', inactive: 'search-outline' }, onPress: () => navigation.navigate('BuscarPacienteArkive') },
+          { key: 'SolicitacoesAcessoRecebidas', label: t('accessRequestsReceived.title'), icon: { active: 'person-add', inactive: 'person-add-outline' }, onPress: () => navigation.navigate('SolicitacoesAcessoRecebidas') },
+        ],
+      ]}
+      footer={{
+        title: identity?.nome ?? '',
+        subtitle: t('account.title'),
+        onPress: () => navigation.navigate('MinhaConta'),
+      }}
+    >
+      {children}
+    </SidebarLayout>
+  );
+}
 
 /**
  * The RESPONSAVEL application shell. No VETERINARIO-only clinical screens
@@ -45,6 +101,11 @@ export function ResponsavelAppStack() {
 
   return (
     <Stack.Navigator
+      layout={({ state, navigation, children }) => (
+        <TutorSidebarLayout state={state} navigation={navigation}>
+          {children}
+        </TutorSidebarLayout>
+      )}
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: colors.background },

@@ -37,6 +37,11 @@ export const pt = {
     consultas: 'Consultas',
     pacientes: 'Pacientes',
   },
+  sidebar: {
+    collapse: 'Recolher menu',
+    expand: 'Expandir menu',
+    profileAndSettings: 'Perfil e configurações',
+  },
   auth: {
     loginLabel: 'Login',
     loginPlaceholder: 'E-mail ou CRMV',

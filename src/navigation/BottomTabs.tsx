@@ -8,6 +8,7 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { ConsultasScreen } from '../screens/ConsultasScreen';
 import { PatientsScreen } from '../screens/PatientsScreen';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { fontSize, spacing, font } from '../styles/theme';
 
@@ -47,6 +48,8 @@ const ICONS: Record<
  */
 function CustomTabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
   const colors = useThemeColors();
+  // From the wide band up, the sidebar (AppStack layout) replaces the tab bar.
+  if (useBreakpoint() === 'wide') return null;
 
   return (
     <View

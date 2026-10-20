@@ -35,6 +35,11 @@ export const en = {
     consultas: 'Visits',
     pacientes: 'Patients',
   },
+  sidebar: {
+    collapse: 'Collapse menu',
+    expand: 'Expand menu',
+    profileAndSettings: 'Profile and settings',
+  },
   auth: {
     loginLabel: 'Login',
     loginPlaceholder: 'E-mail or CRMV',

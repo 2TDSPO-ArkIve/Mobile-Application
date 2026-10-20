@@ -86,3 +86,18 @@ export const fontFamilies: Record<FontWeight, string> = {
 export function font(weight: FontWeight = 'regular') {
   return { fontFamily: fontFamilies[weight] };
 }
+
+/** Width bands (revisão §5.1): compact below `medium`, wide from `wide` up. */
+export const breakpoint = {
+  medium: 768,
+  wide: 1024,
+} as const;
+
+export const layout = {
+  /** Content cap on wide screens. */
+  contentMax: 1200,
+  /** Forms and single-column content. */
+  formMax: 720,
+  sidebarWidth: 240,
+  sidebarCollapsedWidth: 72,
+} as const;
