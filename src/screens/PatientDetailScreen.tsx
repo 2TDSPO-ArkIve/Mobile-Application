@@ -110,40 +110,25 @@ export function PatientDetailScreen() {
           <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
             {t('patientDetail.dataSection')}
           </Text>
-          <Text style={[styles.field, { color: colors.ink }]}>
-            {t('patientDetail.speciesLabel', { species: patient.especieNome })}
-          </Text>
-          <Text style={[styles.field, { color: colors.ink }]}>
-            {t('patientDetail.breedLabel', { breed: patient.racaNome ?? t('common.notInformedFeminine') })}
-          </Text>
-          <Text style={[styles.field, { color: colors.ink }]}>
-            {t('patientDetail.sexLabel', {
-              sex:
-                patient.sexo === 'M'
-                  ? t('common.male')
-                  : patient.sexo === 'F'
-                    ? t('common.female')
-                    : t('common.notInformed'),
-            })}
-          </Text>
-          <Text style={[styles.field, { color: colors.ink }]}>
-            {t('patientDetail.neuteredLabel', { value: patient.castrado === 'S' ? t('common.yes') : t('common.no') })}
-          </Text>
-          {patient.dataNascimento ? (
-            <Text style={[styles.field, { color: colors.ink }]}>
-              {t('patientDetail.ageLabel', { value: formatAge(patient.dataNascimento) })}
-            </Text>
-          ) : null}
-          <Text style={[styles.field, { color: colors.inkSecondary }]}>
-            {currentTutor
-              ? t('patientDetail.tutorLabel', { name: currentTutor.responsavelNome })
-              : t('patientDetail.tutorNone')}
-          </Text>
-          {patient.clinicaNome ? (
-            <Text style={[styles.field, { color: colors.inkSecondary }]}>
-              {t('patientDetail.clinicLabel', { clinic: patient.clinicaNome })}
-            </Text>
-          ) : null}
+          <View style={styles.fields}>
+            {[
+              [t('patientDetail.speciesLabel'), patient.especieNome],
+              [t('patientDetail.breedLabel'), patient.racaNome ?? t('common.notInformedFeminine')],
+              [
+                t('patientDetail.sexLabel'),
+                patient.sexo === 'M' ? t('common.male') : patient.sexo === 'F' ? t('common.female') : t('common.notInformed'),
+              ],
+              [t('patientDetail.neuteredLabel'), patient.castrado === 'S' ? t('common.yes') : t('common.no')],
+              ...(patient.dataNascimento ? [[t('patientDetail.ageLabel'), formatAge(patient.dataNascimento)]] : []),
+              [t('patientDetail.tutorField'), currentTutor ? currentTutor.responsavelNome : t('patientDetail.tutorNone')],
+              ...(patient.clinicaNome ? [[t('patientDetail.clinicLabel'), patient.clinicaNome]] : []),
+            ].map(([label, value]) => (
+              <View key={label} style={styles.fieldItem}>
+                <Text style={[styles.fieldLabel, { color: colors.inkSecondary }]}>{label}</Text>
+                <Text style={[styles.fieldValue, { color: colors.ink }]}>{value}</Text>
+              </View>
+            ))}
+          </View>
         </AppCard>
 
         {isVeterinario ? (
@@ -235,7 +220,11 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   cover: { paddingVertical: spacing.md, marginBottom: spacing.sm },
   coverName: { fontSize: 28, lineHeight: 34, ...font('bold'), marginBottom: spacing.xs },
-  field: { fontSize: fontSize.sm, marginTop: spacing.xs },
+  // Two columns of label over value; long values wrap inside their column.
+  fields: { flexDirection: 'row', flexWrap: 'wrap', rowGap: spacing.md },
+  fieldItem: { width: '50%', paddingRight: spacing.sm },
+  fieldLabel: { fontSize: fontSize.xs },
+  fieldValue: { fontSize: fontSize.md, ...font('medium'), marginTop: 2 },
   groupLabel: { marginTop: spacing.lg, marginBottom: spacing.sm },
   group: { padding: 0, overflow: 'hidden' },
 });
