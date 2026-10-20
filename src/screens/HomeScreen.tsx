@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -9,16 +9,18 @@ import { AppCard } from '../components/AppCard';
 import { AppButton } from '../components/AppButton';
 import { StatusBadge } from '../components/StatusBadge';
 import { EmptyState } from '../components/EmptyState';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useConsultas } from '../hooks/useConsultas';
 import { usePendingShareAutoReturn } from '../hooks/useShares';
 import { consultaStatusPresentation } from '../utils/statusPresentation';
-import { formatTime } from '../utils/localeFormat';
+import { formatDate, formatDateTime, formatTime } from '../utils/localeFormat';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AppStackParamList } from '../interfaces/navigation';
 import type { ConsultaDto } from '../services/consultaService';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font, iconSize, layout } from '../styles/theme';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 import { commonStyles } from '../styles/common';
 
 function isSameDayAsNow(iso: string): boolean {
@@ -31,15 +33,21 @@ function isSameDayAsNow(iso: string): boolean {
   );
 }
 
-function formatHora(iso: string): string {
+function formatData(iso: string): string {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? '' : formatDate(date);
+}
+
+function formatHora(iso: string, withDate = false): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
-  return formatTime(date);
+  return withDate ? formatDateTime(date) : formatTime(date);
 }
 
 export function HomeScreen() {
   const colors = useThemeColors();
   const { t } = useTranslation();
+  const wide = useBreakpoint() === 'wide';
   const navigation =
     useNavigation<NativeStackNavigationProp<AppStackParamList>>();
 
@@ -95,102 +103,131 @@ export function HomeScreen() {
     navigation.navigate('ConsultaDetalhe', { consultaId });
   };
 
-  const renderConsultaCard = (consulta: ConsultaDto, actionLabel?: string) => (
-    <AppCard key={consulta.id} onPress={() => goToConsulta(consulta.id)} style={styles.consultaCard}>
-      <View style={commonStyles.rowBetween}>
-        <View style={styles.patientNameWrap}>
-          <Text style={[styles.patientName, { color: colors.text }]} numberOfLines={1}>
-            {consulta.animalNome}
-          </Text>
-          <Text style={[styles.patientArkiveId, { color: colors.textSecondary }]} numberOfLines={1}>
-            {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
-          </Text>
-        </View>
-        <StatusBadge
-          label={consulta.statusDescricao}
-          tone={consultaStatusPresentation(consulta.status).tone}
-        />
-      </View>
+  const modalidade = (consulta: ConsultaDto) =>
+    consulta.modalidade === 'PRESENCIAL' ? t('home.presencial') : t('home.remota');
 
-      {actionLabel ? (
-        <View style={[commonStyles.rowBetween, styles.actionRow]}>
-          <Text style={{ color: colors.primary, fontWeight: '600' }}>{actionLabel}</Text>
-          <Ionicons name="chevron-forward" size={18} color={colors.primary} />
-        </View>
-      ) : (
-        <Text style={{ color: colors.textSecondary }}>
-          {formatHora(consulta.dataHora)}
-          {' · '}
-          {consulta.modalidade === 'PRESENCIAL' ? t('home.presencial') : t('home.remota')}
+  // The oldest EP/AP consultation leads as the dominant card; any others
+  // follow as compact rows.
+  const [current, ...otherInProgress] = inProgressConsultas;
+
+  /** Compact row: time, patient, status. Rows share one card, split by `line`. */
+  const renderRow = (consulta: ConsultaDto, index: number) => (
+    <Pressable
+      key={consulta.id}
+      onPress={() => goToConsulta(consulta.id)}
+      accessibilityRole="button"
+      style={(state: InteractionState) => [
+        styles.row,
+        index > 0 && { borderTopWidth: 1, borderTopColor: colors.line },
+        isActive(state) && { backgroundColor: colors.sunken },
+        focusRing(state, colors),
+      ]}
+    >
+      <Text style={[styles.rowTime, { color: colors.inkSecondary }]}>{formatHora(consulta.dataHora)}</Text>
+      <View style={styles.rowPatient}>
+        <Text style={[styles.rowName, { color: colors.ink }]} numberOfLines={1}>
+          {consulta.animalNome}
         </Text>
+        <Text style={[styles.rowMeta, { color: colors.inkSecondary }]} numberOfLines={1}>
+          {formatData(consulta.dataHora)} · {modalidade(consulta)}
+        </Text>
+      </View>
+      <StatusBadge label={consulta.statusDescricao} tone={consultaStatusPresentation(consulta.status).tone} />
+    </Pressable>
+  );
+
+  const sectionTitle = (label: string) => (
+    <Text style={[commonStyles.eyebrow, styles.sectionTitle, { color: colors.accent }]}>{label}</Text>
+  );
+
+  const actions = (
+    <View style={wide ? styles.actionsWide : null}>
+      {wide ? null : sectionTitle(t('home.actionsSection'))}
+      <AppButton title={t('home.newConsulta')} icon="add" onPress={() => navigation.navigate('CriarConsulta')} />
+      <AppButton
+        title={t('home.registerPatient')}
+        variant="outline"
+        icon="paw-outline"
+        onPress={() => navigation.navigate('NovoPaciente')}
+      />
+    </View>
+  );
+
+  const inProgress = isPending || isError ? null : (
+    <>
+      {sectionTitle(t('home.inProgressSection'))}
+      {current ? (
+        <AppCard style={styles.hero}>
+          <View style={commonStyles.rowBetween}>
+            <Text style={[styles.heroName, { color: colors.ink }]} numberOfLines={1}>
+              {current.animalNome}
+            </Text>
+            <StatusBadge label={current.statusDescricao} tone={consultaStatusPresentation(current.status).tone} />
+          </View>
+          <Text style={[styles.heroMeta, { color: colors.inkSecondary }]} numberOfLines={1}>
+            {patientArkiveIdLine({ arkivePatientId: current.animalArkivePatientId })}
+          </Text>
+          <View style={styles.heroTimeRow}>
+            <Ionicons name="calendar-outline" size={iconSize.sm} color={colors.inkSecondary} />
+            <Text style={[styles.heroTime, { color: colors.inkSecondary }]}>
+              {formatHora(current.dataHora, true)} · {modalidade(current)}
+            </Text>
+          </View>
+          <AppButton
+            title={IN_PROGRESS_COPY[current.status]}
+            onPress={() => goToConsulta(current.id)}
+            style={styles.heroAction}
+          />
+        </AppCard>
+      ) : (
+        <EmptyState title={t('home.emptyInProgressTitle')} />
       )}
-    </AppCard>
+      {otherInProgress.length > 0 ? <AppCard style={styles.list}>{otherInProgress.map(renderRow)}</AppCard> : null}
+    </>
+  );
+
+  const today = (
+    <>
+      {sectionTitle(t('home.todaySection'))}
+      {isPending ? (
+        <Text style={{ color: colors.inkSecondary }}>{t('home.loadingConsultas')}</Text>
+      ) : isError ? (
+        <Text style={{ color: colors.error }}>{t('home.loadError')}</Text>
+      ) : todayConsultas.length === 0 ? (
+        <EmptyState title={t('home.emptyTodayTitle')} message={t('home.emptyTodayMessage')} />
+      ) : (
+        <AppCard style={styles.list}>{todayConsultas.map(renderRow)}</AppCard>
+      )}
+    </>
   );
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <HomeHeader />
 
-      <ScreenContainer style={styles.content}>
-        <Text style={[styles.greeting, { color: colors.text }]} numberOfLines={2}>
-          {greeting}
-        </Text>
-
-        <Text style={[styles.description, { color: colors.textSecondary }]}>
-          {t('home.description')}
-        </Text>
-
-        {inProgressConsultas.length > 0 ? (
-          <>
-            <Text style={[commonStyles.eyebrow, { color: colors.primary, marginBottom: spacing.sm }]}>
-              {t('home.inProgressSection')}
+      <ScreenContainer style={wide ? { ...styles.content, maxWidth: layout.contentMax } : styles.content}>
+        <View style={wide ? styles.columns : null}>
+          <View style={styles.flex}>
+            <Text style={[styles.greeting, { color: colors.ink }]} numberOfLines={2}>
+              {greeting}
             </Text>
-            {inProgressConsultas.map((consulta) =>
-              renderConsultaCard(consulta, IN_PROGRESS_COPY[consulta.status])
-            )}
-          </>
-        ) : null}
+            <Text style={[styles.description, { color: colors.inkSecondary }]}>{t('home.description')}</Text>
+          </View>
+          {wide ? actions : null}
+        </View>
 
-        <Text
-          style={[
-            commonStyles.eyebrow,
-            { color: colors.primary, marginBottom: spacing.sm, marginTop: spacing.md },
-          ]}
-        >
-          {t('home.todaySection')}
-        </Text>
-
-        {isPending ? (
-          <Text style={{ color: colors.textSecondary }}>{t('home.loadingConsultas')}</Text>
-        ) : isError ? (
-          <Text style={{ color: colors.error }}>{t('home.loadError')}</Text>
-        ) : todayConsultas.length === 0 ? (
-          <EmptyState title={t('home.emptyTodayTitle')} message={t('home.emptyTodayMessage')} />
+        {wide ? (
+          <View style={styles.columns}>
+            <View style={styles.main}>{inProgress}</View>
+            <View style={styles.side}>{today}</View>
+          </View>
         ) : (
-          todayConsultas.map((consulta) => renderConsultaCard(consulta))
+          <>
+            {inProgress}
+            {today}
+            {actions}
+          </>
         )}
-
-        <Text
-          style={[
-            commonStyles.eyebrow,
-            { color: colors.primary, marginBottom: spacing.sm, marginTop: spacing.md },
-          ]}
-        >
-          {t('home.actionsSection')}
-        </Text>
-
-        <AppButton
-          title={t('home.newConsulta')}
-          icon="add"
-          onPress={() => navigation.navigate('CriarConsulta')}
-        />
-
-        <AppButton
-          title={t('home.registerPatient')}
-          variant="outline"
-          icon="paw-outline"
-          onPress={() => navigation.navigate('NovoPaciente')}
-        />
       </ScreenContainer>
     </View>
   );
@@ -198,10 +235,11 @@ export function HomeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  flex: { flex: 1 },
   content: { padding: spacing.md },
   greeting: {
     fontSize: fontSize.xl,
-    fontWeight: '700',
+    ...font('bold'),
     marginBottom: spacing.xs,
   },
   description: {
@@ -209,22 +247,33 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     lineHeight: 20,
   },
-  consultaCard: {
-    marginBottom: spacing.sm,
-  },
-  patientNameWrap: {
+  sectionTitle: { marginBottom: spacing.sm, marginTop: spacing.md },
+  columns: { flexDirection: 'row', gap: spacing.lg },
+  main: { flex: 3 },
+  side: { flex: 2 },
+  actionsWide: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' },
+  hero: { marginBottom: spacing.sm },
+  heroName: {
     flexShrink: 1,
     marginRight: spacing.sm,
+    fontSize: fontSize.xl,
+    ...font('bold'),
   },
-  patientName: {
-    fontSize: fontSize.md,
-    fontWeight: '700',
+  heroMeta: { fontSize: fontSize.xs, marginTop: 2 },
+  heroTimeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm },
+  heroTime: { fontSize: fontSize.sm, fontVariant: ['tabular-nums'] },
+  heroAction: { marginTop: spacing.md },
+  list: { padding: 0, overflow: 'hidden', marginBottom: spacing.sm },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    minHeight: 56,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
-  patientArkiveId: {
-    fontSize: fontSize.xs,
-    marginTop: 2,
-  },
-  actionRow: {
-    marginTop: spacing.xs,
-  },
+  rowTime: { width: 44, fontSize: fontSize.sm, ...font('semibold'), fontVariant: ['tabular-nums'] },
+  rowPatient: { flex: 1 },
+  rowName: { fontSize: fontSize.md, ...font('semibold') },
+  rowMeta: { fontSize: fontSize.xs, marginTop: 2, fontVariant: ['tabular-nums'] },
 });

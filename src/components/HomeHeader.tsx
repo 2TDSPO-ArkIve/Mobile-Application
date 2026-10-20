@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { NotificationBell } from './NotificationBell';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { spacing, fontSize, radius, font } from '../styles/theme';
+import { spacing, fontSize, radius, font, layout } from '../styles/theme';
 import type { AppStackParamList } from '../interfaces/navigation';
 
 /**
@@ -26,7 +26,7 @@ export function HomeHeader() {
         {
           paddingTop: insets.top + spacing.sm,
           backgroundColor: colors.surface,
-          borderBottomColor: colors.border,
+          borderBottomColor: colors.line,
         },
       ]}
     >
@@ -37,7 +37,7 @@ export function HomeHeader() {
           resizeMode="contain"
           tintColor={colors.ink}
         />
-        <Text style={[styles.brand, { color: colors.text }]} numberOfLines={1}>
+        <Text style={[styles.brand, { color: colors.ink }]} numberOfLines={1}>
           ArkIve
         </Text>
 
@@ -45,11 +45,11 @@ export function HomeHeader() {
 
         <Pressable
           onPress={() => navigation.navigate('Perfil')}
-          style={[styles.iconBtn, { borderColor: colors.border }]}
+          style={[styles.iconBtn, { borderColor: colors.line }]}
           accessibilityRole="button"
           accessibilityLabel="Perfil"
         >
-          <Ionicons name="person-circle-outline" size={26} color={colors.primary} />
+          <Ionicons name="person-circle-outline" size={26} color={colors.ink} />
         </Pressable>
       </View>
     </View>
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   },
   inner: {
     width: '100%',
-    maxWidth: 720,
+    maxWidth: layout.contentMax,
     alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',

@@ -256,6 +256,7 @@ export const pt = {
     actionsSection: 'Ações',
     loadingConsultas: 'Carregando consultas...',
     loadError: 'Não foi possível carregar suas consultas.',
+    emptyInProgressTitle: 'Nenhum atendimento em andamento',
     emptyTodayTitle: 'Sem consultas hoje',
     emptyTodayMessage: 'Nenhuma consulta marcada para hoje.',
     newConsulta: 'Nova consulta',

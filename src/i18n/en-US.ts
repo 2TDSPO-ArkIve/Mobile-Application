@@ -254,6 +254,7 @@ export const en = {
     actionsSection: 'Actions',
     loadingConsultas: 'Loading visits...',
     loadError: 'Could not load your visits.',
+    emptyInProgressTitle: 'No consultation in progress',
     emptyTodayTitle: 'No visits today',
     emptyTodayMessage: 'No visit scheduled for today.',
     newConsulta: 'New visit',
