@@ -1,13 +1,27 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, Switch, Platform, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
+import { AppButton } from '../components/AppButton';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { enableNativePush, disableNativePush } from '../utils/pushRegistration';
 import type { Language } from '../i18n/store';
 import { spacing, fontSize, radius } from '../styles/theme';
+
+/**
+ * `SettingsScreen` is shared, unmodified, between BOTH `AppStack`
+ * (VETERINARIO) and `ResponsavelAppStack` — this minimal inline nav type
+ * (same pattern as `PatientDetailScreen`/`NotificationsScreen`) only ever
+ * resolves `UsoDaIa` when actually hosted by `AppStack`, which is also
+ * exactly when `isVeterinario` is true below; a RESPONSAVEL session never
+ * calls `navigate('UsoDaIa')` since the button itself is gated off for them.
+ */
+type SettingsNavigationParamList = { UsoDaIa: undefined };
 
 const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
   { value: 'pt-BR', label: 'Português (Brasil)' },
@@ -25,6 +39,8 @@ export function SettingsScreen() {
   const { mode, preferences, setMode, updatePreferences } = useTheme();
   const colors = useThemeColors();
   const { t, language, setLanguage } = useTranslation();
+  const { isVeterinario } = useAuth();
+  const navigation = useNavigation<NativeStackNavigationProp<SettingsNavigationParamList>>();
   const rowStyle = [styles.row, { borderBottomColor: colors.border }];
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [pushStatusMessage, setPushStatusMessage] = useState<{ tone: 'info' | 'error'; text: string } | null>(null);
@@ -180,6 +196,20 @@ export function SettingsScreen() {
             );
           })}
         </View>
+
+        {/* VETERINARIO-only — RESPONSAVEL has no navigator path to a screen
+            that renders AI clinical support at all, so this entry point
+            would be meaningless (and unreachable) for that role. */}
+        {isVeterinario ? (
+          <>
+            <Text style={[styles.section, { color: colors.text }]}>{t('settings.aiSection')}</Text>
+            <AppButton
+              title={t('settings.aiUsageButton')}
+              variant="outline"
+              onPress={() => navigation.navigate('UsoDaIa')}
+            />
+          </>
+        ) : null}
 
         <Text style={[styles.section, { color: colors.text }]}>{t('settings.infoSection')}</Text>
         <View style={styles.infoBox}>

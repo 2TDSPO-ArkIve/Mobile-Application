@@ -106,6 +106,8 @@ export type AppStackParamList = {
   SolicitacoesAcessoEnviadas: undefined;
   /** New permanent report history, READ-ONLY for VETERINARIO — same `AnimalReportsScreen` component `ResponsavelAppStackParamList` registers; this stack never registers `NovoRelatoAnimal` at all, since the backend create endpoint is RESPONSAVEL-only. */
   RelatosAnimal: { patientId: number };
+  /** "Configurações → IA ArkIve → Uso da IA". VETERINARIO-only — this route does not exist in `ResponsavelAppStackParamList`; the AI-usage comparison sample it reads from (`GET /api/consultas`, `GET /api/consultas/{id}/suporte-clinico`) is the same cross-screen `useRecentAiUsageSample` the pre-diagnosis card already uses, read-only, no new backend endpoint. */
+  UsoDaIa: undefined;
   Configuracoes: undefined;
   AlterarSenha: undefined;
   Notificacoes: undefined;

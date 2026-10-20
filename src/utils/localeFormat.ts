@@ -41,6 +41,11 @@ export function formatCurrency(value: number): string {
   return new Intl.NumberFormat(getLanguage(), { style: 'currency', currency: 'BRL' }).format(value);
 }
 
+/** Plain grouped-integer display (e.g. token counts) — never used for anything sent back to the backend, only for making an already-persisted count readable. */
+export function formatNumber(value: number): string {
+  return new Intl.NumberFormat(getLanguage()).format(value);
+}
+
 /** `YYYY-MM-DD` -> local `Date` at midnight — never via `new Date(iso)`, which parses a bare date as UTC and can shift a day off in a negative-UTC-offset timezone. */
 export function parseISODate(iso: string): Date {
   const [y, m, d] = iso.split('-').map(Number);

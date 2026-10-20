@@ -9,12 +9,15 @@ import { spacing, fontSize, radius } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
 /**
- * `AUSENTE` is UI-only: routine visits / no disease identified. It submits
- * no severity at all (`FinalizarConsultaRequest.severidade` is nullable for
- * exactly this case), so it never reaches Java as a code.
+ * V19 — `AUSENTE` is now a real, explicit `Severidade` value Java accepts
+ * and persists (confirmed: `FinalizarConsultaRequest.severidade` documents
+ * `allowableValues = {"AUSENTE", "LEVE", "MODERADA", "GRAVE"}`), distinct
+ * from sending no severity at all. `severidade` state starts `null`
+ * ("not yet chosen" — nothing is sent) and is only ever set to one of the
+ * four real `Severidade` codes by tapping an option below, including
+ * `AUSENTE` itself — there is no separate UI-only pseudo-value anymore.
  */
-type SeveridadeOption = Severidade | 'AUSENTE';
-const SEVERIDADE_VALUES: SeveridadeOption[] = ['AUSENTE', 'LEVE', 'MODERADA', 'GRAVE'];
+const SEVERIDADE_VALUES: Severidade[] = ['AUSENTE', 'LEVE', 'MODERADA', 'GRAVE'];
 
 interface Props {
   onSubmit: (input: FinalizarConsultaRequest) => void;
@@ -41,7 +44,7 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
   const { t } = useTranslation();
 
   const [diagnostico, setDiagnostico] = useState('');
-  const [severidade, setSeveridade] = useState<SeveridadeOption | null>(null);
+  const [severidade, setSeveridade] = useState<Severidade | null>(null);
   const [conclusao, setConclusao] = useState('');
   const [validationError, setValidationError] = useState('');
 
@@ -65,7 +68,11 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
 
     onSubmit({
       diagnostico: diagnostico.trim(),
-      severidade: severidade && severidade !== 'AUSENTE' ? severidade : undefined,
+      // `severidade === null` ("not selected") stays `undefined` (Java
+      // treats a missing field as "not informed"); every real selection,
+      // INCLUDING `AUSENTE`, is now sent exactly as chosen — the two are
+      // structurally distinct states, never collapsed into each other.
+      severidade: severidade ?? undefined,
       doencaId: null,
       conclusao: conclusao.trim() || undefined,
     });

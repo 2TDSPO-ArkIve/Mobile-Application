@@ -32,8 +32,17 @@ export type ConsultaStatus = 'AG' | 'EP' | 'AP' | 'FI' | 'CA';
 /** The only two values `ConsultaService.validarModalidadeObrigatoria` accepts. */
 export type Modalidade = 'PRESENCIAL' | 'REMOTA';
 
-/** The only values the veterinarian-authored severity fields accept (`FinalizarConsultaRequest`/`SalvarDiagnosticoRequest`). */
-export type Severidade = 'LEVE' | 'MODERADA' | 'GRAVE';
+/**
+ * The values the veterinarian-authored severity field accepts
+ * (`FinalizarConsultaRequest.severidade`, confirmed against current local
+ * Java: `@Size(max = 20)`, documented `allowableValues = {"AUSENTE", "LEVE",
+ * "MODERADA", "GRAVE"}`). `AUSENTE` is now a real, explicit enum value Java
+ * persists and returns — it is NOT the same as omitting severity entirely
+ * (`undefined`/`null` still means "not informed"). `SalvarDiagnosticoRequest`
+ * only documents `LEVE`/`MODERADA`/`GRAVE` for the diagnosis-catalog flow,
+ * which this app doesn't call.
+ */
+export type Severidade = 'AUSENTE' | 'LEVE' | 'MODERADA' | 'GRAVE';
 
 /**
  * CONFIRMED against the ArkIve Spring Boot source (sibling project
@@ -186,11 +195,29 @@ export interface AtualizarNarrativaRequest {
 }
 
 /**
+ * `ClinicalSupportTokenResponse.java` — optional token-usage metadata the
+ * clinical engine may report. ALL THREE fields are individually nullable on
+ * the Java record (`Long`, `nullable = true`); the object itself is `null`
+ * whenever Java's `fromEntity` finds all three underlying columns null
+ * (confirmed: older persisted analyses, or a backend predating V19, never
+ * populated these at all). Never render a missing field as `0` — that would
+ * misrepresent "not recorded" as "zero tokens used". Never a cost/billing
+ * figure — these are raw token counts only, and never include any
+ * subsequent retry or failed generation attempt's own usage.
+ */
+export interface ClinicalSupportTokenUsage {
+  entrada: number | null;
+  saida: number | null;
+  total: number | null;
+}
+
+/**
  * `ClinicalSupportResponse.java`. `severidadeSugerida` is intentionally a
  * plain `string`: `ClinicalSupportService.validarResultado` only checks the
  * external engine's output is non-blank, it does NOT constrain it to the
- * LEVE/MODERADA/GRAVE set — unlike the veterinarian-authored `Severidade`
- * above, the AI's severity vocabulary is not confirmed.
+ * AUSENTE/LEVE/MODERADA/GRAVE set — unlike the veterinarian-authored
+ * `Severidade` above, the AI's severity vocabulary is not confirmed (though
+ * Java's own schema documents the same four values as its expected set).
  */
 export interface ClinicalSupportResponse {
   /** The underlying `Diagnostico` record id — the target of `PATCH /api/diagnosticos/{diagnosticoId}/validacao-veterinaria` (see `avaliarInsightIa` in diagnosticoService.ts). */
@@ -209,6 +236,13 @@ export interface ClinicalSupportResponse {
    * the AI's analysis, never a diagnosis confirmation/rejection.
    */
   validacaoVet: 'S' | 'N' | null;
+  /**
+   * V19 addition — optional token-usage metadata. `undefined`/`null` both
+   * mean "not available" (older analyses, or a backend predating this
+   * field) — never fetched/triggered by displaying this; it is read back
+   * exactly as persisted via the existing GET, never a new AI generation.
+   */
+  tokens?: ClinicalSupportTokenUsage | null;
   /**
    * V4 addition — external research sources the clinical engine consulted,
    * persisted server-side (survives AP/FI/reopen). Optional because a
@@ -262,16 +296,66 @@ export async function listConsultas(): Promise<ConsultaDto[]> {
 }
 
 /**
+ * V19 addition — confirmed against current local `ConsultaController.listar`.
+ * All optional; combined with `status` (never a replacement for it) and with
+ * each other via Java's own filtering (`ConsultaService.listarAutorizado`),
+ * not emulated/re-filtered client-side. `pacienteNome` is a partial,
+ * case-insensitive match; `arkivePatientId` is an EXACT, case-insensitive
+ * match (never partial — unlike `pacienteNome`). `dataHoraInicio`/`dataHoraFim`
+ * are inclusive `LocalDateTime` bounds in Spring's plain
+ * `DateTimeFormat.ISO.DATE_TIME` shape (`yyyy-MM-ddTHH:mm:ss`, no `Z`/offset —
+ * a `LocalDateTime`, not an `Instant`). Building these strings is this
+ * screen's own responsibility (see `ConsultasScreen.tsx`'s local
+ * `startOfDayIso`/`endOfDayIso` helpers) — never `toISOString()`, which is
+ * UTC-based and can shift the calendar day.
+ */
+export interface ConsultaListFilters {
+  pacienteNome?: string;
+  arkivePatientId?: string;
+  dataHoraInicio?: string;
+  dataHoraFim?: string;
+}
+
+/**
  * One page of one status group (`ConsultasScreen`). `ConsultaRepository.buscar`
  * has no `order by`, so `sort=id,desc` keeps pages stable (newest first).
+ * `filters` are appended only when actually set, so an unfiltered call keeps
+ * sending the exact same query string as before this feature existed.
  */
 export async function listConsultasByStatus(
   status: ConsultaStatus,
-  page: number
+  page: number,
+  filters?: ConsultaListFilters
 ): Promise<SpringPage<ConsultaDto>> {
-  return apiGet<SpringPage<ConsultaDto>>(
-    `/api/consultas?status=${status}&page=${page}&size=${LIST_PAGE_SIZE}&sort=id,desc`
+  const params = new URLSearchParams();
+  params.set('status', status);
+  params.set('page', String(page));
+  params.set('size', String(LIST_PAGE_SIZE));
+  params.set('sort', 'id,desc');
+  if (filters?.pacienteNome) params.set('pacienteNome', filters.pacienteNome);
+  if (filters?.arkivePatientId) params.set('arkivePatientId', filters.arkivePatientId);
+  if (filters?.dataHoraInicio) params.set('dataHoraInicio', filters.dataHoraInicio);
+  if (filters?.dataHoraFim) params.set('dataHoraFim', filters.dataHoraFim);
+  return apiGet<SpringPage<ConsultaDto>>(`/api/consultas?${params.toString()}`);
+}
+
+/**
+ * AI-usage-comparison feature — a small, FIXED-size candidate fetch, unfiltered
+ * and status-scoped, deliberately NOT `listConsultasByStatus` (that uses the
+ * platform-dependent `LIST_PAGE_SIZE` tied to `ConsultasScreen`'s own UI
+ * pagination, which has nothing to do with this feature's own explicit,
+ * platform-independent sample-size bound). Only ever called with `AP`/`FI`
+ * (the two statuses that may have generated clinical support) and a small
+ * `limit` — never meant to be paginated further.
+ */
+export async function listRecentConsultasByStatusForAiUsage(
+  status: ConsultaStatus,
+  limit: number
+): Promise<ConsultaDto[]> {
+  const page = await apiGet<SpringPage<ConsultaDto>>(
+    `/api/consultas?status=${status}&page=0&size=${limit}&sort=id,desc`
   );
+  return page.content;
 }
 
 /** How many consultations have this status — reads only `totalElements` from a 1-item page. */

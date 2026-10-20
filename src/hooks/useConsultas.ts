@@ -24,6 +24,7 @@ import {
   updateConsulta,
   updateNarrativa,
   type ConsultaDto,
+  type ConsultaListFilters,
   type ConsultaStatus,
   type CreateConsultaInput,
   type FinalizarConsultaRequest,
@@ -41,11 +42,16 @@ export function useConsultas() {
   });
 }
 
-/** One status group of `ConsultasScreen`, paged from the server. */
-export function useConsultasByStatus(status: ConsultaStatus) {
+/**
+ * One status group of `ConsultasScreen`, paged from the server. `filters`
+ * (V19 — patient name / ArkIve ID / date range) is part of the query key, so
+ * changing it starts an entirely fresh paginated sequence at page 0 rather
+ * than appending onto a different filter combination's already-loaded pages.
+ */
+export function useConsultasByStatus(status: ConsultaStatus, filters?: ConsultaListFilters) {
   return useInfiniteQuery({
-    queryKey: queryKeys.consultas.byStatus(status),
-    queryFn: ({ pageParam }) => listConsultasByStatus(status, pageParam),
+    queryKey: queryKeys.consultas.byStatus(status, filters),
+    queryFn: ({ pageParam }) => listConsultasByStatus(status, pageParam, filters),
     initialPageParam: 0,
     getNextPageParam: nextPageParam,
   });

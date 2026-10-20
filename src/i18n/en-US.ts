@@ -262,6 +262,15 @@ export const en = {
     emptyTitle: 'No visits',
     emptyMessage: 'The API returned no visits for this user.',
     refreshAccessibilityLabel: 'Refresh visits',
+    filtersAccessibilityLabel: 'Filter visits',
+    filterPatientNameLabel: 'Patient name',
+    filterPatientNamePlaceholder: 'Search by name',
+    filterArkiveIdLabel: 'Patient ArkIve ID',
+    filterArkiveIdPlaceholder: 'ARK-PET-XXXXX-XXXXX-XXXXX-XXXXX-XXXXXX',
+    filterStartDateLabel: 'From',
+    filterEndDateLabel: 'To',
+    filterDateRangeError: 'The end date cannot be before the start date.',
+    clearFiltersButton: 'Clear filters',
   },
   newConsulta: {
     title: 'New Visit',
@@ -448,6 +457,13 @@ export const en = {
     feedbackQuestion: 'Was this analysis useful?',
     feedbackUsefulLabel: 'Mark analysis as useful',
     feedbackNotUsefulLabel: 'Mark analysis as not useful',
+    tokensTitle: 'ArkIve AI usage',
+    tokensCurrentAnalysis: 'This analysis',
+    tokensRecentAverage: 'Average of recent analyses',
+    tokensSampleCaption: 'Based on the last {{count}} analyses with recorded data.',
+    tokensMoreThanAverage: 'This analysis used approximately {{percent}}% more tokens than the recent average.',
+    tokensLessThanAverage: 'This analysis used approximately {{percent}}% fewer tokens than the recent average.',
+    tokensEqualToAverage: 'This analysis used approximately the same amount of tokens as the recent average.',
   },
   confirmedDiagnosis: {
     title: "Veterinarian's conclusion",
@@ -575,6 +591,22 @@ export const en = {
     rankByCount: 'Visits',
     showAll: 'See all {{count}}',
     showFirst: 'Show only the first {{count}}',
+  },
+  /**
+   * "Settings → ArkIve AI → AI usage" (VETERINARIO-only). Every figure here
+   * is explicitly the RETRIEVED SAMPLE's own total/count, never the
+   * account's lifetime or monthly usage.
+   */
+  aiUsage: {
+    title: 'AI usage',
+    intro: 'ArkIve token consumption across the most recent clinical analyses with recorded data.',
+    loading: 'Loading AI usage...',
+    emptyTitle: 'No usage data',
+    emptyMessage: 'No recent analysis has recorded token usage.',
+    totalTokensLabel: 'Tokens in sample',
+    sampleSizeLabel: 'Analyses in sample',
+    sampleCaption: 'Figures refer only to the recent analyses retrieved, not the full history or a monthly period.',
+    listTitle: 'Recent analyses',
   },
   /**
    * Chunk 6 — the veterinarian's own financial dashboard
@@ -822,6 +854,8 @@ export const en = {
     emailHelper: "Preference saved on this device only. E-mail notification delivery isn't available yet.",
     languageSection: 'App language',
     languageHelper: 'Controls the interface language and the voice-dictation language.',
+    aiSection: 'ArkIve AI',
+    aiUsageButton: 'AI usage',
     infoSection: 'Info',
     version: 'Version 1.0.0',
     copyright: '© 2026 ArkIve — Optimized veterinary management',

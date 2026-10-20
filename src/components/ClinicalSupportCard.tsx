@@ -2,17 +2,100 @@ import React, { useState } from 'react';
 import { Text, View, Pressable, Linking, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppCard } from './AppCard';
+import { HorizontalBars, type HorizontalBarRow } from './charts/HorizontalBars';
 import { useAuth } from '../hooks/useAuth';
 import { useAvaliarInsightIa } from '../hooks/useDiagnosticos';
+import { useRecentAiUsageSample } from '../hooks/useAiUsage';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import type { ClinicalSupportResponse } from '../services/consultaService';
 import { parseSourceUrl } from '../utils/sourceUrl';
 import { describeInsightFeedbackError } from '../utils/errorMessages';
+import { severidadeLabel } from '../utils/severidade';
+import { formatNumber } from '../utils/localeFormat';
 import { spacing, fontSize, radius } from '../styles/theme';
 
 interface Props {
   support: ClinicalSupportResponse;
+}
+
+/**
+ * "Consumo da IA ArkIve" — replaces the earlier plain Entrada/Saída/Total
+ * layout with a comparison against the veterinarian's own recent analyses.
+ * Entrada/saída are no longer shown on this card at all; `total` is the only
+ * raw token figure displayed here now (gated on `tokens.total != null`,
+ * never on the `tokens` object's mere presence — an analysis could in theory
+ * have `entrada`/`saida` recorded but not `total`, and this new design has
+ * nothing meaningful to show without a total).
+ *
+ * The comparison (bars + sentence) is a SEPARATE, independently-gated layer
+ * on top of that: when `useRecentAiUsageSample` finds no comparable recent
+ * analyses (a brand-new account, or simply no other AP/FI consultation with
+ * recorded tokens yet), the total still renders alone — never a fabricated
+ * benchmark, per the product requirement that missing comparison data must
+ * never be manufactured.
+ */
+function AiUsageComparisonSection({ consultaId, total }: { consultaId: number; total: number }) {
+  const colors = useThemeColors();
+  const { t } = useTranslation();
+  const sample = useRecentAiUsageSample(consultaId);
+
+  const average = sample.averageTokens;
+  const hasComparison = !sample.isPending && average != null && sample.sampleSize > 0;
+
+  const rows: HorizontalBarRow[] = [
+    {
+      key: 'current',
+      label: t('clinicalSupportCard.tokensCurrentAnalysis'),
+      value: total,
+      valueLabel: formatNumber(total),
+      color: colors.primary,
+    },
+  ];
+  if (hasComparison && average != null) {
+    rows.push({
+      key: 'average',
+      label: t('clinicalSupportCard.tokensRecentAverage'),
+      value: average,
+      valueLabel: formatNumber(Math.round(average)),
+      color: colors.textSecondary,
+    });
+  }
+
+  // Only a genuinely positive average supports a meaningful percentage
+  // (division by zero/near-zero would otherwise produce a nonsensical or
+  // infinite figure) — with a zero/undefined average, the bars alone still
+  // render, just without the sentence.
+  let comparisonSentence: string | null = null;
+  if (hasComparison && average != null && average > 0) {
+    const diffPercent = Math.round(((total - average) / average) * 100);
+    if (diffPercent > 0) {
+      comparisonSentence = t('clinicalSupportCard.tokensMoreThanAverage', { percent: diffPercent });
+    } else if (diffPercent < 0) {
+      comparisonSentence = t('clinicalSupportCard.tokensLessThanAverage', { percent: Math.abs(diffPercent) });
+    } else {
+      comparisonSentence = t('clinicalSupportCard.tokensEqualToAverage');
+    }
+  }
+
+  return (
+    <View style={styles.tokensSection}>
+      <Text style={[styles.label, { color: colors.textSecondary }]}>{t('clinicalSupportCard.tokensTitle')}</Text>
+      <Text style={[styles.tokensMainValue, { color: colors.text }]}>{formatNumber(total)}</Text>
+
+      {hasComparison ? (
+        <>
+          <HorizontalBars rows={rows} />
+          <Text style={[styles.tokensSampleCaption, { color: colors.textSecondary }]}>
+            {t('clinicalSupportCard.tokensSampleCaption', { count: sample.sampleSize })}
+          </Text>
+          {comparisonSentence ? (
+            <Text style={[styles.tokensComparisonText, { color: colors.text }]}>{comparisonSentence}</Text>
+          ) : null}
+        </>
+      ) : null}
+    </View>
+  );
 }
 
 /**
@@ -63,6 +146,14 @@ export function ClinicalSupportCard({ support }: Props) {
   const isUseful = support.validacaoVet === 'S';
   const isNotUseful = support.validacaoVet === 'N';
 
+  // V19 — gated specifically on `total` (not the `tokens` object's mere
+  // presence): this card no longer displays entrada/saida individually (see
+  // `AiUsageComparisonSection`'s own note), so there is nothing to show
+  // without a recorded total. `null`/`undefined` both mean "preserve the
+  // existing empty behavior" — the whole section is omitted, never a
+  // placeholder/zero.
+  const tokensTotal = support.tokens?.total ?? null;
+
   return (
     <AppCard>
       <Text style={[styles.title, { color: colors.primary }]}>{t('clinicalSupportCard.title')}</Text>
@@ -74,7 +165,7 @@ export function ClinicalSupportCard({ support }: Props) {
       <Text style={[styles.value, { color: colors.text }]}>{support.hipoteseDiagnostica}</Text>
 
       <Text style={[styles.label, { color: colors.textSecondary }]}>{t('clinicalSupportCard.severity')}</Text>
-      <Text style={[styles.value, { color: colors.text }]}>{support.severidadeSugerida}</Text>
+      <Text style={[styles.value, { color: colors.text }]}>{severidadeLabel(support.severidadeSugerida)}</Text>
 
       {support.confianca != null ? (
         <>
@@ -85,6 +176,15 @@ export function ClinicalSupportCard({ support }: Props) {
 
       <Text style={[styles.label, { color: colors.textSecondary }]}>{t('clinicalSupportCard.insight')}</Text>
       <Text style={[styles.value, { color: colors.text }]}>{support.insightClinico}</Text>
+
+      {/* V19 — "Consumo da IA ArkIve": total + comparison against recent
+          analyses. Never fetches/triggers anything beyond read-only GETs
+          already covered elsewhere in this app; omitted entirely when this
+          analysis itself has no recorded total (preserves the prior empty
+          behavior). */}
+      {tokensTotal != null ? (
+        <AiUsageComparisonSection consultaId={support.consultaId} total={tokensTotal} />
+      ) : null}
 
       {referencias.length > 0 ? (
         <View style={styles.sourcesSection}>
@@ -209,6 +309,10 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   value: { fontSize: fontSize.sm, marginTop: 2 },
+  tokensSection: { marginTop: spacing.sm },
+  tokensMainValue: { fontSize: fontSize.lg, fontWeight: '700', marginTop: 2, marginBottom: spacing.sm },
+  tokensSampleCaption: { fontSize: fontSize.xs, marginTop: spacing.xs },
+  tokensComparisonText: { fontSize: fontSize.sm, marginTop: spacing.xs, lineHeight: 19 },
   // Deliberately no card-per-source, no border, no background — a compact
   // vertical list stays visually secondary to the reasoning above it.
   sourcesSection: { marginTop: spacing.sm },
