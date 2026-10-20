@@ -12,6 +12,7 @@ import { DateField } from '../components/DateField';
 import { StatusBadge } from '../components/StatusBadge';
 import { HeaderIconButton } from '../components/HeaderIconButton';
 import { EmptyState } from '../components/EmptyState';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useConsultasByStatus } from '../hooks/useConsultas';
@@ -21,7 +22,8 @@ import { CONSULTA_STATUS_ORDER, consultaStatusPresentation } from '../utils/stat
 import { formatDate, formatTime } from '../utils/localeFormat';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font, iconSize, layout } from '../styles/theme';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 import { commonStyles } from '../styles/common';
 
 const FILTER_DEBOUNCE_MS = 300;
@@ -63,6 +65,7 @@ function endOfDayIso(date: Date): string {
 export function ConsultasScreen() {
   const colors = useThemeColors();
   const { t } = useTranslation();
+  const wide = useBreakpoint() === 'wide';
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
 
   // V19 search filters — compact, collapsible panel (see `filtersOpen`
@@ -167,53 +170,151 @@ export function ConsultasScreen() {
       return next;
     });
 
-  const renderCard = (consulta: ConsultaDto) => {
+  const goToConsulta = (consultaId: number) => navigation.navigate('ConsultaDetalhe', { consultaId });
+
+  /** Compact row: patient + badge, ArkIve ID, date · time · reason. */
+  const renderRow = (consulta: ConsultaDto, index: number) => {
     const dataHora = new Date(consulta.dataHora);
     return (
-      <AppCard
+      <Pressable
         key={consulta.id}
-        onPress={() => navigation.navigate('ConsultaDetalhe', { consultaId: consulta.id })}
+        onPress={() => goToConsulta(consulta.id)}
+        accessibilityRole="button"
+        style={(state: InteractionState) => [
+          styles.row,
+          index > 0 && { borderTopWidth: 1, borderTopColor: colors.line },
+          isActive(state) && { backgroundColor: colors.sunken },
+          focusRing(state, colors),
+        ]}
       >
-        <View style={styles.cardRow}>
-          <Text style={{ color: colors.text, fontWeight: '700', flexShrink: 1 }} numberOfLines={1}>
+        <View style={commonStyles.rowBetween}>
+          <Text style={[styles.rowName, { color: colors.ink }]} numberOfLines={1}>
             {consulta.animalNome}
           </Text>
-          <StatusBadge
-            label={consulta.statusDescricao}
-            tone={consultaStatusPresentation(consulta.status).tone}
-          />
+          <StatusBadge label={consulta.statusDescricao} tone={consultaStatusPresentation(consulta.status).tone} />
         </View>
-        <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, ...commonStyles.arkiveId }}>
+        <Text style={[styles.rowId, { color: colors.inkSecondary }]} numberOfLines={1}>
           {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
         </Text>
-        <View style={styles.dateTimeRow}>
-          <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
-          <Text style={[styles.dateTimeText, { color: colors.text }]}>{formatDate(dataHora)}</Text>
-          <Ionicons name="time-outline" size={14} color={colors.textSecondary} style={styles.timeIcon} />
-          <Text style={[styles.dateTimeText, { color: colors.text }]}>{formatTime(dataHora)}</Text>
-        </View>
-        <Text style={{ color: colors.textSecondary, marginTop: spacing.xs }} numberOfLines={2}>
-          {consulta.motivo}
+        <Text style={[styles.rowMeta, { color: colors.inkSecondary }]} numberOfLines={1}>
+          {formatDate(dataHora)} · {formatTime(dataHora)} · {consulta.motivo}
         </Text>
-      </AppCard>
+      </Pressable>
     );
   };
+
+  /** Desktop table row: one cell per column, badge on the right. */
+  const renderTableRow = (consulta: ConsultaDto, index: number) => {
+    const dataHora = new Date(consulta.dataHora);
+    return (
+      <Pressable
+        key={consulta.id}
+        onPress={() => goToConsulta(consulta.id)}
+        accessibilityRole="button"
+        style={(state: InteractionState) => [
+          styles.tableRow,
+          index > 0 && { borderTopWidth: 1, borderTopColor: colors.line },
+          isActive(state) && { backgroundColor: colors.sunken },
+          focusRing(state, colors),
+        ]}
+      >
+        <Text style={[styles.colPatient, styles.rowName, { color: colors.ink }]} numberOfLines={1}>
+          {consulta.animalNome}
+        </Text>
+        <Text style={[styles.colId, styles.rowId, { color: colors.inkSecondary }]} numberOfLines={1}>
+          {consulta.animalArkivePatientId ?? '—'}
+        </Text>
+        <Text style={[styles.colDate, styles.cell, { color: colors.ink }]} numberOfLines={1}>
+          {formatDate(dataHora)} {formatTime(dataHora)}
+        </Text>
+        <Text style={[styles.colReason, styles.cell, { color: colors.inkSecondary }]} numberOfLines={1}>
+          {consulta.motivo}
+        </Text>
+        <View style={styles.colStatus}>
+          <StatusBadge label={consulta.statusDescricao} tone={consultaStatusPresentation(consulta.status).tone} />
+        </View>
+      </Pressable>
+    );
+  };
+
+  const columns = [
+    [styles.colPatient, 'columnPatient'],
+    [styles.colId, 'columnArkiveId'],
+    [styles.colDate, 'columnDateTime'],
+    [styles.colReason, 'columnReason'],
+    [styles.colStatus, 'columnStatus'],
+  ] as const;
+
+  const tableHeader = (
+    <View style={[styles.tableRow, styles.tableHeader, { backgroundColor: colors.sunken, borderBottomColor: colors.line }]}>
+      {columns.map(([style, key]) => (
+        <Text key={key} style={[style, commonStyles.eyebrow, { color: colors.inkSecondary }]} numberOfLines={1}>
+          {t(`consultasList.${key}`)}
+        </Text>
+      ))}
+    </View>
+  );
+
+  const filterFields = (
+    <>
+      <View style={wide ? styles.flex : null}>
+        <AppInput
+          label={t('consultasList.filterPatientNameLabel')}
+          placeholder={t('consultasList.filterPatientNamePlaceholder')}
+          value={pacienteNomeInput}
+          onChangeText={setPacienteNomeInput}
+        />
+      </View>
+      <View style={wide ? styles.flex : null}>
+        <AppInput
+          label={t('consultasList.filterArkiveIdLabel')}
+          placeholder={t('consultasList.filterArkiveIdPlaceholder')}
+          value={arkiveIdInput}
+          onChangeText={setArkiveIdInput}
+          autoCapitalize="characters"
+          autoCorrect={false}
+        />
+      </View>
+      <View style={[styles.dateRangeRow, wide ? styles.flex : null]}>
+        <View style={styles.flex}>
+          <DateField
+            label={t('consultasList.filterStartDateLabel')}
+            value={startDate}
+            onChange={setStartDate}
+            maximumDate={endDate ?? undefined}
+            onClear={() => setStartDate(null)}
+          />
+        </View>
+        <View style={styles.flex}>
+          <DateField
+            label={t('consultasList.filterEndDateLabel')}
+            value={endDate}
+            onChange={setEndDate}
+            minimumDate={startDate ?? undefined}
+            onClear={() => setEndDate(null)}
+          />
+        </View>
+      </View>
+    </>
+  );
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <HomeHeader />
 
-      <ScreenContainer>
+      <ScreenContainer style={wide ? { maxWidth: layout.contentMax } : undefined}>
         <View style={styles.titleRow}>
-          <Text style={[styles.pageTitle, { color: colors.text }]} numberOfLines={1}>
+          <Text style={[styles.pageTitle, { color: colors.ink }]} numberOfLines={1}>
             {t('consultasList.title')}
           </Text>
           <View style={styles.actionsRow}>
-            <HeaderIconButton
-              icon={filtersOpen || hasActiveFilters ? 'filter' : 'filter-outline'}
-              onPress={() => setFiltersOpen((current) => !current)}
-              accessibilityLabel={t('consultasList.filtersAccessibilityLabel')}
-            />
+            {wide ? null : (
+              <HeaderIconButton
+                icon={filtersOpen || hasActiveFilters ? 'filter' : 'filter-outline'}
+                onPress={() => setFiltersOpen((current) => !current)}
+                accessibilityLabel={t('consultasList.filtersAccessibilityLabel')}
+              />
+            )}
             {!isPending && !failed ? (
               <HeaderIconButton
                 icon="refresh"
@@ -231,42 +332,10 @@ export function ConsultasScreen() {
           </View>
         </View>
 
-        {filtersOpen ? (
-          <View style={[styles.filtersPanel, { borderColor: colors.border }]}>
-            <AppInput
-              label={t('consultasList.filterPatientNameLabel')}
-              placeholder={t('consultasList.filterPatientNamePlaceholder')}
-              value={pacienteNomeInput}
-              onChangeText={setPacienteNomeInput}
-            />
-            <AppInput
-              label={t('consultasList.filterArkiveIdLabel')}
-              placeholder={t('consultasList.filterArkiveIdPlaceholder')}
-              value={arkiveIdInput}
-              onChangeText={setArkiveIdInput}
-              autoCapitalize="characters"
-              autoCorrect={false}
-            />
-            <View style={styles.dateRangeRow}>
-              <View style={styles.dateRangeField}>
-                <DateField
-                  label={t('consultasList.filterStartDateLabel')}
-                  value={startDate}
-                  onChange={setStartDate}
-                  maximumDate={endDate ?? undefined}
-                  onClear={() => setStartDate(null)}
-                />
-              </View>
-              <View style={styles.dateRangeField}>
-                <DateField
-                  label={t('consultasList.filterEndDateLabel')}
-                  value={endDate}
-                  onChange={setEndDate}
-                  minimumDate={startDate ?? undefined}
-                  onClear={() => setEndDate(null)}
-                />
-              </View>
-            </View>
+        {/* Desktop keeps the filters always open in one row; compact toggles them. */}
+        {wide || filtersOpen ? (
+          <AppCard style={styles.filtersPanel}>
+            <View style={wide ? styles.filtersWide : null}>{filterFields}</View>
             {dateRangeError ? (
               <Text style={[commonStyles.errorText, { color: colors.error }]}>{dateRangeError}</Text>
             ) : null}
@@ -277,15 +346,16 @@ export function ConsultasScreen() {
                 onPress={handleClearFilters}
               />
             ) : null}
-          </View>
+          </AppCard>
         ) : null}
 
         {isPending ? (
-          <Text style={{ color: colors.textSecondary, textAlign: 'center' }}>
+          <Text style={{ color: colors.inkSecondary, textAlign: 'center' }}>
             {t('consultasList.loading')}
           </Text>
         ) : failed ? (
           <EmptyState
+            tone="error"
             title={t('consultasList.loadErrorTitle')}
             message={failed.error instanceof Error ? failed.error.message : t('consultasList.genericServerError')}
           />
@@ -294,22 +364,25 @@ export function ConsultasScreen() {
             <View key={group.status}>
               <Pressable
                 onPress={() => toggleGroup(group.status)}
-                style={styles.groupHeader}
+                style={(state: InteractionState) => [styles.groupHeader, focusRing(state, colors)]}
                 accessibilityRole="button"
                 accessibilityState={{ expanded: !collapsed.has(group.status) }}
               >
-                <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>
-                  {consultaStatusPresentation(group.status).label} ({group.query.data?.pages[0]?.totalElements ?? 0})
+                <Text style={[commonStyles.eyebrow, styles.flex, styles.count, { color: colors.inkSecondary }]}>
+                  {consultaStatusPresentation(group.status).label} · {group.query.data?.pages[0]?.totalElements ?? 0}
                 </Text>
                 <Ionicons
                   name={collapsed.has(group.status) ? 'chevron-down' : 'chevron-up'}
-                  size={18}
-                  color={colors.textSecondary}
+                  size={iconSize.sm}
+                  color={colors.inkSecondary}
                 />
               </Pressable>
               {collapsed.has(group.status) ? null : (
                 <>
-                  {group.consultas.map(renderCard)}
+                  <AppCard style={styles.list}>
+                    {wide ? tableHeader : null}
+                    {group.consultas.map(wide ? renderTableRow : renderRow)}
+                  </AppCard>
                   <LoadMoreButton query={group.query} />
                 </>
               )}
@@ -325,6 +398,7 @@ export function ConsultasScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  flex: { flex: 1 },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -333,22 +407,37 @@ const styles = StyleSheet.create({
   pageTitle: {
     flex: 1,
     fontSize: fontSize.xl,
-    fontWeight: '800',
+    ...font('bold'),
   },
   actionsRow: { flexDirection: 'row' },
-  filtersPanel: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 12, padding: spacing.md, marginBottom: spacing.md },
+  filtersPanel: { marginBottom: spacing.md },
+  filtersWide: { flexDirection: 'row', gap: spacing.md },
   dateRangeRow: { flexDirection: 'row', gap: spacing.sm },
-  dateRangeField: { flex: 1 },
   groupHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    minHeight: 44,
     marginTop: spacing.xs,
   },
-  groupTitle: { fontSize: fontSize.sm, fontWeight: '700' },
-  cardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm },
-  dateTimeRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginTop: spacing.xs },
-  dateTimeText: { fontSize: fontSize.sm, fontWeight: '700', marginLeft: spacing.xs },
-  timeIcon: { marginLeft: spacing.md },
+  count: { fontVariant: ['tabular-nums'] },
+  list: { padding: 0, overflow: 'hidden', marginBottom: spacing.sm },
+  row: { minHeight: 56, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  rowName: { flexShrink: 1, marginRight: spacing.sm, fontSize: fontSize.md, ...font('semibold') },
+  rowId: { fontSize: fontSize.xs, marginTop: 2, ...font('medium'), fontVariant: ['tabular-nums'] },
+  rowMeta: { fontSize: fontSize.xs, marginTop: 2, fontVariant: ['tabular-nums'] },
+  tableRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    minHeight: 48,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  tableHeader: { minHeight: 36, borderBottomWidth: 1 },
+  cell: { fontSize: fontSize.sm, fontVariant: ['tabular-nums'] },
+  colPatient: { flex: 2 },
+  colId: { flex: 3, marginTop: 0 },
+  colDate: { flex: 2 },
+  colReason: { flex: 3 },
+  colStatus: { flex: 2, alignItems: 'flex-end', textAlign: 'right' },
 });

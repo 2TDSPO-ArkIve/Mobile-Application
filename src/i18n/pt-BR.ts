@@ -283,6 +283,11 @@ export const pt = {
     filterEndDateLabel: 'Até',
     filterDateRangeError: 'A data final não pode ser anterior à data inicial.',
     clearFiltersButton: 'Limpar filtros',
+    columnPatient: 'Paciente',
+    columnArkiveId: 'ID ArkIve',
+    columnDateTime: 'Data e horário',
+    columnReason: 'Motivo',
+    columnStatus: 'Status',
   },
   newConsulta: {
     title: 'Nova Consulta',

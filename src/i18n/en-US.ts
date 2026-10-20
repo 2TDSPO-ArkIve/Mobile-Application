@@ -281,6 +281,11 @@ export const en = {
     filterEndDateLabel: 'To',
     filterDateRangeError: 'The end date cannot be before the start date.',
     clearFiltersButton: 'Clear filters',
+    columnPatient: 'Patient',
+    columnArkiveId: 'ArkIve ID',
+    columnDateTime: 'Date and time',
+    columnReason: 'Reason',
+    columnStatus: 'Status',
   },
   newConsulta: {
     title: 'New Visit',
