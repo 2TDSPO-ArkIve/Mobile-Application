@@ -10,6 +10,8 @@ interface Props {
   subtitle?: string;
   /** Leading Ionicons name, `-outline` variant (Plano B §3.4). */
   icon?: React.ComponentProps<typeof Ionicons>['name'];
+  /** Defaults to `inkSecondary`; `ai` for AI entries. */
+  iconColor?: string;
   /** Right-aligned value or status, e.g. a date, a price or a `StatusBadge`. */
   trailing?: React.ReactNode;
   /** Makes the row tappable and adds a chevron. */
@@ -18,12 +20,12 @@ interface Props {
 }
 
 /** One line of a list: optional icon, title over subtitle, trailing content. 44 px minimum touch target. */
-export function ListRow({ title, subtitle, icon, trailing, onPress, accessibilityLabel }: Props) {
+export function ListRow({ title, subtitle, icon, iconColor, trailing, onPress, accessibilityLabel }: Props) {
   const colors = useThemeColors();
 
   const content = (
     <>
-      {icon ? <Ionicons name={icon} size={iconSize.md} color={colors.inkSecondary} /> : null}
+      {icon ? <Ionicons name={icon} size={iconSize.md} color={iconColor ?? colors.inkSecondary} /> : null}
       <View style={styles.body}>
         <Text style={[styles.title, { color: colors.ink }]} numberOfLines={1}>
           {title}

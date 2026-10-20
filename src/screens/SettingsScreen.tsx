@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, Switch, Platform, StyleSheet } from 'react-native';
+import { View, Text, Switch, Platform, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
-import { AppButton } from '../components/AppButton';
+import { AppCard } from '../components/AppCard';
+import { ListRow } from '../components/ListRow';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { enableNativePush, disableNativePush } from '../utils/pushRegistration';
 import type { Language } from '../i18n/store';
 import type { ThemeMode } from '../types';
-import { spacing, fontSize, radius } from '../styles/theme';
+import { spacing, fontSize, font, layout } from '../styles/theme';
 
 /**
  * `SettingsScreen` is shared, unmodified, between BOTH `AppStack`
@@ -43,7 +45,8 @@ export function SettingsScreen() {
   const { t, language, setLanguage } = useTranslation();
   const { isVeterinario } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<SettingsNavigationParamList>>();
-  const rowStyle = [styles.row, { borderBottomColor: colors.border }];
+  const wide = useBreakpoint() === 'wide';
+  const rowStyle = [styles.row, { borderBottomColor: colors.line }];
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [pushStatusMessage, setPushStatusMessage] = useState<{ tone: 'info' | 'error'; text: string } | null>(null);
   const [togglingPush, setTogglingPush] = useState(false);
@@ -107,8 +110,8 @@ export function SettingsScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('settings.title')} />
 
-      <ScreenContainer>
-        <Text style={[styles.section, { color: colors.text }]}>{t('settings.appearanceSection')}</Text>
+      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
+        <Text style={[styles.section, { color: colors.ink }]}>{t('settings.appearanceSection')}</Text>
         <SegmentedControl<ThemeMode>
           label={t('settings.theme')}
           options={[
@@ -120,23 +123,23 @@ export function SettingsScreen() {
           onChange={setMode}
         />
 
-        <Text style={[styles.section, { color: colors.text }]}>{t('settings.notificationsSection')}</Text>
+        <Text style={[styles.section, { color: colors.ink }]}>{t('settings.notificationsSection')}</Text>
         <View style={rowStyle}>
-          <Text style={{ color: colors.text }}>{t('settings.push')}</Text>
+          <Text style={{ color: colors.ink }}>{t('settings.push')}</Text>
           <Switch
             value={preferences.pushEnabled}
             onValueChange={handleTogglePush}
             disabled={togglingPush}
-            trackColor={{ true: colors.primary }}
+            trackColor={{ true: colors.accent }}
           />
         </View>
         {Platform.OS !== 'web' ? (
-          <Text style={[styles.fieldLabel, { color: colors.textSecondary, fontWeight: '400' }]}>
+          <Text style={[styles.fieldLabel, { color: colors.inkSecondary }]}>
             {t('settings.pushHelper')}
           </Text>
         ) : null}
         {permissionDenied ? (
-          <Text style={[styles.fieldLabel, { color: colors.error, fontWeight: '400' }]}>
+          <Text style={[styles.fieldLabel, { color: colors.error }]}>
             {t('notifications.permissionDenied')}
           </Text>
         ) : null}
@@ -144,7 +147,7 @@ export function SettingsScreen() {
           <Text
             style={[
               styles.fieldLabel,
-              { color: pushStatusMessage.tone === 'error' ? colors.error : colors.textSecondary, fontWeight: '400' },
+              { color: pushStatusMessage.tone === 'error' ? colors.error : colors.inkSecondary },
             ]}
           >
             {pushStatusMessage.text}
@@ -152,74 +155,53 @@ export function SettingsScreen() {
         ) : null}
 
         <View style={rowStyle}>
-          <Text style={{ color: colors.text }}>{t('settings.email')}</Text>
+          <Text style={{ color: colors.ink }}>{t('settings.email')}</Text>
           <Switch
             value={preferences.emailEnabled}
             onValueChange={(value) => updatePreferences({ emailEnabled: value })}
-            trackColor={{ true: colors.primary }}
+            trackColor={{ true: colors.accent }}
           />
         </View>
         {/* Honest disclosure — confirmed against the current local Java
             source that no email-delivery channel exists at all (no
             MailSender/SMTP anywhere in the backend). This preference is
             saved locally only and does not yet trigger any notification. */}
-        <Text style={[styles.fieldLabel, { color: colors.textSecondary, fontWeight: '400' }]}>
+        <Text style={[styles.fieldLabel, { color: colors.inkSecondary }]}>
           {t('settings.emailHelper')}
         </Text>
 
-        <Text style={[styles.section, { color: colors.text }]}>{t('settings.languageSection')}</Text>
-        <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
+        <Text style={[styles.section, { color: colors.ink }]}>{t('settings.languageSection')}</Text>
+        <Text style={[styles.fieldLabel, { color: colors.inkSecondary }]}>
           {t('settings.languageHelper')}
         </Text>
-        <View style={styles.segmentedRow}>
-          {LANGUAGE_OPTIONS.map((option) => {
-            const selected = language === option.value;
-            return (
-              <Pressable
-                key={option.value}
-                onPress={() => setLanguage(option.value)}
-                style={[
-                  styles.segment,
-                  {
-                    backgroundColor: selected ? colors.primary : colors.surface,
-                    borderColor: selected ? colors.primary : colors.border,
-                  },
-                ]}
-              >
-                <Text
-                  style={{
-                    color: selected ? '#FFFFFF' : colors.text,
-                    fontWeight: selected ? '700' : '600',
-                    fontSize: fontSize.sm,
-                  }}
-                  numberOfLines={1}
-                >
-                  {option.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <SegmentedControl<Language>
+          options={LANGUAGE_OPTIONS}
+          value={language}
+          onChange={setLanguage}
+        />
 
         {/* VETERINARIO-only — RESPONSAVEL has no navigator path to a screen
             that renders AI clinical support at all, so this entry point
             would be meaningless (and unreachable) for that role. */}
         {isVeterinario ? (
           <>
-            <Text style={[styles.section, { color: colors.text }]}>{t('settings.aiSection')}</Text>
-            <AppButton
-              title={t('settings.aiUsageButton')}
-              variant="outline"
-              onPress={() => navigation.navigate('UsoDaIa')}
-            />
+            <Text style={[styles.section, { color: colors.ink }]}>{t('settings.aiSection')}</Text>
+            <AppCard style={styles.group}>
+              <ListRow
+                icon="sparkles-outline"
+                iconColor={colors.ai}
+                title={t('settings.aiUsageButton')}
+                onPress={() => navigation.navigate('UsoDaIa')}
+              />
+            </AppCard>
           </>
         ) : null}
 
-        <Text style={[styles.section, { color: colors.text }]}>{t('settings.infoSection')}</Text>
+        <Text style={[styles.section, { color: colors.ink }]}>{t('settings.infoSection')}</Text>
         <View style={styles.infoBox}>
-          <Text style={{ color: colors.text, fontWeight: '700' }}>{t('common.appName')}</Text>
-          <Text style={{ color: colors.textSecondary }}>{t('settings.version')}</Text>
-          <Text style={{ color: colors.textSecondary }}>{t('settings.copyright')}</Text>
+          <Text style={{ color: colors.ink, ...font('bold') }}>{t('common.appName')}</Text>
+          <Text style={{ color: colors.inkSecondary }}>{t('settings.version')}</Text>
+          <Text style={{ color: colors.inkSecondary }}>{t('settings.copyright')}</Text>
         </View>
       </ScreenContainer>
     </View>
@@ -228,12 +210,7 @@ export function SettingsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  section: {
-    fontSize: fontSize.lg,
-    fontWeight: '600',
-    marginTop: spacing.md,
-    marginBottom: spacing.sm,
-  },
+  section: { fontSize: 16, ...font('semibold'), marginTop: spacing.lg, marginBottom: spacing.sm },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -241,17 +218,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  fieldLabel: { fontSize: fontSize.sm, fontWeight: '600', marginBottom: spacing.sm },
-  segmentedRow: { flexDirection: 'row', gap: spacing.sm },
-  segment: {
-    flex: 1,
-    minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    paddingHorizontal: spacing.xs,
-  },
+  fieldLabel: { fontSize: fontSize.sm, marginBottom: spacing.sm },
+  group: { padding: 0, overflow: 'hidden' },
   infoBox: {
     gap: spacing.xs,
     paddingVertical: spacing.sm,
