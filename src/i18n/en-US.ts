@@ -927,6 +927,8 @@ export const en = {
   accessRequestsReceived: {
     title: 'Access requests',
     entryPointButton: 'Access requests',
+    pendingCountOne: '1 pending',
+    pendingCount: '{{count}} pending',
     loading: 'Loading requests...',
     loadErrorTitle: 'Could not load',
     emptyTitle: 'No pending requests',

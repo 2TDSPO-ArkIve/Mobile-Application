@@ -934,6 +934,8 @@ export const pt = {
   accessRequestsReceived: {
     title: 'Solicitações de acesso',
     entryPointButton: 'Solicitações de acesso',
+    pendingCountOne: '1 pendente',
+    pendingCount: '{{count}} pendentes',
     loading: 'Carregando solicitações...',
     loadErrorTitle: 'Não foi possível carregar',
     emptyTitle: 'Nenhuma solicitação pendente',
