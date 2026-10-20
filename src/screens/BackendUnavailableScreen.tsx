@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { ScreenContainer } from '../components/ScreenContainer';
-import { AppButton } from '../components/AppButton';
+import { EmptyState } from '../components/EmptyState';
 import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing } from '../styles/theme';
 
 /**
  * Shown when a stored credential exists but the backend couldn't be reached
@@ -29,11 +29,14 @@ export function BackendUnavailableScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <ScreenContainer>
         <View style={styles.center}>
-          <Text style={[styles.title, { color: colors.text }]}>{t('backendUnavailable.title')}</Text>
-          <Text style={[styles.message, { color: colors.textSecondary }]}>
-            {t('backendUnavailable.message')}
-          </Text>
-          <AppButton title={t('common.tryAgain')} onPress={handleRetry} loading={retrying} />
+          <EmptyState
+            tone="error"
+            title={t('backendUnavailable.title')}
+            message={t('backendUnavailable.message')}
+            actionLabel={t('common.tryAgain')}
+            onAction={handleRetry}
+            actionLoading={retrying}
+          />
         </View>
       </ScreenContainer>
     </View>
@@ -45,19 +48,6 @@ const styles = StyleSheet.create({
   center: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
     paddingVertical: spacing.xl,
-  },
-  title: {
-    fontSize: fontSize.xl,
-    fontWeight: '700',
-    marginBottom: spacing.sm,
-    textAlign: 'center',
-  },
-  message: {
-    fontSize: fontSize.md,
-    textAlign: 'center',
-    marginBottom: spacing.lg,
-    lineHeight: 22,
   },
 });
