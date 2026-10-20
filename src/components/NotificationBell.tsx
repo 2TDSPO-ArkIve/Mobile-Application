@@ -31,11 +31,11 @@ export function NotificationBell({ onPress }: Props) {
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.btn, { borderColor: colors.border }]}
+      style={[styles.btn, { borderColor: colors.line }]}
       accessibilityRole="button"
       accessibilityLabel={unread > 0 ? t('notifications.bellLabelUnread', { count: unread }) : t('notifications.bellLabel')}
     >
-      <Ionicons name={unread > 0 ? 'notifications' : 'notifications-outline'} size={22} color={colors.primary} />
+      <Ionicons name={unread > 0 ? 'notifications' : 'notifications-outline'} size={22} color={colors.ink} />
       <NotificationBadge count={unread} />
     </Pressable>
   );

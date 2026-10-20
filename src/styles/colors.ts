@@ -93,15 +93,7 @@ function palette(base: typeof baseLight, accent: AccentTokens) {
     chart2: base.inkSecondary,
     chartAi: base.ai,
   };
-  return {
-    ...p,
-    // Temporary migration aliases (revisão §3.3). Removed in one commit after
-    // the last screen; do not use them in new code.
-    primary: p.ink,
-    text: p.ink,
-    textSecondary: p.inkSecondary,
-    border: p.line,
-  };
+  return p;
 }
 
 export function buildPalettes(name: AccentName) {

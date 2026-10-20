@@ -36,7 +36,7 @@ export function SearchBar({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={colors.textSecondary}
+        placeholderTextColor={colors.inkSecondary}
         returnKeyType="search"
         onSubmitEditing={handleSubmit}
         style={[
@@ -44,7 +44,7 @@ export function SearchBar({
           {
             backgroundColor: colors.sunken,
             borderColor: 'transparent',
-            color: colors.text,
+            color: colors.ink,
           },
         ]}
       />

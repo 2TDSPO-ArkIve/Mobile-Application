@@ -69,13 +69,13 @@ export function AnimalObservationCard({ animalId }: { animalId: number }) {
 
   return (
     <AppCard>
-      <Text style={[commonStyles.eyebrow, { color: colors.primary, marginBottom: spacing.xs }]}>
+      <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.xs }]}>
         {t('animalObservation.sectionTitle')}
       </Text>
-      <Text style={[styles.helper, { color: colors.textSecondary }]}>{t('animalObservation.sectionHelp')}</Text>
+      <Text style={[styles.helper, { color: colors.inkSecondary }]}>{t('animalObservation.sectionHelp')}</Text>
 
       {observationQuery.isPending ? (
-        <Text style={{ color: colors.textSecondary }}>{t('animalObservation.loading')}</Text>
+        <Text style={{ color: colors.inkSecondary }}>{t('animalObservation.loading')}</Text>
       ) : observationQuery.isError ? (
         <Text style={{ color: colors.error, fontSize: fontSize.sm }}>
           {describeAnimalObservationError(observationQuery.error, false)}
@@ -110,7 +110,7 @@ export function AnimalObservationCard({ animalId }: { animalId: number }) {
             />
             {draft.trim() ? (
               <Pressable onPress={handleClear} disabled={isBusy} accessibilityRole="button" style={styles.clearLink}>
-                <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>
+                <Text style={{ color: colors.inkSecondary, fontSize: fontSize.sm }}>
                   {t('animalObservation.clearButton')}
                 </Text>
               </Pressable>

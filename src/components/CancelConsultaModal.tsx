@@ -64,8 +64,8 @@ export function CancelConsultaModal({ visible, consultaId, onClose, onCancelled 
       <View style={[styles.backdrop, { backgroundColor: colors.scrim }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
         <View style={[styles.sheet, { backgroundColor: colors.raised }]}>
-          <Text style={[styles.title, { color: colors.text }]}>{t('cancelConsulta.title')}</Text>
-          <Text style={{ color: colors.textSecondary, marginBottom: spacing.md }}>{t('cancelConsulta.message')}</Text>
+          <Text style={[styles.title, { color: colors.ink }]}>{t('cancelConsulta.title')}</Text>
+          <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md }}>{t('cancelConsulta.message')}</Text>
 
           <AppInput
             label={t('cancelConsulta.reasonLabel')}

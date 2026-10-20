@@ -69,7 +69,7 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
 
   return (
     <View style={styles.wrap}>
-      <Text style={[commonStyles.label, { color: colors.text }]}>{label}</Text>
+      <Text style={[commonStyles.label, { color: colors.ink }]}>{label}</Text>
       <Pressable
         onPress={openPicker}
         style={[
@@ -77,14 +77,14 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
           { backgroundColor: colors.sunken, borderColor: error ? colors.error : 'transparent' },
         ]}
       >
-        <Text style={{ color: value ? colors.text : colors.textSecondary, fontSize: fontSize.md }}>
+        <Text style={{ color: value ? colors.ink : colors.inkSecondary, fontSize: fontSize.md }}>
           {value ? formatDate(value) : t('date.datePlaceholder')}
         </Text>
-        <CalendarGlyph color={colors.primary} />
+        <CalendarGlyph color={colors.ink} />
       </Pressable>
       {value && onClear ? (
         <Pressable onPress={onClear} style={styles.clearBtn} accessibilityRole="button">
-          <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>{t('common.clearDate')}</Text>
+          <Text style={{ color: colors.inkSecondary, fontSize: fontSize.sm }}>{t('common.clearDate')}</Text>
         </Pressable>
       ) : null}
       {error ? <Text style={[commonStyles.errorText, { color: colors.error }]}>{error}</Text> : null}
@@ -94,12 +94,12 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
           <View style={[styles.modalRoot, { backgroundColor: colors.scrim }]}>
             <Pressable style={StyleSheet.absoluteFill} onPress={() => setIosOpen(false)} />
             <View style={[styles.sheet, { backgroundColor: colors.raised }]}>
-              <View style={[styles.sheetHeader, { borderBottomColor: colors.border }]}>
+              <View style={[styles.sheetHeader, { borderBottomColor: colors.line }]}>
                 <Pressable onPress={() => setIosOpen(false)}>
-                  <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>{t('date.pickerCancel')}</Text>
+                  <Text style={{ color: colors.inkSecondary, fontSize: fontSize.sm }}>{t('date.pickerCancel')}</Text>
                 </Pressable>
                 <Pressable onPress={confirm}>
-                  <Text style={{ color: colors.primary, ...font('bold'), fontSize: fontSize.sm }}>
+                  <Text style={{ color: colors.ink, ...font('bold'), fontSize: fontSize.sm }}>
                     {t('date.pickerDone')}
                   </Text>
                 </Pressable>
@@ -112,7 +112,7 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
                 minimumDate={minimumDate}
                 maximumDate={maximumDate}
                 themeVariant={scheme === 'dark' ? 'dark' : 'light'}
-                textColor={colors.text}
+                textColor={colors.ink}
                 style={styles.picker}
                 onValueChange={(_event, selected) => setDraft(selected)}
               />

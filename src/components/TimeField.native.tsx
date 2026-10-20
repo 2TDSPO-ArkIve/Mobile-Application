@@ -45,7 +45,7 @@ export function TimeField({ label, value, onChange, error }: Props) {
 
   return (
     <View style={styles.wrap}>
-      <Text style={[commonStyles.label, { color: colors.text }]}>{label}</Text>
+      <Text style={[commonStyles.label, { color: colors.ink }]}>{label}</Text>
       <Pressable
         onPress={openPicker}
         style={[
@@ -53,10 +53,10 @@ export function TimeField({ label, value, onChange, error }: Props) {
           { backgroundColor: colors.sunken, borderColor: error ? colors.error : 'transparent' },
         ]}
       >
-        <Text style={{ color: value ? colors.text : colors.textSecondary, fontSize: fontSize.md }}>
+        <Text style={{ color: value ? colors.ink : colors.inkSecondary, fontSize: fontSize.md }}>
           {value ? formatTime(value) : t('date.timePlaceholder')}
         </Text>
-        <ClockGlyph color={colors.primary} />
+        <ClockGlyph color={colors.ink} />
       </Pressable>
       {error ? <Text style={[commonStyles.errorText, { color: colors.error }]}>{error}</Text> : null}
 
@@ -65,12 +65,12 @@ export function TimeField({ label, value, onChange, error }: Props) {
           <View style={[styles.modalRoot, { backgroundColor: colors.scrim }]}>
             <Pressable style={StyleSheet.absoluteFill} onPress={() => setIosOpen(false)} />
             <View style={[styles.sheet, { backgroundColor: colors.raised }]}>
-              <View style={[styles.sheetHeader, { borderBottomColor: colors.border }]}>
+              <View style={[styles.sheetHeader, { borderBottomColor: colors.line }]}>
                 <Pressable onPress={() => setIosOpen(false)}>
-                  <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>{t('date.pickerCancel')}</Text>
+                  <Text style={{ color: colors.inkSecondary, fontSize: fontSize.sm }}>{t('date.pickerCancel')}</Text>
                 </Pressable>
                 <Pressable onPress={confirm}>
-                  <Text style={{ color: colors.primary, ...font('bold'), fontSize: fontSize.sm }}>
+                  <Text style={{ color: colors.ink, ...font('bold'), fontSize: fontSize.sm }}>
                     {t('date.pickerDone')}
                   </Text>
                 </Pressable>
@@ -82,7 +82,7 @@ export function TimeField({ label, value, onChange, error }: Props) {
                 display="spinner"
                 locale={language}
                 themeVariant={scheme === 'dark' ? 'dark' : 'light'}
-                textColor={colors.text}
+                textColor={colors.ink}
                 style={styles.picker}
                 onValueChange={(_event, selected) => setDraft(selected)}
               />

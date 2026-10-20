@@ -47,8 +47,8 @@ export function DeleteConsultaModal({ visible, consultaId, onClose, onDeleted }:
       <View style={[styles.backdrop, { backgroundColor: colors.scrim }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
         <View style={[styles.sheet, { backgroundColor: colors.raised }]}>
-          <Text style={[styles.title, { color: colors.text }]}>{t('consultaDetail.deleteConfirmTitle')}</Text>
-          <Text style={{ color: colors.textSecondary, marginBottom: spacing.md }}>
+          <Text style={[styles.title, { color: colors.ink }]}>{t('consultaDetail.deleteConfirmTitle')}</Text>
+          <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md }}>
             {t('consultaDetail.deleteConfirmMessage', { id: consultaId })}
           </Text>
 

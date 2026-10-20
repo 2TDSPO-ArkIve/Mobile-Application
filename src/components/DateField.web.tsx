@@ -75,7 +75,7 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
 
   return (
     <View style={styles.wrap}>
-      <Text style={[commonStyles.label, { color: colors.text }]}>{label}</Text>
+      <Text style={[commonStyles.label, { color: colors.ink }]}>{label}</Text>
       <input
         type="date"
         value={toInputValue(value)}
@@ -92,14 +92,14 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
           paddingRight: spacing.md,
           fontSize: fontSize.md,
           fontFamily: 'inherit',
-          color: colors.text,
+          color: colors.ink,
           backgroundColor: colors.sunken,
           boxSizing: 'border-box',
         }}
       />
       {value && onClear ? (
         <Pressable onPress={onClear} style={styles.clearBtn} accessibilityRole="button">
-          <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>{t('common.clearDate')}</Text>
+          <Text style={{ color: colors.inkSecondary, fontSize: fontSize.sm }}>{t('common.clearDate')}</Text>
         </Pressable>
       ) : null}
       {error ? <Text style={[commonStyles.errorText, { color: colors.error }]}>{error}</Text> : null}
