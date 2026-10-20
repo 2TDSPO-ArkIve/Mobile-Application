@@ -499,7 +499,6 @@ export const pt = {
     emptyMessage: 'Você ainda não tem pacientes cadastrados.',
     emptySearchMessage: 'Nenhum paciente encontrado para essa busca.',
     registerButton: 'Cadastrar paciente',
-    addAccessibilityLabel: 'Cadastrar paciente',
     lookupByArkiveId: 'Buscar por ID ArkIve',
   },
   arkiveLookup: {

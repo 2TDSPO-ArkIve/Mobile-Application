@@ -497,7 +497,6 @@ export const en = {
     emptyMessage: "You don't have any registered patients yet.",
     emptySearchMessage: 'No patients found for this search.',
     registerButton: 'Register patient',
-    addAccessibilityLabel: 'Register patient',
     lookupByArkiveId: 'Find by ArkIve ID',
   },
   arkiveLookup: {
