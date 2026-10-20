@@ -676,7 +676,6 @@ export const pt = {
     consultationStatusLabel: 'Status',
     veterinarianLabel: 'Dr(a). {{name}}',
     crmvLabel: 'CRMV {{value}}',
-    addressLabel: 'Endereço: {{address}}',
     reasonLabel: 'Motivo',
     diagnosisLabel: 'Diagnóstico confirmado',
     severityLabel: 'Severidade final',
@@ -685,7 +684,6 @@ export const pt = {
     prescriptionsLabel: 'Prescrições',
     prescriptionPeriod: '{{start}} → {{end}}',
     prescriptionStartOnly: 'Início: {{start}}',
-    prescriptionCostLabel: 'Custo registrado',
     downloadPdfButton: 'Baixar histórico em PDF',
   },
   tutor: {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { AppCard } from '../components/AppCard';
@@ -20,7 +21,7 @@ import { toDisplayDate } from '../utils/isoDate';
 import { describePatientHistoryError } from '../utils/errorMessages';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AnimalHistoryConsultation, AnimalHistoryPrescription } from '../services/patientHistoryService';
-import { spacing, fontSize, font, layout } from '../styles/theme';
+import { spacing, fontSize, font, layout, radius, iconSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
 /**
@@ -59,8 +60,14 @@ function PrescriptionRow({ prescricao }: { prescricao: AnimalHistoryPrescription
     : null;
 
   return (
-    <View style={styles.prescriptionRow}>
-      <Text style={[styles.prescriptionName, { color: colors.ink }]}>{prescricao.medicamento}</Text>
+    <View style={[styles.prescriptionRow, { backgroundColor: colors.sunken }]}>
+      <View style={styles.prescriptionHead}>
+        <Text style={[styles.prescriptionName, { color: colors.ink }]}>{prescricao.medicamento}</Text>
+        {/* `null` means no cost was recorded — omitted, never R$ 0,00. */}
+        {prescricao.valorMedicamento != null ? (
+          <Text style={[styles.money, { color: colors.ink }]}>{formatCurrency(prescricao.valorMedicamento)}</Text>
+        ) : null}
+      </View>
       {detailParts.length > 0 ? (
         <Text style={[styles.prescriptionDetail, { color: colors.inkSecondary }]}>{detailParts.join(' · ')}</Text>
       ) : null}
@@ -69,12 +76,6 @@ function PrescriptionRow({ prescricao }: { prescricao: AnimalHistoryPrescription
       ) : null}
       {prescricao.instrucoes ? (
         <Text style={[styles.prescriptionDetail, { color: colors.inkSecondary }]}>{prescricao.instrucoes}</Text>
-      ) : null}
-      {/* `null` means no cost was recorded — omitted, never R$ 0,00. */}
-      {prescricao.valorMedicamento != null ? (
-        <Text style={[styles.prescriptionDetail, { color: colors.inkSecondary }]}>
-          {t('patientHistory.prescriptionCostLabel')}: {formatCurrency(prescricao.valorMedicamento)}
-        </Text>
       ) : null}
     </View>
   );
@@ -96,23 +97,43 @@ function ConsultationCard({ consulta }: { consulta: AnimalHistoryConsultation })
     .filter(Boolean)
     .join(' · ');
   const metaLine = [modalidadeLabel, consulta.clinicaNome].filter(Boolean).join(' · ');
+  const meta: (readonly [React.ComponentProps<typeof Ionicons>['name'], string])[] = [
+    ...(vetLine ? [['person-outline', vetLine] as const] : []),
+    [consulta.modalidade === 'PRESENCIAL' ? 'business-outline' : 'videocam-outline', metaLine] as const,
+    ...(consulta.endereco ? [['location-outline', consulta.endereco] as const] : []),
+  ];
+
+  // Short facts side by side; free text (reason, conclusion) takes the full width.
+  // The diagnosis is only ever populated by Java for a finalized consultation —
+  // never derived/guessed client-side for any other status. A `null` value
+  // means no cost was recorded — omitted, never R$ 0,00; an explicit 0 IS a
+  // real recorded value.
+  const facts: [string, string][] = [
+    ...(consulta.diagnosticoConfirmado ? [[t('patientHistory.diagnosisLabel'), consulta.diagnosticoConfirmado] as [string, string]] : []),
+    ...(consulta.severidadeFinal ? [[t('patientHistory.severityLabel'), severidadeLabel(consulta.severidadeFinal)] as [string, string]] : []),
+    ...(consulta.valorConsulta != null ? [[t('patientHistory.valueLabel'), formatCurrency(consulta.valorConsulta)] as [string, string]] : []),
+  ];
+  const hasBody = Boolean(consulta.motivo || facts.length || consulta.conclusao || consulta.prescricoes.length);
 
   return (
     <AppCard>
       <View style={styles.headerRow}>
         <Text style={[styles.dateText, { color: colors.ink }]} numberOfLines={1}>
-          {hasValidDate ? `${formatDate(date)} ${formatTime(date)}` : ''}
+          {hasValidDate ? `${formatDate(date)} · ${formatTime(date)}` : ''}
         </Text>
         <StatusBadge label={consulta.statusDescricao} tone={tone} />
       </View>
 
-      {vetLine ? <Text style={[styles.metaText, { color: colors.inkSecondary }]}>{vetLine}</Text> : null}
-      {metaLine ? <Text style={[styles.metaText, { color: colors.inkSecondary }]}>{metaLine}</Text> : null}
-      {consulta.endereco ? (
-        <Text style={[styles.metaText, { color: colors.inkSecondary }]}>
-          {t('patientHistory.addressLabel', { address: consulta.endereco })}
-        </Text>
-      ) : null}
+      <View style={styles.meta}>
+        {meta.map(([icon, text]) => (
+          <View key={icon} style={styles.metaRow}>
+            <Ionicons name={icon} size={iconSize.sm} color={colors.inkSecondary} />
+            <Text style={[styles.metaText, { color: colors.inkSecondary }]}>{text}</Text>
+          </View>
+        ))}
+      </View>
+
+      {hasBody ? <View style={[styles.divider, { backgroundColor: colors.line }]} /> : null}
 
       {consulta.motivo ? (
         <View style={styles.section}>
@@ -121,18 +142,14 @@ function ConsultationCard({ consulta }: { consulta: AnimalHistoryConsultation })
         </View>
       ) : null}
 
-      {/* Only ever populated by Java for a finalized consultation — never derived/guessed client-side for any other status. */}
-      {consulta.diagnosticoConfirmado ? (
-        <View style={styles.section}>
-          <Text style={[styles.label, { color: colors.inkSecondary }]}>{t('patientHistory.diagnosisLabel')}</Text>
-          <Text style={[styles.value, { color: colors.ink }]}>{consulta.diagnosticoConfirmado}</Text>
-        </View>
-      ) : null}
-
-      {consulta.severidadeFinal ? (
-        <View style={styles.section}>
-          <Text style={[styles.label, { color: colors.inkSecondary }]}>{t('patientHistory.severityLabel')}</Text>
-          <Text style={[styles.value, { color: colors.ink }]}>{severidadeLabel(consulta.severidadeFinal)}</Text>
+      {facts.length > 0 ? (
+        <View style={styles.facts}>
+          {facts.map(([label, value]) => (
+            <View key={label} style={styles.fact}>
+              <Text style={[styles.label, { color: colors.inkSecondary }]}>{label}</Text>
+              <Text style={[styles.factValue, { color: colors.ink }]}>{value}</Text>
+            </View>
+          ))}
         </View>
       ) : null}
 
@@ -140,14 +157,6 @@ function ConsultationCard({ consulta }: { consulta: AnimalHistoryConsultation })
         <View style={styles.section}>
           <Text style={[styles.label, { color: colors.inkSecondary }]}>{t('patientHistory.conclusionLabel')}</Text>
           <Text style={[styles.value, { color: colors.ink }]}>{consulta.conclusao}</Text>
-        </View>
-      ) : null}
-
-      {/* `null` means no cost was recorded — omitted, never R$ 0,00. An explicit 0 IS a real recorded value. */}
-      {consulta.valorConsulta != null ? (
-        <View style={styles.section}>
-          <Text style={[styles.label, { color: colors.inkSecondary }]}>{t('patientHistory.valueLabel')}</Text>
-          <Text style={[styles.value, { color: colors.ink }]}>{formatCurrency(consulta.valorConsulta)}</Text>
         </View>
       ) : null}
 
@@ -237,17 +246,20 @@ const styles = StyleSheet.create({
   arkiveIdSubtitle: { fontSize: fontSize.xs, ...commonStyles.arkiveId, textAlign: 'center', marginBottom: spacing.sm },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   dateText: { flex: 1, fontSize: fontSize.md, ...font('bold') },
-  metaText: { fontSize: fontSize.sm, marginTop: 2 },
-  section: { marginTop: spacing.sm },
-  label: {
-    fontSize: fontSize.xs,
-    ...font('semibold'),
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
-  },
-  value: { fontSize: fontSize.sm, marginTop: 2 },
-  prescriptionRow: { marginTop: spacing.xs, paddingLeft: spacing.sm },
-  prescriptionName: { fontSize: fontSize.sm, ...font('bold') },
-  prescriptionDetail: { fontSize: fontSize.xs, marginTop: 1 },
+  meta: { marginTop: spacing.sm, gap: spacing.xs },
+  metaRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
+  metaText: { flex: 1, fontSize: fontSize.sm },
+  divider: { height: StyleSheet.hairlineWidth, marginVertical: spacing.md },
+  section: { marginBottom: spacing.md },
+  label: { fontSize: fontSize.xs },
+  value: { fontSize: fontSize.md, marginTop: 2, lineHeight: 22 },
+  facts: { flexDirection: 'row', flexWrap: 'wrap', rowGap: spacing.md, marginBottom: spacing.md },
+  fact: { width: '50%', paddingRight: spacing.sm },
+  factValue: { fontSize: fontSize.md, ...font('medium'), marginTop: 2 },
+  prescriptionRow: { marginTop: spacing.sm, padding: spacing.sm + 4, borderRadius: radius.md },
+  prescriptionHead: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
+  prescriptionName: { flex: 1, fontSize: fontSize.sm, ...font('semibold') },
+  money: { fontSize: fontSize.sm, ...font('medium'), fontVariant: ['tabular-nums'] },
+  prescriptionDetail: { fontSize: fontSize.xs, marginTop: 2 },
   pdfButton: { marginTop: spacing.md },
 });
