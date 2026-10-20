@@ -11,9 +11,9 @@ export type InteractionState = PressableStateCallbackType & {
   focused?: boolean;
 };
 
-/** Keyboard focus ring, web only. */
+/** Keyboard focus ring, web only; a mouse or touch press doesn't match `:focus-visible`. */
 export function focusRing({ focused }: InteractionState, colors: ColorPalette): ViewStyle | null {
-  if (Platform.OS !== 'web' || !focused) return null;
+  if (Platform.OS !== 'web' || !focused || !document.activeElement?.matches(':focus-visible')) return null;
   return { outlineColor: colors.ink, outlineStyle: 'solid', outlineWidth: 2, outlineOffset: 2 } as ViewStyle;
 }
 
