@@ -74,7 +74,23 @@ export function NewPatientScreen() {
     }
 
     if (route.params?.returnToConsulta) {
-      navigation.navigate('CriarConsulta', { preselectedAnimal: created });
+      // NAV-01 fix — `navigate('CriarConsulta', ...)` did not reliably pop
+      // this screen off the stack: `CriarConsulta` was originally reached by
+      // bubbling up from the Consultas tab's nested tab navigator, and a
+      // later `navigate` call from this sibling `AppStack` screen could add
+      // a SECOND `CriarConsulta` entry on top of this one instead of
+      // collapsing back to it — leaving `NovoPaciente` (and a stale, now-
+      // abandoned `CriarConsulta`) stuck underneath. Deleting the
+      // consultation created from that fresh instance then `goBack()`ed onto
+      // the leftover `NovoPaciente` instead of the Consultas tab.
+      // `popTo` (already the established pattern in this codebase for
+      // "return to an existing screen further down the stack, discarding
+      // everything pushed after it" — see `ArkiveAnalysisScreen`/
+      // `ArkiveInsightScreen`/`VeterinarianConclusionScreen`'s own
+      // `popTo('ConsultaDetalhe', ...)` calls) pops straight back to the
+      // ORIGINAL `CriarConsulta` instance and merges the new patient in,
+      // guaranteeing `NovoPaciente` is removed from the stack.
+      navigation.popTo('CriarConsulta', { preselectedAnimal: created });
     } else {
       navigation.replace('PacienteDetalhe', { patientId: created.id });
     }

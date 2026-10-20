@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createPatient,
   getAnimalObservation,
@@ -14,12 +14,15 @@ import {
 import { getPatientHistory } from '../services/patientHistoryService';
 import { getPatientCosts } from '../services/patientCostService';
 import { queryKeys } from '../query/queryKeys';
+import { nextPageParam } from '../utils/pagination';
 
 /** This veterinarian's own patient registry (`GET /api/animais/me`) — registered by them, previously consulted, or same-clinic if they have one; no prior-consultation requirement, no clinic requirement. */
 export function useMyPatients(filters?: MyPatientsFilters, options?: { enabled?: boolean }) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: queryKeys.patients.mine(filters),
-    queryFn: () => listMyPatients(filters),
+    queryFn: ({ pageParam }) => listMyPatients(filters, pageParam),
+    initialPageParam: 0,
+    getNextPageParam: nextPageParam,
     enabled: options?.enabled ?? true,
   });
 }
@@ -31,9 +34,11 @@ export function useMyPatients(filters?: MyPatientsFilters, options?: { enabled?:
  * calls a different endpoint with a different authorization meaning.
  */
 export function useMyAnimals(filters?: MyPatientsFilters, options?: { enabled?: boolean }) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: queryKeys.patients.accessible(filters),
-    queryFn: () => listAccessibleAnimals(filters),
+    queryFn: ({ pageParam }) => listAccessibleAnimals(filters, pageParam),
+    initialPageParam: 0,
+    getNextPageParam: nextPageParam,
     enabled: options?.enabled ?? true,
   });
 }

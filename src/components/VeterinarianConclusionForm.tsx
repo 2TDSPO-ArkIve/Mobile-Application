@@ -8,7 +8,16 @@ import type { FinalizarConsultaRequest, Severidade } from '../services/consultaS
 import { spacing, fontSize, radius } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
-const SEVERIDADE_VALUES: Severidade[] = ['LEVE', 'MODERADA', 'GRAVE'];
+/**
+ * V19 — `AUSENTE` is now a real, explicit `Severidade` value Java accepts
+ * and persists (confirmed: `FinalizarConsultaRequest.severidade` documents
+ * `allowableValues = {"AUSENTE", "LEVE", "MODERADA", "GRAVE"}`), distinct
+ * from sending no severity at all. `severidade` state starts `null`
+ * ("not yet chosen" — nothing is sent) and is only ever set to one of the
+ * four real `Severidade` codes by tapping an option below, including
+ * `AUSENTE` itself — there is no separate UI-only pseudo-value anymore.
+ */
+const SEVERIDADE_VALUES: Severidade[] = ['AUSENTE', 'LEVE', 'MODERADA', 'GRAVE'];
 
 interface Props {
   onSubmit: (input: FinalizarConsultaRequest) => void;
@@ -59,6 +68,10 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
 
     onSubmit({
       diagnostico: diagnostico.trim(),
+      // `severidade === null` ("not selected") stays `undefined` (Java
+      // treats a missing field as "not informed"); every real selection,
+      // INCLUDING `AUSENTE`, is now sent exactly as chosen — the two are
+      // structurally distinct states, never collapsed into each other.
       severidade: severidade ?? undefined,
       doencaId: null,
       conclusao: conclusao.trim() || undefined,

@@ -1,7 +1,8 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, ScrollView, Platform, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { HeaderIconButton } from './HeaderIconButton';
+import { SearchBar } from './SearchBar';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { spacing, radius, fontSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
@@ -35,15 +36,56 @@ interface Props {
    * read as just another chip rather than a distinct action.
    */
   leadingAction?: ChipGroupLeadingAction;
+  /**
+   * Shows a search box above the chips — for long lookups like breeds. The
+   * loaded chips are filtered by label right away; `onSearchChange` also
+   * gets the debounced term so the caller can re-query the server (`?nome=`).
+   * The selected chip always stays visible, even when the results omit it.
+   */
+  searchPlaceholder?: string;
+  onSearchChange?: (term: string) => void;
 }
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 /**
  * Single-select chip row — the same visual pattern NewConsultaScreen already
  * used inline for `modalidade`, extracted so species/breed/sex/castration
  * pickers elsewhere don't each reinvent it.
  */
-export function ChipGroup({ label, options, value, onChange, disabled, emptyMessage, error, leadingAction }: Props) {
+export function ChipGroup({
+  label,
+  options,
+  value,
+  onChange,
+  disabled,
+  emptyMessage,
+  error,
+  leadingAction,
+  searchPlaceholder,
+  onSearchChange,
+}: Props) {
   const colors = useThemeColors();
+  const [search, setSearch] = useState('');
+  const term = search.trim().toLowerCase();
+
+  useEffect(() => {
+    if (!onSearchChange) return;
+    const timeout = setTimeout(() => onSearchChange(search.trim()), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+  }, [search, onSearchChange]);
+
+  // Remembers every label seen, so the selected chip can still be drawn when
+  // a server-side search returns a list without it.
+  const knownLabelsRef = useRef(new Map<string, string>());
+  options.forEach((o) => knownLabelsRef.current.set(o.value, o.label));
+
+  const filtered = term ? options.filter((o) => o.label.toLowerCase().includes(term)) : options;
+  const selectedLabel = value != null ? knownLabelsRef.current.get(value) : undefined;
+  const visibleOptions =
+    value != null && selectedLabel !== undefined && !filtered.some((o) => o.value === value)
+      ? [{ value, label: selectedLabel }, ...filtered]
+      : filtered;
   const scrollRef = useRef<ScrollView>(null);
   // Tracked manually (rather than read back from the ScrollView) so the
   // wheel handler below can compute the next offset synchronously — mouse
@@ -75,6 +117,10 @@ export function ChipGroup({ label, options, value, onChange, disabled, emptyMess
     <View style={styles.wrap}>
       <Text style={[commonStyles.label, { color: colors.text }]}>{label}</Text>
 
+      {searchPlaceholder && (options.length > 0 || term) && !disabled ? (
+        <SearchBar value={search} onChangeText={setSearch} placeholder={searchPlaceholder} />
+      ) : null}
+
       <View style={styles.contentRow}>
         {leadingAction ? (
           <View style={styles.leadingBtn}>
@@ -87,7 +133,7 @@ export function ChipGroup({ label, options, value, onChange, disabled, emptyMess
           </View>
         ) : null}
 
-        {options.length === 0 && emptyMessage ? (
+        {visibleOptions.length === 0 && emptyMessage ? (
           <Text style={[styles.scroll, { color: colors.textSecondary, fontSize: fontSize.sm }]}>{emptyMessage}</Text>
         ) : (
           <ScrollView
@@ -100,7 +146,7 @@ export function ChipGroup({ label, options, value, onChange, disabled, emptyMess
             {...(webOnlyProps as object)}
           >
             <View style={styles.row}>
-              {options.map((option) => {
+              {visibleOptions.map((option) => {
                 const selected = option.value === value;
                 return (
                   <Pressable

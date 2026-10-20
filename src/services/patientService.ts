@@ -1,4 +1,5 @@
 import { apiGet, apiPatch, apiPost, apiPut } from './apiClient';
+import { LIST_PAGE_SIZE, type SpringPage } from '../utils/pagination';
 
 /**
  * CONFIRMED against the ArkIve Spring Boot source (sibling project
@@ -73,11 +74,18 @@ export interface MyPatientsFilters {
   racaId?: number;
 }
 
-function buildAnimalListQuery(filters?: MyPatientsFilters): string {
+function buildAnimalListQuery(filters?: MyPatientsFilters, page?: number): string {
   const params = new URLSearchParams();
   if (filters?.busca) params.set('busca', filters.busca);
   if (filters?.especieId != null) params.set('especieId', String(filters.especieId));
   if (filters?.racaId != null) params.set('racaId', String(filters.racaId));
+  if (page != null) {
+    params.set('page', String(page));
+    params.set('size', String(LIST_PAGE_SIZE));
+    // The repository query has no `order by`; name + id keeps pages stable.
+    params.append('sort', 'nome,asc');
+    params.append('sort', 'id,asc');
+  }
   const query = params.toString();
   return query ? `?${query}` : '';
 }
@@ -98,9 +106,11 @@ function buildAnimalListQuery(filters?: MyPatientsFilters): string {
  * same arguments, but `/me` is the correctly-named one now that "clinic"
  * is no longer the operative concept.
  */
-export async function listMyPatients(filters?: MyPatientsFilters): Promise<AnimalDto[]> {
-  const page = await apiGet<{ content: AnimalDto[] }>(`/api/animais/me${buildAnimalListQuery(filters)}`);
-  return page.content;
+export async function listMyPatients(
+  filters: MyPatientsFilters | undefined,
+  page: number
+): Promise<SpringPage<AnimalDto>> {
+  return apiGet<SpringPage<AnimalDto>>(`/api/animais/me${buildAnimalListQuery(filters, page)}`);
 }
 
 /**
@@ -114,9 +124,11 @@ export async function listMyPatients(filters?: MyPatientsFilters): Promise<Anima
  * previously consulted") — same underlying entity, two distinct, role-specific
  * endpoints, kept as two separate functions so neither name's meaning is diluted.
  */
-export async function listAccessibleAnimals(filters?: MyPatientsFilters): Promise<AnimalDto[]> {
-  const page = await apiGet<{ content: AnimalDto[] }>(`/api/animais${buildAnimalListQuery(filters)}`);
-  return page.content;
+export async function listAccessibleAnimals(
+  filters: MyPatientsFilters | undefined,
+  page: number
+): Promise<SpringPage<AnimalDto>> {
+  return apiGet<SpringPage<AnimalDto>>(`/api/animais${buildAnimalListQuery(filters, page)}`);
 }
 
 /**

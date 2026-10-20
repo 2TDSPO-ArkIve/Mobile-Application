@@ -24,11 +24,13 @@ export interface RacaRequestInput {
  * `GET /api/racas` — confirmed to support `especieId` filtering server-side
  * (`RacaController.listar` / `RacaService.listar`), so the breed picker only
  * ever loads breeds that actually belong to the selected species instead of
- * a client-side filter over every breed in the system.
+ * a client-side filter over every breed in the system. `nome` is a
+ * server-side case-insensitive "contains" filter (`RacaRepository.buscar`).
  */
-export async function listRacas(especieId: number): Promise<RacaDto[]> {
+export async function listRacas(especieId: number, nome?: string): Promise<RacaDto[]> {
+  const nomeParam = nome ? `&nome=${encodeURIComponent(nome)}` : '';
   const page = await apiGet<{ content: RacaDto[] }>(
-    `/api/racas?especieId=${especieId}&size=200`
+    `/api/racas?especieId=${especieId}&size=200${nomeParam}`
   );
   return page.content;
 }

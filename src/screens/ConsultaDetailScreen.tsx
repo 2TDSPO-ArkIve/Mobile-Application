@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
@@ -12,12 +12,12 @@ import { ClinicalIntake } from '../components/ClinicalIntake';
 import { ClinicalSupportCard } from '../components/ClinicalSupportCard';
 import { ConfirmedDiagnosisCard } from '../components/ConfirmedDiagnosisCard';
 import { CancelConsultaModal } from '../components/CancelConsultaModal';
+import { DeleteConsultaModal } from '../components/DeleteConsultaModal';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import {
   useConsulta,
   useConsultaClinicalSupport,
-  useDeleteConsulta,
   useSaveNarrativa,
   useStartConsulta,
 } from '../hooks/useConsultas';
@@ -61,7 +61,6 @@ export function ConsultaDetailScreen() {
 
   const { data: consulta, isPending, isError, error, refetch } = useConsulta(consultaId);
   const startMutation = useStartConsulta(consultaId);
-  const deleteMutation = useDeleteConsulta();
   const saveNarrativa = useSaveNarrativa(consultaId);
 
   const diagnosticosEnabled = consulta?.status === 'FI';
@@ -83,6 +82,7 @@ export function ConsultaDetailScreen() {
   const [actionError, setActionError] = useState('');
   const [proceeding, setProceeding] = useState(false);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   // AP means the veterinarian already asked ArkIve to analyze this case —
   // reopening it should land on the insight screen, never back on an EP-shaped
@@ -100,29 +100,6 @@ export function ConsultaDetailScreen() {
     } catch (err) {
       setActionError(err instanceof Error ? err.message : t('consultaDetail.startError'));
     }
-  };
-
-  const handleDelete = () => {
-    Alert.alert(
-      t('consultaDetail.deleteConfirmTitle'),
-      t('consultaDetail.deleteConfirmMessage', { id: consultaId }),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            setActionError('');
-            try {
-              await deleteMutation.mutateAsync(consultaId);
-              navigation.goBack();
-            } catch (err) {
-              setActionError(err instanceof Error ? err.message : t('consultaDetail.deleteError'));
-            }
-          },
-        },
-      ]
-    );
   };
 
   // The critical invariant: PATCH narrativa must complete successfully
@@ -420,8 +397,7 @@ export function ConsultaDetailScreen() {
           <AppButton
             title={t('consultaDetail.deleteConsulta')}
             variant="danger"
-            onPress={handleDelete}
-            loading={deleteMutation.isPending}
+            onPress={() => setDeleteModalOpen(true)}
           />
         ) : null}
 
@@ -439,6 +415,16 @@ export function ConsultaDetailScreen() {
         consultaId={consultaId}
         onClose={() => setCancelModalOpen(false)}
         onCancelled={() => setCancelModalOpen(false)}
+      />
+
+      <DeleteConsultaModal
+        visible={deleteModalOpen}
+        consultaId={consultaId}
+        onClose={() => setDeleteModalOpen(false)}
+        onDeleted={() => {
+          setDeleteModalOpen(false);
+          navigation.goBack();
+        }}
       />
     </View>
   );

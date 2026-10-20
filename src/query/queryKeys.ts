@@ -8,9 +8,35 @@ export const queryKeys = {
   consultas: {
     all: ['consultas'] as const,
     list: () => [...queryKeys.consultas.all, 'list'] as const,
+    /** Paged status groups of `ConsultasScreen` — nested under `list()`, so invalidating the list also refetches them. */
+    statusGroups: () => [...queryKeys.consultas.list(), 'status'] as const,
+    /**
+     * V19 — `filters` (search/date-range) is part of the key so each distinct
+     * filter combination gets its own cache entry/pagination sequence, never
+     * sharing or overwriting another combination's pages. A plain `{}`
+     * default (not `undefined`) keeps the unfiltered case's key shape
+     * identical to before this feature existed. Still nested under
+     * `statusGroups()`, so every existing mutation invalidation that targets
+     * `statusGroups()`/`list()`/`all` (create/update/delete/start/finalize/
+     * cancel) continues to invalidate EVERY filter variant via normal
+     * TanStack Query prefix matching — no mutation invalidation needed to
+     * change for this.
+     */
+    byStatus: <F extends object>(status: string, filters?: F) =>
+      [...queryKeys.consultas.statusGroups(), status, filters ?? {}] as const,
+    /** Count per status for the financial dashboard — also under `list()`, so it refreshes with every list invalidation. */
+    statusCount: (status: string) => [...queryKeys.consultas.list(), 'count', status] as const,
     detail: (id: string | number) => [...queryKeys.consultas.all, 'detail', id] as const,
     clinicalSupport: (id: string | number) =>
       [...queryKeys.consultas.all, 'clinical-support', id] as const,
+    /**
+     * AI-usage-comparison feature — the small, fixed-size recent-candidates
+     * fetch per status (`listRecentConsultasByStatusForAiUsage`). Nested
+     * under `list()` so it's covered by the same broad invalidation every
+     * consultation-mutating hook already performs, same as `statusGroups`.
+     */
+    aiUsageCandidates: (status: string, limit: number) =>
+      [...queryKeys.consultas.list(), 'ai-usage-candidates', status, limit] as const,
   },
   patients: {
     all: ['patients'] as const,
@@ -50,10 +76,12 @@ export const queryKeys = {
   especies: {
     all: ['especies'] as const,
     list: () => [...queryKeys.especies.all, 'list'] as const,
+    search: (nome: string) => [...queryKeys.especies.list(), 'search', nome] as const,
   },
   racas: {
     all: ['racas'] as const,
     byEspecie: (especieId: number) => [...queryKeys.racas.all, 'by-especie', especieId] as const,
+    search: (especieId: number, nome: string) => [...queryKeys.racas.byEspecie(especieId), 'search', nome] as const,
   },
   responsaveis: {
     all: ['responsaveis'] as const,

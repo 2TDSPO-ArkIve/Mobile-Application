@@ -3,17 +3,19 @@ import { listEspecies } from '../services/especieService';
 import { listRacas, createRaca, type RacaDto, type RacaRequestInput } from '../services/racaService';
 import { queryKeys } from '../query/queryKeys';
 
-export function useEspecies() {
+/** `nome` filters server-side; omitted/empty = the full list (shared cache key). */
+export function useEspecies(nome?: string) {
   return useQuery({
-    queryKey: queryKeys.especies.list(),
-    queryFn: listEspecies,
+    queryKey: nome ? queryKeys.especies.search(nome) : queryKeys.especies.list(),
+    queryFn: () => listEspecies(nome),
   });
 }
 
-export function useRacas(especieId: number | null) {
+export function useRacas(especieId: number | null, nome?: string) {
+  const id = especieId ?? -1;
   return useQuery({
-    queryKey: queryKeys.racas.byEspecie(especieId ?? -1),
-    queryFn: () => listRacas(especieId as number),
+    queryKey: nome ? queryKeys.racas.search(id, nome) : queryKeys.racas.byEspecie(id),
+    queryFn: () => listRacas(especieId as number, nome),
     enabled: especieId != null,
   });
 }

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Alert, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { notify } from '../utils/dialog';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
@@ -25,9 +26,9 @@ export function ChangePasswordScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
 
   const handleSuccess = () => {
-    Alert.alert(t('changePassword.successTitle'), t('changePassword.successMessage'), [
-      { text: t('common.done'), onPress: () => navigation.goBack() },
-    ]);
+    notify(t('changePassword.successTitle'), t('changePassword.successMessage'), t('common.done'), () =>
+      navigation.goBack()
+    );
   };
 
   return (

@@ -1,23 +1,38 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+  type QueryClient,
+  type UseQueryOptions,
+} from '@tanstack/react-query';
 import { ApiError } from '../services/apiClient';
 import {
   cancelConsulta,
+  countConsultasByStatus,
   createConsulta,
   deleteConsulta,
   finalizeConsulta,
   getClinicalSupport,
   getConsulta,
   listConsultas,
+  listConsultasByStatus,
   requestClinicalSupport,
   startConsulta,
   updateConsulta,
   updateNarrativa,
   type ConsultaDto,
+  type ConsultaListFilters,
+  type ConsultaStatus,
   type CreateConsultaInput,
   type FinalizarConsultaRequest,
   type UpdateConsultaInput,
 } from '../services/consultaService';
 import { queryKeys } from '../query/queryKeys';
+import { nextPageParam, type SpringPage } from '../utils/pagination';
+import { CONSULTA_STATUS_ORDER } from '../utils/statusPresentation';
 
 /** List — proves screen -> hook -> TanStack Query -> service -> apiClient -> Spring Boot end-to-end. */
 export function useConsultas() {
@@ -28,7 +43,44 @@ export function useConsultas() {
 }
 
 /**
- * Detail. Seeds from whatever row is already in the list cache — the
+ * One status group of `ConsultasScreen`, paged from the server. `filters`
+ * (V19 — patient name / ArkIve ID / date range) is part of the query key, so
+ * changing it starts an entirely fresh paginated sequence at page 0 rather
+ * than appending onto a different filter combination's already-loaded pages.
+ */
+export function useConsultasByStatus(status: ConsultaStatus, filters?: ConsultaListFilters) {
+  return useInfiniteQuery({
+    queryKey: queryKeys.consultas.byStatus(status, filters),
+    queryFn: ({ pageParam }) => listConsultasByStatus(status, pageParam, filters),
+    initialPageParam: 0,
+    getNextPageParam: nextPageParam,
+  });
+}
+
+/** Consultation count per status, in `CONSULTA_STATUS_ORDER`. */
+export function useConsultaStatusCounts() {
+  return useQueries({
+    queries: CONSULTA_STATUS_ORDER.map((status) => ({
+      queryKey: queryKeys.consultas.statusCount(status),
+      queryFn: () => countConsultasByStatus(status),
+    })),
+    combine: (results) => ({
+      counts: CONSULTA_STATUS_ORDER.map((status, i) => ({ status, count: results[i].data ?? 0 })),
+      isPending: results.some((result) => result.isPending),
+      isError: results.some((result) => result.isError),
+    }),
+  });
+}
+
+/** Every consultation already loaded into a status group's pages. */
+function cachedStatusGroupRows(queryClient: QueryClient): ConsultaDto[] {
+  return queryClient
+    .getQueriesData<InfiniteData<SpringPage<ConsultaDto>>>({ queryKey: queryKeys.consultas.statusGroups() })
+    .flatMap(([, data]) => data?.pages.flatMap((page) => page.content) ?? []);
+}
+
+/**
+ * Detail. Seeds from whatever row is already in a list cache — the
  * screen never flashes empty on navigation from the list, and if the
  * unconfirmed by-id GET turns out unsupported, the seeded row still renders
  * (see the confidence note on getConsulta in consultaService.ts).
@@ -40,9 +92,10 @@ export function useConsulta(id: number) {
     queryKey: queryKeys.consultas.detail(id),
     queryFn: () => getConsulta(id),
     initialData: () =>
-      queryClient
-        .getQueryData<ConsultaDto[]>(queryKeys.consultas.list())
-        ?.find((consulta) => consulta.id === id),
+      [
+        ...(queryClient.getQueryData<ConsultaDto[]>(queryKeys.consultas.list()) ?? []),
+        ...cachedStatusGroupRows(queryClient),
+      ].find((consulta) => consulta.id === id),
   });
 }
 
@@ -99,14 +152,37 @@ export function useUpdateConsulta(id: number) {
   });
 }
 
+/**
+ * Drops the row from the list cache synchronously, so the screen we go back
+ * to never shows the deleted consultation while the refetch is in flight.
+ * Also invalidates the patient's history, where an AG consultation appears.
+ */
 export function useDeleteConsulta() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: number) => deleteConsulta(id),
     onSuccess: (_result, id) => {
+      const animalId = queryClient.getQueryData<ConsultaDto>(queryKeys.consultas.detail(id))?.animalId;
+      queryClient.setQueryData<ConsultaDto[] | undefined>(queryKeys.consultas.list(), (current) =>
+        current?.filter((consulta) => consulta.id !== id)
+      );
+      queryClient.setQueriesData<InfiniteData<SpringPage<ConsultaDto>>>(
+        { queryKey: queryKeys.consultas.statusGroups() },
+        (current) =>
+          current && {
+            ...current,
+            pages: current.pages.map((page) => ({
+              ...page,
+              content: page.content.filter((consulta) => consulta.id !== id),
+            })),
+          }
+      );
       queryClient.invalidateQueries({ queryKey: queryKeys.consultas.list() });
       queryClient.removeQueries({ queryKey: queryKeys.consultas.detail(id) });
+      if (animalId != null) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.patients.history(animalId) });
+      }
     },
   });
 }

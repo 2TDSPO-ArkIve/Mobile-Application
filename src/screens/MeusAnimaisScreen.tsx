@@ -8,6 +8,7 @@ import { SearchBar } from '../components/SearchBar';
 import { AppCard } from '../components/AppCard';
 import { AppButton } from '../components/AppButton';
 import { EmptyState } from '../components/EmptyState';
+import { LoadMoreButton } from '../components/LoadMoreButton';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useMyAnimals } from '../hooks/usePatients';
@@ -58,7 +59,9 @@ export function MeusAnimaisScreen() {
   }, [searchInput]);
 
   const trimmedSearch = debouncedSearch.trim();
-  const { data, isPending, isError, error } = useMyAnimals({ busca: trimmedSearch || undefined });
+  const animalsQuery = useMyAnimals({ busca: trimmedSearch || undefined });
+  const { isPending, isError, error } = animalsQuery;
+  const data = animalsQuery.data?.pages.flatMap((page) => page.content);
   const { data: unreadCount } = useUnreadNotificationCount();
 
   const hasSearch = trimmedSearch.length > 0;
@@ -131,18 +134,21 @@ export function MeusAnimaisScreen() {
             message={hasSearch ? t('myAnimals.emptySearchMessage') : t('myAnimals.emptyMessage')}
           />
         ) : (
-          data.map((animal) => (
-            <AppCard
-              key={animal.id}
-              onPress={() => navigation.navigate('PacienteDetalhe', { patientId: animal.id })}
-            >
-              <Text style={{ color: colors.text, fontWeight: '700' }}>{animal.nome}</Text>
-              <Text style={{ color: colors.textSecondary }}>{patientSummaryLine(animal)}</Text>
-              <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, marginTop: spacing.xs }}>
-                {patientArkiveIdLine(animal)}
-              </Text>
-            </AppCard>
-          ))
+          <>
+            {data.map((animal) => (
+              <AppCard
+                key={animal.id}
+                onPress={() => navigation.navigate('PacienteDetalhe', { patientId: animal.id })}
+              >
+                <Text style={{ color: colors.text, fontWeight: '700' }}>{animal.nome}</Text>
+                <Text style={{ color: colors.textSecondary }}>{patientSummaryLine(animal)}</Text>
+                <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, marginTop: spacing.xs }}>
+                  {patientArkiveIdLine(animal)}
+                </Text>
+              </AppCard>
+            ))}
+            <LoadMoreButton query={animalsQuery} />
+          </>
         )}
       </ScreenContainer>
     </View>

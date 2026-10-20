@@ -4,7 +4,6 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { spacing, radius, fontSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
-import { formatDate } from '../utils/localeFormat';
 
 interface Props {
   label: string;
@@ -39,10 +38,9 @@ function toInputValue(date: Date | null): string {
  * browser/OS locale, which this app cannot override without replacing it
  * with an unreliable free-text field — explicitly not done here. Its
  * machine `value`/`min`/`max` stay ISO (`YYYY-MM-DD`) either way, same as
- * every other date this app sends to Java. To still give a consistent,
- * ALWAYS-`dd-MM-yyyy` presentation (the one thing this app DOES control),
- * an app-rendered `formatDate(value)` line is shown alongside it — the same
- * text `DateField.native.tsx` shows as its own trigger label.
+ * every other date this app sends to Java. No extra app-rendered date line
+ * is shown below it — in a pt-BR browser the input already reads
+ * `dd/mm/aaaa`, and repeating it showed the date twice.
  */
 export function DateField({ label, value, onChange, error, minimumDate, maximumDate, onClear }: Props) {
   const colors = useThemeColors();
@@ -56,8 +54,8 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
    * already reports a zero-padded partial like `...-0002`. The legacy
    * multi-argument `Date` constructor then special-cases any year 0–99 as
    * `1900 + year` (`new Date(2, ...)` => 1902), which is exactly the
-   * "19XX" symptom — and briefly flashes it in `formatDate(value)` below,
-   * since every intermediate keystroke was being committed to state.
+   * "19XX" symptom, since every intermediate keystroke was being committed
+   * to state.
    * Guarding on a real 4-digit year (never < 1000) before ever constructing
    * a `Date` eliminates every one of those intermediate pseudo-years; only
    * a syntactically complete `YYYY-MM-DD` with a plausible calendar date
@@ -99,9 +97,6 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
           boxSizing: 'border-box',
         }}
       />
-      {value ? (
-        <Text style={[styles.resolvedDate, { color: colors.textSecondary }]}>{formatDate(value)}</Text>
-      ) : null}
       {value && onClear ? (
         <Pressable onPress={onClear} style={styles.clearBtn} accessibilityRole="button">
           <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>{t('common.clearDate')}</Text>
@@ -115,5 +110,4 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
 const styles = StyleSheet.create({
   wrap: { marginBottom: spacing.sm },
   clearBtn: { alignSelf: 'flex-start', marginTop: spacing.xs },
-  resolvedDate: { fontSize: fontSize.xs, marginTop: spacing.xs },
 });

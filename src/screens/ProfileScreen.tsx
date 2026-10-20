@@ -58,21 +58,6 @@ export function ProfileScreen() {
           </AppCard>
         )}
 
-        {/*
-          There is no confirmed backend self-update endpoint for a
-          veterinarian's own profile: PUT /api/veterinarios/{id} exists, but
-          it's the general clinic-admin CRUD endpoint (no per-caller
-          ownership check, full-replace body including clinicaId/ativo) —
-          not a purpose-built "edit my own profile" contract. Wiring this
-          button to it would either risk a vet accidentally overwriting
-          clinic-managed fields, or misrepresent an admin endpoint as
-          self-service. Descoped until a real self-update contract exists,
-          rather than pretending a local-only save succeeded on the server.
-        */}
-        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: spacing.md }}>
-          {t('profile.editUnavailable')}
-        </Text>
-
         {/* Chunk 6 — the one discoverable entry point to the veterinarian's
             own financial dashboard. Deliberately not duplicated on the Home
             tab (avoids overcrowding it with an unrelated card) and

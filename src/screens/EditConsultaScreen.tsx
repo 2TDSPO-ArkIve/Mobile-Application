@@ -24,6 +24,9 @@ import { commonStyles } from '../styles/common';
 
 const MODALIDADE_VALUES: Modalidade[] = ['PRESENCIAL', 'REMOTA'];
 
+type Field = 'modalidade' | 'date' | 'time' | 'motivo' | 'valor';
+const ALL_TOUCHED: Record<Field, boolean> = { modalidade: true, date: true, time: true, motivo: true, valor: true };
+
 /**
  * Update is only offered while a consultation is still AG. Confirmed against
  * the Spring backend (`ConsultaService.atualizar`/`aplicarDados`) that the PUT
@@ -61,7 +64,12 @@ export function EditConsultaScreen() {
   const [motivo, setMotivo] = useState('');
   const [endereco, setEndereco] = useState('');
   const [valorConsultaInput, setValorConsultaInput] = useState('');
+  // Same pattern as NewConsultaScreen: per-field errors once touched (or on
+  // submit); `formError` is API-only.
+  const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({});
   const [formError, setFormError] = useState('');
+
+  const touch = (field: Field) => setTouched((prev) => (prev[field] ? prev : { ...prev, [field]: true }));
 
   useEffect(() => {
     if (!consulta || hydrated) return;
@@ -80,41 +88,48 @@ export function EditConsultaScreen() {
     if (modalidade === 'REMOTA') setEndereco('');
   }, [modalidade]);
 
-  const handleSave = async () => {
-    if (!consulta) return;
-    setFormError('');
-
-    if (!modalidade) {
-      setFormError(t('newConsulta.errorNoModalidade'));
-      return;
-    }
-    if (!date || !time) {
-      setFormError(t('newConsulta.errorNoDate'));
-      return;
-    }
-    if (!motivo.trim()) {
-      setFormError(t('newConsulta.errorNoReason'));
-      return;
-    }
-
-    // The backend only rejects a past `dataHora` when it's actually being
-    // changed (`ConsultaService.aplicarDados`) — re-saving an untouched
-    // date/time on an already-past AG consultation must not be blocked here.
+  // The backend only rejects a past `dataHora` when it's actually being
+  // changed (`ConsultaService.aplicarDados`) — re-saving an untouched
+  // date/time on an already-past AG consultation must not be blocked here.
+  const isPastChange = (d: Date, tm: Date) => {
+    if (!consulta) return false;
     const original = new Date(consulta.dataHora);
     const originalDay = new Date(original.getFullYear(), original.getMonth(), original.getDate());
     const dateTimeChanged =
-      date.getTime() !== originalDay.getTime() ||
-      time.getHours() !== original.getHours() ||
-      time.getMinutes() !== original.getMinutes();
+      d.getTime() !== originalDay.getTime() ||
+      tm.getHours() !== original.getHours() ||
+      tm.getMinutes() !== original.getMinutes();
+    return dateTimeChanged && isScheduleInPast(d, tm);
+  };
 
-    if (dateTimeChanged && isScheduleInPast(date, time)) {
-      setFormError(t('newConsulta.errorPastDateTime'));
-      return;
-    }
+  const valorResult = parseMoneyInput(valorConsultaInput);
+  const fieldErrors: Partial<Record<Field, string>> = {};
+  if (!modalidade) fieldErrors.modalidade = t('newConsulta.errorNoModalidade');
+  // Same rule as NewConsulta: a past day shows on the date field without
+  // waiting for the time — but only when the day itself was changed.
+  const pastDate =
+    !!date && !!consulta && date < startOfToday() && date.toDateString() !== new Date(consulta.dataHora).toDateString();
+  if (!date) fieldErrors.date = t('newConsulta.errorNoDate');
+  else if (pastDate) fieldErrors.date = t('newConsulta.errorPastDate');
+  if (!time) fieldErrors.time = t('newConsulta.errorNoTime');
+  else if (date && !pastDate && isPastChange(date, time)) fieldErrors.time = t('newConsulta.errorPastDateTime');
+  if (!motivo.trim()) fieldErrors.motivo = t('newConsulta.errorNoReason');
+  if (!valorResult.ok) fieldErrors.valor = valorResult.errorMessage;
+  const shownError = (field: Field) => (touched[field] ? fieldErrors[field] : undefined);
 
-    const valorResult = parseMoneyInput(valorConsultaInput);
-    if (!valorResult.ok) {
-      setFormError(valorResult.errorMessage);
+  const handleSave = async () => {
+    if (!consulta) return;
+    setFormError('');
+    setTouched(ALL_TOUCHED);
+
+    if (
+      Object.keys(fieldErrors).length > 0 ||
+      !modalidade ||
+      !date ||
+      !time ||
+      !valorResult.ok ||
+      isPastChange(date, time)
+    ) {
       return;
     }
 
@@ -249,8 +264,25 @@ export function EditConsultaScreen() {
         <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
           {t('newConsulta.dateTimeSection')}
         </Text>
-        <DateField label={t('newConsulta.dateLabel')} value={date} onChange={setDate} minimumDate={startOfToday()} />
-        <TimeField label={t('newConsulta.timeLabel')} value={time} onChange={setTime} />
+        <DateField
+          label={t('newConsulta.dateLabel')}
+          value={date}
+          onChange={(next) => {
+            setDate(next);
+            touch('date');
+          }}
+          minimumDate={startOfToday()}
+          error={shownError('date')}
+        />
+        <TimeField
+          label={t('newConsulta.timeLabel')}
+          value={time}
+          onChange={(next) => {
+            setTime(next);
+            touch('time');
+          }}
+          error={shownError('time')}
+        />
 
         <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
           {t('newConsulta.reasonSection')}
@@ -260,17 +292,22 @@ export function EditConsultaScreen() {
           placeholder={t('newConsulta.reasonPlaceholder')}
           value={motivo}
           onChangeText={setMotivo}
+          onBlur={() => touch('motivo')}
+          error={shownError('motivo')}
           multiline
         />
 
         <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
           {t('newConsulta.valueSection')}
+          <Text style={[styles.optionalSuffix, { color: colors.textSecondary }]}> · {t('common.optional')}</Text>
         </Text>
         <MoneyField
-          label={t('newConsulta.consultationValueLabel')}
-          helperText={t('newConsulta.consultationValueHelper')}
           value={valorConsultaInput}
-          onChangeText={setValorConsultaInput}
+          onChangeText={(text) => {
+            setValorConsultaInput(text);
+            touch('valor');
+          }}
+          error={shownError('valor')}
         />
 
         {formError ? <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{formError}</Text> : null}
@@ -301,4 +338,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   submitButton: { marginTop: spacing.xl },
+  // Nested inside the uppercase eyebrow heading — undo its caps/weight so
+  // "opcional" reads as a quiet hint, not part of the title.
+  optionalSuffix: { textTransform: 'none', fontWeight: '400', letterSpacing: 0 },
 });
