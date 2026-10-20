@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { AppInput } from './AppInput';
 import { AppButton } from './AppButton';
+import { SegmentedControl } from './SegmentedControl';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import type { FinalizarConsultaRequest, Severidade } from '../services/consultaService';
-import { spacing, fontSize, radius, font } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
 /**
@@ -115,32 +116,12 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
         <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
           {t('conclusion.severityLabel')}
         </Text>
-        <View style={styles.severityRow}>
-          {SEVERIDADE_VALUES.map((value) => (
-            <Pressable
-              key={value}
-              disabled={isSubmitting}
-              onPress={() => setSeveridade(value)}
-              style={[
-                styles.severityOption,
-                {
-                  backgroundColor: severidade === value ? colors.primary : colors.surface,
-                  borderColor: severidade === value ? colors.primary : colors.border,
-                },
-              ]}
-            >
-              <Text
-                numberOfLines={1}
-                style={[
-                  styles.severityLabel,
-                  { color: severidade === value ? '#FFFFFF' : colors.text },
-                ]}
-              >
-                {t(`severidade.${value}`)}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        <SegmentedControl
+          options={SEVERIDADE_VALUES.map((value) => ({ value, label: t(`severidade.${value}`) }))}
+          value={severidade}
+          onChange={setSeveridade}
+          disabled={isSubmitting}
+        />
       </View>
 
       <View style={styles.section}>
@@ -183,17 +164,6 @@ const styles = StyleSheet.create({
   sectionLabel: { marginBottom: spacing.sm },
   quickFillRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.xs, flexWrap: 'wrap' },
   quickFillText: { fontSize: fontSize.sm, ...font('semibold') },
-  severityRow: { flexDirection: 'row', gap: spacing.sm },
-  severityOption: {
-    flex: 1,
-    minHeight: 44,
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.xs,
-  },
-  severityLabel: { fontSize: fontSize.sm, ...font('bold') },
   conclusaoInput: { minHeight: 120, textAlignVertical: 'top' },
   error: { fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.md },
   submitButton: { marginTop: spacing.sm },

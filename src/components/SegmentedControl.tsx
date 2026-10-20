@@ -10,7 +10,8 @@ interface Props<T extends string> {
   /** Omit when a heading elsewhere already labels the control; still announced to screen readers when given. */
   label?: string;
   options: { value: T; label: string }[];
-  value: T;
+  /** `null` leaves every option unselected. */
+  value: T | null;
   onChange: (value: T) => void;
   disabled?: boolean;
 }

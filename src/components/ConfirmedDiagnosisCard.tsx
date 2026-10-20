@@ -25,21 +25,21 @@ export function ConfirmedDiagnosisCard({ diagnosis, conclusao }: Props) {
   const { t } = useTranslation();
 
   return (
-    <AppCard>
-      <Text style={[styles.title, { color: colors.primary }]}>{t('confirmedDiagnosis.title')}</Text>
+    <AppCard topBar={colors.accent}>
+      <Text style={[styles.title, { color: colors.ink }]}>{t('confirmedDiagnosis.title')}</Text>
 
-      <Text style={[styles.label, { color: colors.textSecondary }]}>{t('confirmedDiagnosis.diagnosis')}</Text>
-      <Text style={[styles.value, { color: colors.text }]}>{diagnosis.diagnostico}</Text>
+      <Text style={[styles.label, { color: colors.inkSecondary }]}>{t('confirmedDiagnosis.diagnosis')}</Text>
+      <Text style={[styles.value, { color: colors.ink }]}>{diagnosis.diagnostico}</Text>
 
-      <Text style={[styles.label, { color: colors.textSecondary }]}>{t('confirmedDiagnosis.severity')}</Text>
-      <Text style={[styles.value, { color: colors.text }]}>
+      <Text style={[styles.label, { color: colors.inkSecondary }]}>{t('confirmedDiagnosis.severity')}</Text>
+      <Text style={[styles.value, { color: colors.ink }]}>
         {severidadeLabel(diagnosis.severidade)}
       </Text>
 
       {conclusao ? (
         <>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>{t('confirmedDiagnosis.conclusion')}</Text>
-          <Text style={[styles.value, { color: colors.text }]}>{conclusao}</Text>
+          <Text style={[styles.label, { color: colors.inkSecondary }]}>{t('confirmedDiagnosis.conclusion')}</Text>
+          <Text style={[styles.value, { color: colors.ink }]}>{conclusao}</Text>
         </>
       ) : null}
     </AppCard>
@@ -47,7 +47,7 @@ export function ConfirmedDiagnosisCard({ diagnosis, conclusao }: Props) {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: fontSize.md, ...font('bold'), marginBottom: spacing.xs },
+  title: { fontSize: fontSize.lg, ...font('semibold'), marginTop: spacing.xs, marginBottom: spacing.xs },
   label: {
     fontSize: fontSize.xs,
     ...font('semibold'),
