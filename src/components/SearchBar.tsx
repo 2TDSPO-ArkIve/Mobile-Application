@@ -43,7 +43,7 @@ export function SearchBar({
           styles.input,
           {
             backgroundColor: colors.surface,
-            borderColor: colors.inputBorder,
+            borderColor: colors.line,
             color: colors.text,
           },
         ]}

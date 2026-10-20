@@ -87,7 +87,7 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
           width: '100%',
           height: 44,
           borderRadius: radius.sm,
-          border: `1.5px solid ${error ? colors.error : colors.inputBorder}`,
+          border: `1.5px solid ${error ? colors.error : colors.line}`,
           paddingLeft: spacing.md,
           paddingRight: spacing.md,
           fontSize: fontSize.md,

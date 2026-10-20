@@ -158,7 +158,7 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
               width: ORB_SIZE,
               height: ORB_SIZE,
               borderRadius: ORB_SIZE / 2,
-              backgroundColor: mode === 'recording' ? colors.primaryDark : colors.primary,
+              backgroundColor: mode === 'recording' ? colors.accent : colors.ink,
               transform: [{ scale: centerScale }],
             },
           ]}

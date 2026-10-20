@@ -266,8 +266,8 @@ export function NewConsultaScreen() {
                           style={[
                             styles.patientRow,
                             {
-                              backgroundColor: selected ? colors.primaryTint : colors.surface,
-                              borderColor: selected ? colors.primaryLight : colors.border,
+                              backgroundColor: selected ? colors.accentTint : colors.surface,
+                              borderColor: selected ? colors.accent : colors.border,
                             },
                           ]}
                         >

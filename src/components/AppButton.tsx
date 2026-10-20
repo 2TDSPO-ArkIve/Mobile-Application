@@ -58,23 +58,23 @@ export function AppButton({
   const appearance: Record<Variant, { bg: string; border?: string; text: string; pressedBg: string; pressedBorder?: string; pressedText?: string }> = {
     primary: {
       bg: colors.primary,
-      text: '#FFFFFF',
-      pressedBg: colors.primaryDark,
+      text: colors.onInk,
+      pressedBg: colors.ink,
     },
     secondary: {
       bg: colors.background,
       border: colors.border,
       text: colors.text,
-      pressedBg: colors.primaryTint,
-      pressedBorder: colors.primaryLight,
+      pressedBg: colors.sunken,
+      pressedBorder: colors.line,
       pressedText: colors.primary,
     },
     outline: {
       bg: colors.background,
       border: colors.border,
       text: colors.text,
-      pressedBg: colors.primaryTint,
-      pressedBorder: colors.primaryLight,
+      pressedBg: colors.sunken,
+      pressedBorder: colors.line,
       pressedText: colors.primary,
     },
     ghost: {
@@ -87,8 +87,8 @@ export function AppButton({
       border: colors.error,
       text: colors.error,
       pressedBg: colors.errorTint,
-      pressedBorder: colors.errorDark,
-      pressedText: colors.errorDark,
+      pressedBorder: colors.error,
+      pressedText: colors.error,
     },
   };
 

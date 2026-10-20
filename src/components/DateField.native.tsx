@@ -74,7 +74,7 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
         onPress={openPicker}
         style={[
           styles.field,
-          { backgroundColor: colors.surface, borderColor: error ? colors.error : colors.inputBorder },
+          { backgroundColor: colors.surface, borderColor: error ? colors.error : colors.line },
         ]}
       >
         <Text style={{ color: value ? colors.text : colors.textSecondary, fontSize: fontSize.md }}>

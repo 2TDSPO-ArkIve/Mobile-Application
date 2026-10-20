@@ -77,7 +77,7 @@ function NotificationItem({
   return (
     <AppCard
       onPress={() => onPress(notification)}
-      style={isUnread ? { backgroundColor: colors.primaryTint, borderColor: colors.primaryLight } : undefined}
+      style={isUnread ? { backgroundColor: colors.accentTint, borderColor: colors.line } : undefined}
     >
       <View style={styles.headerRow}>
         <View style={styles.titleRow}>

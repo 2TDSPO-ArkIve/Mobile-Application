@@ -41,7 +41,7 @@ export function AppInput({ label, error, helperText, labelColor, colors: colorsO
     onBlur?.(event);
   };
 
-  const borderColor = error ? colors.error : focused ? colors.primary : colors.inputBorder;
+  const borderColor = error ? colors.error : focused ? colors.primary : colors.line;
 
   return (
     <View style={[styles.wrap, editable === false && styles.disabled]}>

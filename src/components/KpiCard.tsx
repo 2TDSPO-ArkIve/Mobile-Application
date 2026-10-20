@@ -44,7 +44,7 @@ export function KpiCard({ label, value, hint, delta, deltaRange, highlight, styl
         ? colors.successTint
         : tone === 'down'
           ? colors.errorTint
-          : colors.neutralBackground;
+          : colors.sunken;
     const sign = tone === 'up' ? '▲ ' : tone === 'down' ? '▼ ' : '';
     return (
       <View style={styles.subRow}>

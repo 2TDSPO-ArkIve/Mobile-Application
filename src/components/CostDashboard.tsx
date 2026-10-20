@@ -95,7 +95,7 @@ export function CostDashboard<T extends CostRow>({
   const kpiBasis = width >= WIDE_LAYOUT_MIN_WIDTH ? '22%' : '45%';
   const twoPanels = width >= TWO_PANEL_MIN_WIDTH;
   const consultaColor = colors.primary;
-  const medicamentosColor = colors.success;
+  const medicamentosColor = colors.chart3;
 
   const handlePeriod = (value: string) => {
     setPeriod(value as CostPeriod);

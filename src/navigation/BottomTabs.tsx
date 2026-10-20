@@ -53,7 +53,7 @@ function CustomTabBar({ state, descriptors, navigation, insets }: BottomTabBarPr
       style={[
         styles.bar,
         {
-          backgroundColor: colors.tabBar,
+          backgroundColor: colors.surface,
           borderTopColor: colors.border,
           // `height` is a fixed box that padding eats into (RN has no
           // content-box mode), so the inset must be added to the height

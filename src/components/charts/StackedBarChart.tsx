@@ -62,7 +62,7 @@ export function StackedBarChart({ bars, series, formatValue, totalLabel, accessi
                   y={0}
                   width={slot}
                   height={plotHeight}
-                  fill={colors.primaryTint}
+                  fill={colors.sunken}
                   opacity={0.6}
                 />
               ) : null}

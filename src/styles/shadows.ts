@@ -15,13 +15,7 @@ import { Platform, ViewStyle } from 'react-native';
  * object rather than widening the shared style types app-wide.
  */
 const nativeShadows = {
-  sm: {
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
+  sm: {},
   md: {
     shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 2 },
@@ -32,8 +26,13 @@ const nativeShadows = {
 } as const;
 
 const webShadows = {
-  sm: { boxShadow: '0px 1px 3px rgba(15,23,42,0.10)' } as ViewStyle,
+  sm: {} as ViewStyle,
   md: { boxShadow: '0px 2px 6px rgba(15,23,42,0.14)' } as ViewStyle,
 };
 
+/**
+ * `sm` is intentionally empty: cards rest flat, separated by tone. `md` is
+ * only for floating elements (modal, menu, fixed footer); in dark mode those
+ * use `raised` plus a `line` border instead, since shadows vanish on dark.
+ */
 export const shadows = Platform.OS === 'web' ? webShadows : nativeShadows;

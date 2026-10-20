@@ -37,7 +37,7 @@ export function AppCard({ children, onPress, style, accentColor, colors: colorsO
     return (
       <Pressable
         onPress={onPress}
-        style={({ pressed }) => [...cardStyle, pressed && { backgroundColor: colors.primaryTint }]}
+        style={({ pressed }) => [...cardStyle, pressed && { backgroundColor: colors.sunken }]}
       >
         {children}
       </Pressable>

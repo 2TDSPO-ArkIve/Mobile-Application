@@ -4,15 +4,12 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { spacing, radius, fontSize, font } from '../styles/theme';
 import type { StatusPresentation } from '../utils/statusPresentation';
 
-/** `#616161` is the one badge-specific text color the design system calls out (paired with the neutral/inactive tint) that isn't otherwise a theme token. */
-const INACTIVE_TEXT = '#616161';
-
 export function StatusBadge({ label, tone }: StatusPresentation) {
   const colors = useThemeColors();
 
   const appearance: Record<StatusPresentation['tone'], { bg: string; text: string }> = {
-    neutral: { bg: colors.neutralBackground, text: INACTIVE_TEXT },
-    info: { bg: colors.primaryTint, text: colors.primary },
+    neutral: { bg: colors.neutralTint, text: colors.neutral },
+    info: { bg: colors.sunken, text: colors.ink },
     warning: { bg: colors.warningTint, text: colors.warning },
     success: { bg: colors.successTint, text: colors.success },
     danger: { bg: colors.errorTint, text: colors.error },
