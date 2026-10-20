@@ -14,7 +14,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/branding/definitive-square.png",
-        "backgroundColor": "#F4F5F7"
+        "backgroundColor": "#F5F6F4"
       },
       "package": "com.arkive.app"
     },
@@ -38,7 +38,10 @@
         {
           "image": "./src/assets/branding/definitive.png",
           "resizeMode": "contain",
-          "backgroundColor": "#F4F5F7"
+          "backgroundColor": "#F5F6F4",
+          "dark": {
+            "backgroundColor": "#0E0F11"
+          }
         }
       ],
       "@react-native-community/datetimepicker",

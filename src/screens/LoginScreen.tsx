@@ -98,10 +98,9 @@ export function LoginScreen() {
                 source={require('../assets/branding/definitive.png')}
                 style={styles.logo}
                 resizeMode="contain"
-                // Forces the logo artwork to pure black regardless of source-asset
-                // shading or theme — the PNG has a real alpha channel, so tintColor
-                // only recolors the glyph itself, never the transparent background.
-                tintColor="#000000"
+                // The PNG has a real alpha channel, so tintColor only recolors
+                // the glyph, never the transparent background.
+                tintColor={colors.ink}
               />
             </View>
 

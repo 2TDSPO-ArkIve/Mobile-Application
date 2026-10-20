@@ -392,7 +392,7 @@ export function RegisterScreen() {
                 source={require('../assets/branding/definitive.png')}
                 style={styles.logo}
                 resizeMode="contain"
-                tintColor="#000000"
+                tintColor={colors.ink}
               />
             </View>
 
