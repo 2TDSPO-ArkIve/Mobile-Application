@@ -42,7 +42,7 @@ interface Props {
  */
 export function DateField({ label, value, onChange, error, minimumDate, maximumDate, onClear }: Props) {
   const colors = useThemeColors();
-  const { mode } = useTheme();
+  const { scheme } = useTheme();
   const { t, language } = useTranslation();
   const [iosOpen, setIosOpen] = useState(false);
   const [draft, setDraft] = useState<Date>(value ?? minimumDate ?? new Date());
@@ -111,7 +111,7 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
                 locale={language}
                 minimumDate={minimumDate}
                 maximumDate={maximumDate}
-                themeVariant={mode === 'dark' ? 'dark' : 'light'}
+                themeVariant={scheme === 'dark' ? 'dark' : 'light'}
                 textColor={colors.text}
                 style={styles.picker}
                 onValueChange={(_event, selected) => setDraft(selected)}

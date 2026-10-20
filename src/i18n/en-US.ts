@@ -841,7 +841,10 @@ export const en = {
   settings: {
     title: 'Settings',
     appearanceSection: 'Appearance',
-    darkTheme: 'Dark theme',
+    theme: 'Theme',
+    themeSystem: 'System',
+    themeLight: 'Light',
+    themeDark: 'Dark',
     notificationsSection: 'Notifications',
     push: 'Push',
     pushHelper: 'Shows device notifications on this device when new notifications arrive.',

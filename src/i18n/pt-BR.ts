@@ -846,7 +846,10 @@ export const pt = {
   settings: {
     title: 'Configurações',
     appearanceSection: 'Aparência',
-    darkTheme: 'Tema escuro',
+    theme: 'Tema',
+    themeSystem: 'Sistema',
+    themeLight: 'Claro',
+    themeDark: 'Escuro',
     notificationsSection: 'Notificações',
     push: 'Push',
     pushHelper: 'Mostra notificações do sistema neste aparelho quando novas notificações chegarem.',

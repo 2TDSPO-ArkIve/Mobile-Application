@@ -17,10 +17,10 @@ import { RootNavigator } from './src/navigation/RootNavigator';
 SplashScreen.preventAutoHideAsync();
 
 function AppContent() {
-  const { mode } = useTheme();
+  const { scheme } = useTheme();
   return (
     <>
-      <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       {/* Inside AuthProvider (unlike DeepLinkHandler, which must sit above
           it) — this needs useAuth() to gate notification polling to an
           authenticated session. */}

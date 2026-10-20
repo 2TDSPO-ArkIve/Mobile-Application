@@ -3,7 +3,7 @@ import { getJson, setJson } from '../storage/base';
 import { STORAGE_KEYS } from '../storage/keys';
 
 const DEFAULT_THEME: ThemePreferences = {
-  mode: 'light',
+  mode: 'system',
   pushEnabled: true,
   emailEnabled: true,
 };

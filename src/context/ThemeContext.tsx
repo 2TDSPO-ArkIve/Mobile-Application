@@ -6,7 +6,8 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import type { ThemeMode, ThemePreferences } from '../types';
+import { useColorScheme } from 'react-native';
+import type { ColorScheme, ThemeMode, ThemePreferences } from '../types';
 import {
   getThemePreferences,
   saveThemePreferences,
@@ -14,7 +15,10 @@ import {
 } from '../services/themeService';
 
 interface ThemeContextValue {
+  /** Saved preference; may be 'system'. */
   mode: ThemeMode;
+  /** Theme actually shown: the preference, or the OS theme under 'system'. */
+  scheme: ColorScheme;
   preferences: ThemePreferences;
   loading: boolean;
   setMode: (mode: ThemeMode) => Promise<void>;
@@ -25,11 +29,16 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [preferences, setPreferences] = useState<ThemePreferences>({
-    mode: 'light',
+    mode: 'system',
     pushEnabled: true,
     emailEnabled: true,
   });
   const [loading, setLoading] = useState(true);
+  const systemScheme = useColorScheme();
+  const scheme: ColorScheme =
+    preferences.mode === 'system'
+      ? systemScheme === 'dark' ? 'dark' : 'light'
+      : preferences.mode;
 
   useEffect(() => {
     getThemePreferences().then((prefs) => {
@@ -55,12 +64,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(
     () => ({
       mode: preferences.mode,
+      scheme,
       preferences,
       loading,
       setMode,
       updatePreferences,
     }),
-    [preferences, loading, setMode, updatePreferences]
+    [preferences, scheme, loading, setMode, updatePreferences]
   );
 
   return (

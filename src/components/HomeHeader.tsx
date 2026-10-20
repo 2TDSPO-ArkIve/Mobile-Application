@@ -16,7 +16,7 @@ import type { AppStackParamList } from '../interfaces/navigation';
  */
 export function HomeHeader() {
   const colors = useThemeColors();
-  const { mode } = useTheme();
+  const { scheme } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation =
     useNavigation<NativeStackNavigationProp<AppStackParamList>>();
@@ -42,7 +42,7 @@ export function HomeHeader() {
           // already follows the user's dark-mode preference — the mark must
           // flip to white in night mode or it disappears against the dark
           // surface behind it.
-          tintColor={mode === 'dark' ? '#FFFFFF' : '#000000'}
+          tintColor={scheme === 'dark' ? '#FFFFFF' : '#000000'}
         />
         <Text style={[styles.brand, { color: colors.text }]} numberOfLines={1}>
           ArkIve

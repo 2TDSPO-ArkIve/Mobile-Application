@@ -19,7 +19,7 @@ interface Props {
 /** Same bottom-sheet-Modal / local-draft architecture as DateField — see the note there. */
 export function TimeField({ label, value, onChange, error }: Props) {
   const colors = useThemeColors();
-  const { mode } = useTheme();
+  const { scheme } = useTheme();
   const { t, language } = useTranslation();
   const [iosOpen, setIosOpen] = useState(false);
   const [draft, setDraft] = useState<Date>(value ?? new Date());
@@ -81,7 +81,7 @@ export function TimeField({ label, value, onChange, error }: Props) {
                 is24Hour={language !== 'en-US'}
                 display="spinner"
                 locale={language}
-                themeVariant={mode === 'dark' ? 'dark' : 'light'}
+                themeVariant={scheme === 'dark' ? 'dark' : 'light'}
                 textColor={colors.text}
                 style={styles.picker}
                 onValueChange={(_event, selected) => setDraft(selected)}

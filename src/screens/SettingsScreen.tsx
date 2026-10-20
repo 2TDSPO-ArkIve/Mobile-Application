@@ -5,12 +5,14 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { AppButton } from '../components/AppButton';
+import { ChipGroup } from '../components/ChipGroup';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { enableNativePush, disableNativePush } from '../utils/pushRegistration';
 import type { Language } from '../i18n/store';
+import type { ThemeMode } from '../types';
 import { spacing, fontSize, radius } from '../styles/theme';
 
 /**
@@ -107,14 +109,16 @@ export function SettingsScreen() {
 
       <ScreenContainer>
         <Text style={[styles.section, { color: colors.text }]}>{t('settings.appearanceSection')}</Text>
-        <View style={rowStyle}>
-          <Text style={{ color: colors.text }}>{t('settings.darkTheme')}</Text>
-          <Switch
-            value={mode === 'dark'}
-            onValueChange={(value) => setMode(value ? 'dark' : 'light')}
-            trackColor={{ true: colors.primary }}
-          />
-        </View>
+        <ChipGroup
+          label={t('settings.theme')}
+          options={[
+            { value: 'system', label: t('settings.themeSystem') },
+            { value: 'light', label: t('settings.themeLight') },
+            { value: 'dark', label: t('settings.themeDark') },
+          ]}
+          value={mode}
+          onChange={(value) => setMode(value as ThemeMode)}
+        />
 
         <Text style={[styles.section, { color: colors.text }]}>{t('settings.notificationsSection')}</Text>
         <View style={rowStyle}>
