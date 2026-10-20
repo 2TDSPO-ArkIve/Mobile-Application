@@ -6,6 +6,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { getJson, setJson } from '../storage/base';
 import { STORAGE_KEYS } from '../storage/keys';
+import { nameInitials } from '../utils/patientDisplay';
 import { spacing, radius, fontSize, iconSize, layout, font } from '../styles/theme';
 import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
@@ -67,12 +68,7 @@ function Sidebar({ groups, footer, activeKey }: Omit<Props, 'children'>) {
     });
   };
 
-  const initials = footer.title
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0]!.toUpperCase())
-    .join('');
+  const initials = nameInitials(footer.title);
 
   return (
     <View
