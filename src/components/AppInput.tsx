@@ -41,25 +41,26 @@ export function AppInput({ label, error, helperText, labelColor, colors: colorsO
     onBlur?.(event);
   };
 
-  const borderColor = error ? colors.error : focused ? colors.primary : colors.line;
+  // Plano B §3.4: no border at rest; 1.5 px `ink` on focus. The width stays
+  // constant so focusing never shifts the layout.
+  const borderColor = error ? colors.error : focused ? colors.ink : 'transparent';
 
   return (
     <View style={[styles.wrap, editable === false && styles.disabled]}>
       {label ? (
-        <Text style={[commonStyles.label, { color: labelColor ?? colors.text }]}>{label}</Text>
+        <Text style={[commonStyles.label, { color: labelColor ?? colors.ink }]}>{label}</Text>
       ) : null}
       <TextInput
-        placeholderTextColor={colors.textSecondary}
+        placeholderTextColor={colors.inkSecondary}
         onFocus={handleFocus}
         onBlur={handleBlur}
         editable={editable}
         style={[
           styles.input,
           {
-            backgroundColor: colors.surface,
+            backgroundColor: colors.sunken,
             borderColor,
-            borderWidth: focused && !error ? 2 : 1.5,
-            color: colors.text,
+            color: colors.ink,
           },
           style,
         ]}
@@ -68,7 +69,7 @@ export function AppInput({ label, error, helperText, labelColor, colors: colorsO
       {error ? (
         <Text style={[commonStyles.errorText, { color: colors.error }]}>{error}</Text>
       ) : helperText ? (
-        <Text style={[commonStyles.helperText, { color: colors.textSecondary }]}>
+        <Text style={[commonStyles.helperText, { color: colors.inkSecondary }]}>
           {helperText}
         </Text>
       ) : null}
@@ -81,7 +82,8 @@ const styles = StyleSheet.create({
   disabled: { opacity: 0.56 },
   input: {
     minHeight: 44,
-    borderRadius: radius.sm,
+    borderRadius: radius.field,
+    borderWidth: 1.5,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 2,
     fontSize: fontSize.md,

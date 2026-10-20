@@ -51,7 +51,7 @@ export function DonutChart({ slices, formatValue, accessibilityLabel }: Props) {
       <Svg width={SIZE} height={SIZE}>
         <G rotation={-90} origin={`${SIZE / 2}, ${SIZE / 2}`}>
           {arcs.length === 0 ? (
-            <Circle cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} stroke={colors.border} strokeWidth={STROKE} fill="none" />
+            <Circle cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} stroke={colors.line} strokeWidth={STROKE} fill="none" />
           ) : null}
           {arcs.map((arc) => (
             <Circle

@@ -74,7 +74,7 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
         onPress={openPicker}
         style={[
           styles.field,
-          { backgroundColor: colors.surface, borderColor: error ? colors.error : colors.line },
+          { backgroundColor: colors.sunken, borderColor: error ? colors.error : 'transparent' },
         ]}
       >
         <Text style={{ color: value ? colors.text : colors.textSecondary, fontSize: fontSize.md }}>
@@ -91,9 +91,9 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
 
       {Platform.OS === 'ios' ? (
         <Modal visible={iosOpen} transparent animationType="slide" onRequestClose={() => setIosOpen(false)}>
-          <View style={styles.modalRoot}>
+          <View style={[styles.modalRoot, { backgroundColor: colors.scrim }]}>
             <Pressable style={StyleSheet.absoluteFill} onPress={() => setIosOpen(false)} />
-            <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
+            <View style={[styles.sheet, { backgroundColor: colors.raised }]}>
               <View style={[styles.sheetHeader, { borderBottomColor: colors.border }]}>
                 <Pressable onPress={() => setIosOpen(false)}>
                   <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>{t('date.pickerCancel')}</Text>
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     minHeight: 44,
-    borderRadius: radius.sm,
+    borderRadius: radius.field,
     borderWidth: 1.5,
     paddingHorizontal: spacing.md,
   },
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   // flex:1 — a flex:1 sibling in Modal's column layout consumes all
   // available height before `sheet` gets any, so the picker rendered at
   // zero height and never showed a single wheel/number.
-  modalRoot: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' },
+  modalRoot: { flex: 1, justifyContent: 'flex-end' },
   sheet: { borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
   // `themeVariant`/`textColor` alone don't help if the picker has no room —
   // explicit height matches iOS's own intrinsic spinner height instead of

@@ -41,14 +41,14 @@ export function TimeField({ label, value, onChange, error }: Props) {
           display: 'block',
           width: '100%',
           height: 44,
-          borderRadius: radius.sm,
-          border: `1.5px solid ${error ? colors.error : colors.line}`,
+          borderRadius: radius.field,
+          border: `1.5px solid ${error ? colors.error : 'transparent'}`,
           paddingLeft: spacing.md,
           paddingRight: spacing.md,
           fontSize: fontSize.md,
           fontFamily: 'inherit',
           color: colors.text,
-          backgroundColor: colors.surface,
+          backgroundColor: colors.sunken,
           boxSizing: 'border-box',
         }}
       />

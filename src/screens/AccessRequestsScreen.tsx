@@ -17,6 +17,7 @@ import { formatDateTime } from '../utils/localeFormat';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AccessRequestDto } from '../services/patientAccessRequestService';
 import { spacing, fontSize } from '../styles/theme';
+import { commonStyles } from '../styles/common';
 
 type RouteParamList = { SolicitacoesAcessoRecebidas: { focusRequestId?: number } | undefined };
 
@@ -173,7 +174,7 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm },
   patientName: { fontSize: fontSize.md, fontWeight: '700', flexShrink: 1 },
-  arkiveIdText: { fontSize: fontSize.xs, fontFamily: 'monospace', marginTop: 2, marginBottom: spacing.sm },
+  arkiveIdText: { fontSize: fontSize.xs, ...commonStyles.arkiveId, marginTop: 2, marginBottom: spacing.sm },
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
   actionsRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
   actionButton: { flex: 1 },

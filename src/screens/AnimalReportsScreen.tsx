@@ -244,7 +244,7 @@ export function AnimalReportsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  arkiveIdSubtitle: { fontSize: fontSize.xs, fontFamily: 'monospace', textAlign: 'center', marginBottom: spacing.sm },
+  arkiveIdSubtitle: { fontSize: fontSize.xs, ...commonStyles.arkiveId, textAlign: 'center', marginBottom: spacing.sm },
   addButton: { marginBottom: spacing.md },
   resultsCount: { fontSize: fontSize.xs, marginBottom: spacing.sm },
   reportCard: { marginBottom: spacing.sm },

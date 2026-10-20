@@ -91,7 +91,7 @@ export function HorizontalBars({ rows, showRank, showShare, collapseAfter = DEFA
           accessibilityState={{ expanded }}
           style={styles.toggle}
         >
-          <Text style={[styles.toggleText, { color: colors.primary }]}>
+          <Text style={[styles.toggleText, { color: colors.ink }]}>
             {expanded
               ? t('costDashboard.showFirst', { count: collapseAfter })
               : t('costDashboard.showAll', { count: rows.length })}

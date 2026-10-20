@@ -22,6 +22,7 @@ import { ApiError } from '../services/apiClient';
 import type { AccessRequestDto } from '../services/patientAccessRequestService';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize } from '../styles/theme';
+import { commonStyles } from '../styles/common';
 
 /** Java's own 30s polling cadence precedent (notification/unread-count) — compensates for a confirmed gap: the requesting veterinarian is never sent a notification when a Responsible approves/rejects their request, so this screen refetches on its own while open. */
 const POLL_MS = 30_000;
@@ -259,7 +260,7 @@ export function MyAccessRequestsScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm, gap: spacing.sm },
-  arkiveIdText: { fontSize: fontSize.sm, fontFamily: 'monospace', flexShrink: 1 },
+  arkiveIdText: { fontSize: fontSize.sm, ...commonStyles.arkiveId, flexShrink: 1 },
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
   openButton: { marginTop: spacing.sm },
   newRequestToggle: { marginBottom: spacing.md },

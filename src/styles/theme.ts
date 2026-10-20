@@ -14,6 +14,10 @@ export const radius = {
   md: 10,
   lg: 16,
   xl: 24,
+  /** Text fields (AppInput, date/time, search). */
+  field: 14,
+  /** AppCard and surfaces at rest. */
+  card: 20,
   /** Pill radius (≥ half the control's height). */
   full: 999,
 } as const;

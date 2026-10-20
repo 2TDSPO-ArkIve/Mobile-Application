@@ -98,7 +98,7 @@ export function LineChart({ labels, lines, formatValue, accessibilityLabel }: Pr
                 width={width}
                 plotHeight={plotHeight}
                 maxValue={maxValue}
-                color={colors.border}
+                color={colors.line}
                 labelColor={colors.textSecondary}
               />
               {active != null ? (

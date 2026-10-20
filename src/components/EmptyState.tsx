@@ -16,10 +16,10 @@ export function EmptyState({ title, message, actionLabel, onAction }: Props) {
   const colors = useThemeColors();
 
   return (
-    <View style={[styles.wrap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+    <View style={[styles.wrap, { backgroundColor: colors.surface }]}>
+      <Text style={[styles.title, { color: colors.ink }]}>{title}</Text>
       {message ? (
-        <Text style={[styles.message, { color: colors.textSecondary }]}>
+        <Text style={[styles.message, { color: colors.inkSecondary }]}>
           {message}
         </Text>
       ) : null}
@@ -32,15 +32,14 @@ export function EmptyState({ title, message, actionLabel, onAction }: Props) {
 
 const styles = StyleSheet.create({
   wrap: {
-    borderWidth: 1,
-    borderRadius: radius.md,
+    borderRadius: radius.card,
     padding: spacing.lg,
     alignItems: 'center',
     marginBottom: spacing.sm,
   },
   title: {
     fontSize: fontSize.md,
-    ...font('bold'),
+    ...font('semibold'),
     textAlign: 'center',
   },
   message: {

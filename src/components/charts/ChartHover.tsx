@@ -102,7 +102,7 @@ export function ChartTooltip({
   return (
     <View
       pointerEvents="none"
-      style={[styles.tooltip, shadows.md, { left, width, backgroundColor: colors.surface, borderColor: colors.border }]}
+      style={[styles.tooltip, shadows.md, { left, width, backgroundColor: colors.raised, borderColor: colors.line }]}
     >
       <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
       {rows.map((row) => (

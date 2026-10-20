@@ -31,6 +31,7 @@ import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { t } from '../i18n/store';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize } from '../styles/theme';
+import { commonStyles } from '../styles/common';
 
 function formatContextLine(dataHora: string, modalidade: string): string {
   const date = new Date(dataHora);
@@ -440,7 +441,7 @@ const styles = StyleSheet.create({
   },
   label: { fontSize: fontSize.md, fontWeight: '700' },
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
-  arkiveIdField: { fontFamily: 'monospace', fontSize: fontSize.xs },
+  arkiveIdField: { ...commonStyles.arkiveId, fontSize: fontSize.xs },
   valueBlock: { marginTop: spacing.sm },
   cancelAction: { marginTop: spacing.lg },
   valueLabel: {

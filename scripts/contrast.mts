@@ -14,10 +14,12 @@ const pairs: [Key, Key, number][] = [
   ['ink', 'surface', TEXT],
   ['ink', 'sunken', TEXT],
   ['ink', 'raised', TEXT],
+  ['ink', 'line', TEXT], // hover of sunken controls
   ['inkSecondary', 'background', TEXT],
   ['inkSecondary', 'surface', TEXT],
   ['inkSecondary', 'sunken', TEXT],
   ['inkSecondary', 'raised', TEXT],
+  ['inkSecondary', 'line', TEXT],
   ['onInk', 'ink', TEXT],
   ['onInk', 'accent', TEXT],
   ['accent', 'surface', TEXT],
@@ -29,6 +31,7 @@ const pairs: [Key, Key, number][] = [
   ['success', 'successTint', TEXT],
   ['error', 'errorTint', TEXT],
   ['error', 'surface', TEXT],
+  ['onInk', 'error', TEXT], // NotificationBadge
   ['neutral', 'neutralTint', TEXT],
   ['chart1', 'surface', GRAPHIC],
   ['chart2', 'surface', GRAPHIC],

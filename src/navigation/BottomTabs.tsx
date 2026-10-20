@@ -54,7 +54,7 @@ function CustomTabBar({ state, descriptors, navigation, insets }: BottomTabBarPr
         styles.bar,
         {
           backgroundColor: colors.surface,
-          borderTopColor: colors.border,
+          borderTopColor: colors.line,
           // `height` is a fixed box that padding eats into (RN has no
           // content-box mode), so the inset must be added to the height
           // itself, not just the padding, or the icon+label zone shrinks by
@@ -67,7 +67,8 @@ function CustomTabBar({ state, descriptors, navigation, insets }: BottomTabBarPr
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const focused = state.index === index;
-        const color = focused ? colors.primary : colors.textSecondary;
+        // Active tab: accent with the filled icon (Plano B F3).
+        const color = focused ? colors.accent : colors.inkSecondary;
         const label =
           typeof options.tabBarLabel === 'string' ? options.tabBarLabel : route.name;
         const icon = ICONS[route.name as keyof BottomTabParamList];

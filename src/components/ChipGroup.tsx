@@ -4,8 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { HeaderIconButton } from './HeaderIconButton';
 import { SearchBar } from './SearchBar';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { spacing, radius, fontSize } from '../styles/theme';
+import { spacing, radius, fontSize, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 export interface ChipOption {
   value: string;
@@ -115,7 +116,7 @@ export function ChipGroup({
 
   return (
     <View style={styles.wrap}>
-      <Text style={[commonStyles.label, { color: colors.text }]}>{label}</Text>
+      <Text style={[commonStyles.label, { color: colors.ink }]}>{label}</Text>
 
       {searchPlaceholder && (options.length > 0 || term) && !disabled ? (
         <SearchBar value={search} onChangeText={setSearch} placeholder={searchPlaceholder} />
@@ -134,7 +135,7 @@ export function ChipGroup({
         ) : null}
 
         {visibleOptions.length === 0 && emptyMessage ? (
-          <Text style={[styles.scroll, { color: colors.textSecondary, fontSize: fontSize.sm }]}>{emptyMessage}</Text>
+          <Text style={[styles.scroll, { color: colors.inkSecondary, fontSize: fontSize.sm }]}>{emptyMessage}</Text>
         ) : (
           <ScrollView
             ref={scrollRef}
@@ -145,7 +146,7 @@ export function ChipGroup({
             scrollEventThrottle={16}
             {...(webOnlyProps as object)}
           >
-            <View style={styles.row}>
+            <View style={styles.row} accessibilityRole="radiogroup" accessibilityLabel={label}>
               {visibleOptions.map((option) => {
                 const selected = option.value === value;
                 return (
@@ -153,16 +154,18 @@ export function ChipGroup({
                     key={option.value}
                     disabled={disabled}
                     onPress={() => onChange(option.value)}
-                    style={[
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: selected, disabled }}
+                    style={(state: InteractionState) => [
                       styles.chip,
                       {
-                        backgroundColor: selected ? colors.primary : colors.surface,
-                        borderColor: colors.border,
+                        backgroundColor: selected ? colors.ink : isActive(state) ? colors.line : colors.sunken,
                         opacity: disabled ? 0.56 : 1,
                       },
+                      focusRing(state, colors),
                     ]}
                   >
-                    <Text style={{ color: selected ? '#FFF' : colors.text, fontSize: fontSize.sm }}>
+                    <Text style={[styles.chipText, { color: selected ? colors.onInk : colors.ink }]}>
                       {option.label}
                     </Text>
                   </Pressable>
@@ -193,9 +196,11 @@ const styles = StyleSheet.create({
   leadingBtn: { marginRight: -spacing.xs },
   row: { flexDirection: 'row', gap: spacing.sm },
   chip: {
+    minHeight: 36,
+    justifyContent: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: radius.md,
-    borderWidth: 1,
+    borderRadius: radius.full,
   },
+  chipText: { fontSize: fontSize.sm, ...font('medium') },
 });

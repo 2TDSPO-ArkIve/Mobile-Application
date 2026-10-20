@@ -61,9 +61,9 @@ export function CancelConsultaModal({ visible, consultaId, onClose, onCancelled 
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <View style={styles.backdrop}>
+      <View style={[styles.backdrop, { backgroundColor: colors.scrim }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
-        <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
+        <View style={[styles.sheet, { backgroundColor: colors.raised }]}>
           <Text style={[styles.title, { color: colors.text }]}>{t('cancelConsulta.title')}</Text>
           <Text style={{ color: colors.textSecondary, marginBottom: spacing.md }}>{t('cancelConsulta.message')}</Text>
 
@@ -102,7 +102,7 @@ export function CancelConsultaModal({ visible, consultaId, onClose, onCancelled 
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' },
+  backdrop: { flex: 1, justifyContent: 'flex-end' },
   sheet: {
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,

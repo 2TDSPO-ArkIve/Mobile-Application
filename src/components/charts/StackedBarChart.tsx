@@ -53,7 +53,7 @@ export function StackedBarChart({ bars, series, formatValue, totalLabel, accessi
                 width={width}
                 plotHeight={plotHeight}
                 maxValue={maxValue}
-                color={colors.border}
+                color={colors.line}
                 labelColor={colors.textSecondary}
               />
               {active != null ? (

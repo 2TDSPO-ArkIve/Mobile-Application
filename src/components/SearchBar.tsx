@@ -42,8 +42,8 @@ export function SearchBar({
         style={[
           styles.input,
           {
-            backgroundColor: colors.surface,
-            borderColor: colors.line,
+            backgroundColor: colors.sunken,
+            borderColor: 'transparent',
             color: colors.text,
           },
         ]}
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   input: {
     minHeight: 44,
     borderWidth: 1.5,
-    borderRadius: radius.sm,
+    borderRadius: radius.field,
     paddingHorizontal: spacing.md,
     fontSize: fontSize.md,
   },

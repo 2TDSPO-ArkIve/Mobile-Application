@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Pressable, StyleSheet, ViewStyle } from 'react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { radius, spacing } from '../styles/theme';
-import { shadows } from '../styles/shadows';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 import type { ColorPalette } from '../styles/colors';
 
 interface Props {
@@ -10,25 +10,23 @@ interface Props {
   onPress?: () => void;
   style?: ViewStyle;
   /**
-   * Left-border accent color — used to distinguish AI-support cards
-   * (primary) from veterinarian-confirmed conclusion cards (success),
-   * without changing the card's neutral surface otherwise.
+   * Left-border accent color — used to distinguish AI-support cards from
+   * veterinarian-confirmed conclusion cards. Replaced by the top bar of the
+   * clinical signature (revisão achado 13) in Etapa 1.
    */
   accentColor?: string;
   /** Forces a specific palette instead of the app's current theme — see AppButton's note on the same prop. */
   colors?: ColorPalette;
 }
 
+/** Plano B §3.4: radius 20, no border, no shadow at rest; separated from `background` by tone. */
 export function AppCard({ children, onPress, style, accentColor, colors: colorsOverride }: Props) {
   const themeColors = useThemeColors();
   const colors = colorsOverride ?? themeColors;
 
   const cardStyle = [
     styles.card,
-    {
-      backgroundColor: colors.surface,
-      borderColor: colors.border,
-    },
+    { backgroundColor: colors.surface },
     accentColor ? { borderLeftWidth: 4, borderLeftColor: accentColor } : null,
     style,
   ];
@@ -37,7 +35,11 @@ export function AppCard({ children, onPress, style, accentColor, colors: colorsO
     return (
       <Pressable
         onPress={onPress}
-        style={({ pressed }) => [...cardStyle, pressed && { backgroundColor: colors.sunken }]}
+        style={(state: InteractionState) => [
+          ...cardStyle,
+          isActive(state) && { backgroundColor: colors.sunken },
+          focusRing(state, colors),
+        ]}
       >
         {children}
       </Pressable>
@@ -49,10 +51,8 @@ export function AppCard({ children, onPress, style, accentColor, colors: colorsO
 
 const styles = StyleSheet.create({
   card: {
-    borderWidth: 1,
-    borderRadius: radius.md,
+    borderRadius: radius.card,
     padding: spacing.md,
     marginBottom: spacing.sm,
-    ...shadows.sm,
   },
 });

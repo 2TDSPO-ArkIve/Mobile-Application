@@ -64,9 +64,9 @@ export function AccessRequestDecisionModal({ visible, requestId, action, onClose
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <View style={styles.backdrop}>
+      <View style={[styles.backdrop, { backgroundColor: colors.scrim }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
-        <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
+        <View style={[styles.sheet, { backgroundColor: colors.raised }]}>
           <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
           <Text style={{ color: colors.textSecondary, marginBottom: spacing.md }}>{message}</Text>
 
@@ -89,7 +89,7 @@ export function AccessRequestDecisionModal({ visible, requestId, action, onClose
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' },
+  backdrop: { flex: 1, justifyContent: 'flex-end' },
   sheet: {
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,

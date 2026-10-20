@@ -221,5 +221,5 @@ const styles = StyleSheet.create({
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
   arkiveIdWrap: { marginTop: spacing.sm },
   arkiveIdLabel: { fontSize: fontSize.xs, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  arkiveIdValue: { fontSize: fontSize.sm, fontFamily: 'monospace', marginTop: 2 },
+  arkiveIdValue: { fontSize: fontSize.sm, ...commonStyles.arkiveId, marginTop: 2 },
 });

@@ -16,6 +16,7 @@ import { startOfToday } from '../utils/consultaScheduling';
 import { describeAnimalReportCreateError } from '../utils/errorMessages';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { spacing, fontSize } from '../styles/theme';
+import { commonStyles } from '../styles/common';
 
 const MAX_TEXTO_LENGTH = 2000;
 
@@ -230,7 +231,7 @@ export function NewAnimalReportScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   patientName: { fontSize: fontSize.md, fontWeight: '700', textAlign: 'center' },
-  patientArkiveId: { fontSize: fontSize.xs, fontFamily: 'monospace', textAlign: 'center', marginBottom: spacing.md },
+  patientArkiveId: { fontSize: fontSize.xs, ...commonStyles.arkiveId, textAlign: 'center', marginBottom: spacing.md },
   textarea: { minHeight: 140, textAlignVertical: 'top', paddingTop: spacing.sm },
   charCount: { fontSize: fontSize.xs, textAlign: 'right', marginTop: -spacing.sm, marginBottom: spacing.md },
   occurrenceHelper: { fontSize: fontSize.xs, marginTop: -spacing.xs, marginBottom: spacing.md },

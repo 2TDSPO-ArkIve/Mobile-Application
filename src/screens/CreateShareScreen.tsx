@@ -224,7 +224,7 @@ export function CreateShareScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  arkiveIdSubtitle: { fontSize: fontSize.xs, fontFamily: 'monospace', textAlign: 'center', marginBottom: spacing.sm },
+  arkiveIdSubtitle: { fontSize: fontSize.xs, ...commonStyles.arkiveId, textAlign: 'center', marginBottom: spacing.sm },
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
   detailsCard: { marginTop: spacing.md, alignItems: 'center' },
   optionRow: {

@@ -22,6 +22,7 @@ import { topByAnimal } from '../utils/costDashboard';
 import type { VeterinarianCostConsultation } from '../services/veterinarioCustoService';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize } from '../styles/theme';
+import { commonStyles } from '../styles/common';
 
 /**
  * Chunk 6 — "Resumo financeiro": a read-only overview of the VALUES RECORDED
@@ -253,7 +254,7 @@ const styles = StyleSheet.create({
   intro: { fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.md, lineHeight: 19 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   patientName: { fontSize: fontSize.md, fontWeight: '700', flexShrink: 1, marginRight: spacing.sm },
-  arkiveIdText: { fontSize: fontSize.xs, fontFamily: 'monospace', marginTop: 2, marginBottom: spacing.sm },
+  arkiveIdText: { fontSize: fontSize.xs, ...commonStyles.arkiveId, marginTop: 2, marginBottom: spacing.sm },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },
   totalRow: { marginTop: spacing.sm, paddingTop: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth },
   countText: { fontSize: fontSize.xs },

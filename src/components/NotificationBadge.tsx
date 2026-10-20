@@ -22,7 +22,7 @@ export function NotificationBadge({ count }: Props) {
 
   return (
     <View style={[styles.badge, { backgroundColor: colors.error, borderColor: colors.surface }]}>
-      <Text style={styles.text}>{label}</Text>
+      <Text style={[styles.text, { color: colors.onInk }]}>{label}</Text>
     </View>
   );
 }
@@ -41,7 +41,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    color: '#FFFFFF',
     fontSize: fontSize.xs - 3,
     ...font('bold'),
     lineHeight: fontSize.xs,

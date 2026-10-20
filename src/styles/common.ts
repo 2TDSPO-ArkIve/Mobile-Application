@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { spacing, radius, fontSize, font } from './theme';
 import { shadows } from './shadows';
 
@@ -79,5 +79,14 @@ export const commonStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...shadows.md,
+  },
+  /**
+   * ArkIve ID (`ARK-PET-…`, 38 characters): Jakarta 500 with tabular digits
+   * (decisão P3), breaking at any character so it never overflows.
+   */
+  arkiveId: {
+    ...font('medium'),
+    fontVariant: ['tabular-nums'],
+    ...(Platform.OS === 'web' ? ({ wordBreak: 'break-all' } as object) : null),
   },
 });

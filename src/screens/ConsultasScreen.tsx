@@ -183,7 +183,7 @@ export function ConsultasScreen() {
             tone={consultaStatusPresentation(consulta.status).tone}
           />
         </View>
-        <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, fontFamily: 'monospace' }}>
+        <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, ...commonStyles.arkiveId }}>
           {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
         </Text>
         <View style={styles.dateTimeRow}>

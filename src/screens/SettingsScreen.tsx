@@ -5,7 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { AppButton } from '../components/AppButton';
-import { ChipGroup } from '../components/ChipGroup';
+import { SegmentedControl } from '../components/SegmentedControl';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
@@ -109,7 +109,7 @@ export function SettingsScreen() {
 
       <ScreenContainer>
         <Text style={[styles.section, { color: colors.text }]}>{t('settings.appearanceSection')}</Text>
-        <ChipGroup
+        <SegmentedControl<ThemeMode>
           label={t('settings.theme')}
           options={[
             { value: 'system', label: t('settings.themeSystem') },
@@ -117,7 +117,7 @@ export function SettingsScreen() {
             { value: 'dark', label: t('settings.themeDark') },
           ]}
           value={mode}
-          onChange={(value) => setMode(value as ThemeMode)}
+          onChange={setMode}
         />
 
         <Text style={[styles.section, { color: colors.text }]}>{t('settings.notificationsSection')}</Text>
