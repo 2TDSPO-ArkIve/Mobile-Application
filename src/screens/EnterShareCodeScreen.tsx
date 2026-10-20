@@ -10,6 +10,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { usePendingShare } from '../context/PendingShareContext';
+import { parsePatientShareUrl } from '../utils/shareLink';
 import { spacing, layout } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 
@@ -45,8 +46,10 @@ export function EnterShareCodeScreen() {
       setError(t('enterShareCode.errorEmpty'));
       return;
     }
-    setPendingToken(trimmed);
-    markPresented(trimmed);
+    // A pasted share link is accepted too; anything else is sent as the raw token.
+    const token = parsePatientShareUrl(trimmed) ?? trimmed;
+    setPendingToken(token);
+    markPresented(token);
     navigation.navigate('ConvitePaciente');
   };
 
