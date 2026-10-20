@@ -512,7 +512,7 @@ export const pt = {
     forbiddenTitle: 'Você não possui acesso a este paciente',
     forbiddenMessage:
       'O ID ArkIve identifica o paciente, mas não concede acesso. Peça ao responsável ou veterinário que compartilhe o paciente com você.',
-    forbiddenGuidance: 'O compartilhamento pode ser feito por link, QR Code ou, para veterinários, por código de convite.',
+    forbiddenGuidance: 'O compartilhamento pode ser feito por link, QR Code ou código de convite.',
     enterShareCodeButton: 'Inserir código de convite',
     /** Chunk 7 — VETERINARIO-only, shown alongside `enterShareCodeButton` in the same forbidden-outcome branch. */
     requestAccessButton: 'Solicitar acesso',

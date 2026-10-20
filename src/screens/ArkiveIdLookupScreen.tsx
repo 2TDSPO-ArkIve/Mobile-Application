@@ -29,11 +29,7 @@ import { commonStyles } from '../styles/common';
 /**
  * Reused by BOTH `AppStack` (VETERINARIO) and `ResponsavelAppStack`
  * (RESPONSAVEL) — minimal inline nav type, same pattern as every other
- * screen shared this way. `InserirCodigoConvite` only exists in
- * `AppStackParamList` at runtime; it is only ever navigated to when
- * `isVeterinario` is true (see the forbidden-outcome branch below), which is
- * exactly the condition under which this screen is actually hosted by
- * `AppStack` in the first place.
+ * screen shared this way. `InserirCodigoConvite` is registered in both stacks.
  *
  * SECURITY MODEL (see also `utils/arkivePatientId.ts`): the ArkIve ID is a
  * permanent, non-secret, display-only patient identifier — NOT an
@@ -183,18 +179,12 @@ export function ArkiveIdLookupScreen() {
             <Text style={[styles.guidance, { color: colors.inkSecondary }]}>
               {t('arkiveLookup.forbiddenGuidance')}
             </Text>
-            {/* VETERINARIO-only shortcut — the manual invitation-code screen
-                doesn't exist in ResponsavelAppStack and RESPONSAVEL has no
-                authorized path to it; a plain explanatory message above is
-                sufficient for that role. */}
-            {isVeterinario ? (
-              <AppButton
-                title={t('arkiveLookup.enterShareCodeButton')}
-                variant="ghost"
-                size="small"
-                onPress={() => navigation.navigate('InserirCodigoConvite')}
-              />
-            ) : null}
+            <AppButton
+              title={t('arkiveLookup.enterShareCodeButton')}
+              variant="ghost"
+              size="small"
+              onPress={() => navigation.navigate('InserirCodigoConvite')}
+            />
 
             {/* Chunk 7 — the simpler alternative to QR/code sharing: request
                 access directly by ArkIve ID, an eligible Responsible
