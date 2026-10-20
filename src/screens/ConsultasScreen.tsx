@@ -35,9 +35,32 @@ export function ConsultasScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   // Each status group is its own paged query (`?status=`), so grouping stays
-  // correct across pages. CONSULTA_STATUS_ORDER is a constant, so the hook
-  // call order never changes.
-  const groups = CONSULTA_STATUS_ORDER.map((status) => ({ status, query: useConsultasByStatus(status) }));
+  // correct across pages.
+  //
+  // Rules-of-Hooks fix: `useConsultasByStatus` must never be called inside a
+  // `.map()` callback — that calls a hook from within a loop/callback body,
+  // which React's Rules of Hooks forbid regardless of whether the array
+  // happens to have a stable length. Each status is called individually and
+  // unconditionally here instead; `CONSULTA_STATUS_ORDER` (a fixed,
+  // compile-time constant — `['AP', 'EP', 'AG', 'FI', 'CA']`, never
+  // reordered/resized at runtime) is used only AFTER all five hooks have
+  // already run, purely to assemble the results back into the same
+  // `{ status, query }[]` shape every other line in this screen already
+  // consumes — no downstream grouping/pagination/totals/expand-collapse
+  // logic changes at all.
+  const apQuery = useConsultasByStatus('AP');
+  const epQuery = useConsultasByStatus('EP');
+  const agQuery = useConsultasByStatus('AG');
+  const fiQuery = useConsultasByStatus('FI');
+  const caQuery = useConsultasByStatus('CA');
+  const queryByStatus: Record<ConsultaStatus, ReturnType<typeof useConsultasByStatus>> = {
+    AP: apQuery,
+    EP: epQuery,
+    AG: agQuery,
+    FI: fiQuery,
+    CA: caQuery,
+  };
+  const groups = CONSULTA_STATUS_ORDER.map((status) => ({ status, query: queryByStatus[status] }));
 
   const isPending = groups.some((group) => group.query.isPending);
   const failed = groups.find((group) => group.query.isError)?.query;
