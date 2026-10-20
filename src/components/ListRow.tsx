@@ -72,6 +72,6 @@ const styles = StyleSheet.create({
   },
   body: { flex: 1, minWidth: 0 },
   title: { fontSize: fontSize.md, ...font('medium') },
-  subtitle: { fontSize: fontSize.sm, marginTop: 2 },
+  subtitle: { fontSize: fontSize.sm, marginTop: 2, fontVariant: ['tabular-nums'] },
   trailingText: { fontSize: fontSize.sm, fontVariant: ['tabular-nums'] },
 });

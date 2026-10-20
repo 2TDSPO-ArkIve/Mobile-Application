@@ -9,6 +9,7 @@ import { AppCard } from '../components/AppCard';
 import { AppButton } from '../components/AppButton';
 import { EmptyState } from '../components/EmptyState';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { useConsulta } from '../hooks/useConsultas';
 import { usePrescricao, useDeletePrescricao } from '../hooks/usePrescricoes';
@@ -17,13 +18,14 @@ import { toDisplayDate } from '../utils/isoDate';
 import { formatCurrency } from '../utils/localeFormat';
 import { describePrescricaoError } from '../utils/errorMessages';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font, layout } from '../styles/theme';
 
 export function PrescricaoDetailScreen() {
   const route = useRoute<RouteProp<AppStackParamList, 'PrescricaoDetalhe'>>();
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const colors = useThemeColors();
   const { t } = useTranslation();
+  const wide = useBreakpoint() === 'wide';
   const { prescricaoId, consultaId } = route.params;
 
   const { data: prescricao, isPending, isError, error, refetch } = usePrescricao(
@@ -57,7 +59,7 @@ export function PrescricaoDetailScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('prescricaoDetail.title')} />
-        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl }}>
+        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
           {t('prescricaoDetail.loading')}
         </Text>
       </View>
@@ -82,40 +84,33 @@ export function PrescricaoDetailScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('prescricaoDetail.title')} />
-      <ScreenContainer>
+      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
         <AppCard>
-          <Text style={[styles.title, { color: colors.text }]}>{prescricao.medicamento}</Text>
-          <Text style={[styles.field, { color: colors.text }]}>
-            {t('prescricaoDetail.dosageLabel', { value: prescricao.dosagem })}
-          </Text>
-          {prescricao.frequencia ? (
-            <Text style={[styles.field, { color: colors.textSecondary }]}>
-              {t('prescricaoDetail.frequencyLabel', { value: prescricao.frequencia })}
-            </Text>
-          ) : null}
-          <Text style={[styles.field, { color: colors.textSecondary }]}>
-            {t('prescricaoDetail.routeLabel', { value: viaAdministracaoLabel(prescricao.viaAdministracao) })}
-          </Text>
-          <Text style={[styles.field, { color: colors.textSecondary }]}>
-            {t('prescricaoDetail.startLabel', { value: toDisplayDate(prescricao.dataInicio) })}
-            {prescricao.dataFim
-              ? t('prescricaoDetail.endLabel', { value: toDisplayDate(prescricao.dataFim) })
-              : ''}
-          </Text>
+          <Text style={[styles.title, { color: colors.ink }]}>{prescricao.medicamento}</Text>
+          <View style={styles.fields}>
+            {/* `null` cost means none was recorded — omitted entirely, never shown as R$ 0,00. An explicit 0 IS a real value and must still render. */}
+            {[
+              [t('prescricaoDetail.dosageLabel'), prescricao.dosagem],
+              ...(prescricao.frequencia ? [[t('prescricaoDetail.frequencyLabel'), prescricao.frequencia]] : []),
+              [t('prescricaoDetail.routeLabel'), viaAdministracaoLabel(prescricao.viaAdministracao)],
+              [t('prescricaoDetail.startLabel'), toDisplayDate(prescricao.dataInicio)],
+              ...(prescricao.dataFim ? [[t('prescricaoDetail.endLabel'), toDisplayDate(prescricao.dataFim)]] : []),
+              ...(prescricao.valorMedicamento != null
+                ? [[t('prescricaoDetail.costLabel'), formatCurrency(prescricao.valorMedicamento)]]
+                : []),
+            ].map(([label, value]) => (
+              <View key={label} style={styles.fieldItem}>
+                <Text style={[styles.fieldLabel, { color: colors.inkSecondary }]}>{label}</Text>
+                <Text style={[styles.fieldValue, { color: colors.ink }]}>{value}</Text>
+              </View>
+            ))}
+          </View>
           {prescricao.instrucoes ? (
-            <Text style={[styles.field, { color: colors.text }]}>
-              {t('prescricaoDetail.instructionsLabel', { value: prescricao.instrucoes })}
-            </Text>
-          ) : null}
-          {/* `null` means no cost was recorded — omitted entirely, never shown as R$ 0,00. An explicit 0 IS a real value and must still render. */}
-          {prescricao.valorMedicamento != null ? (
-            <View style={styles.costBlock}>
-              <Text style={[styles.costLabel, { color: colors.textSecondary }]}>
-                {t('prescricaoDetail.costLabel')}
+            <View style={styles.instructions}>
+              <Text style={[styles.fieldLabel, { color: colors.inkSecondary }]}>
+                {t('prescricaoDetail.instructionsLabel')}
               </Text>
-              <Text style={[styles.field, { color: colors.text }]}>
-                {formatCurrency(prescricao.valorMedicamento)}
-              </Text>
+              <Text style={[styles.instructionsText, { color: colors.ink }]}>{prescricao.instrucoes}</Text>
             </View>
           ) : null}
         </AppCard>
@@ -126,7 +121,8 @@ export function PrescricaoDetailScreen() {
 
         <AppButton
           title={t('prescricaoDetail.editButton')}
-          variant="outline"
+          variant="secondary"
+          icon="create-outline"
           onPress={() => navigation.navigate('EditarPrescricao', { prescricaoId, consultaId })}
         />
 
@@ -143,13 +139,12 @@ export function PrescricaoDetailScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  title: { fontSize: fontSize.lg, fontWeight: '700', marginBottom: spacing.xs },
-  field: { fontSize: fontSize.sm, marginTop: spacing.xs },
-  costBlock: { marginTop: spacing.sm },
-  costLabel: {
-    fontSize: fontSize.xs,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
-  },
+  title: { fontSize: fontSize.lg, ...font('bold'), marginBottom: spacing.md },
+  // Two columns of label over value; dose, dates and cost keep digits aligned.
+  fields: { flexDirection: 'row', flexWrap: 'wrap', rowGap: spacing.md },
+  fieldItem: { width: '50%', paddingRight: spacing.sm },
+  fieldLabel: { fontSize: fontSize.xs },
+  fieldValue: { fontSize: fontSize.md, ...font('medium'), marginTop: 2, fontVariant: ['tabular-nums'] },
+  instructions: { marginTop: spacing.md },
+  instructionsText: { fontSize: fontSize.md, marginTop: 2, lineHeight: 22 },
 });

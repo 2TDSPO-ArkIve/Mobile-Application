@@ -7,7 +7,9 @@ import { ScreenContainer } from '../components/ScreenContainer';
 import { AppCard } from '../components/AppCard';
 import { AppButton } from '../components/AppButton';
 import { EmptyState } from '../components/EmptyState';
+import { ListRow } from '../components/ListRow';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { useConsulta } from '../hooks/useConsultas';
 import { usePrescricoesByConsulta } from '../hooks/usePrescricoes';
@@ -16,7 +18,7 @@ import { toDisplayDate } from '../utils/isoDate';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { commonStyles } from '../styles/common';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, layout } from '../styles/theme';
 
 /** Real prescription list — GET /api/prescricoes?consultaId=X via TanStack Query, no mock fallback. */
 export function PrescricoesScreen() {
@@ -24,6 +26,7 @@ export function PrescricoesScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const colors = useThemeColors();
   const { t } = useTranslation();
+  const wide = useBreakpoint() === 'wide';
   const { consultaId } = route.params;
 
   const { data: consulta } = useConsulta(consultaId);
@@ -60,13 +63,13 @@ export function PrescricoesScreen() {
         }
       />
 
-      <ScreenContainer>
+      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
         {consulta ? (
           <>
-            <Text style={[styles.context, { color: colors.textSecondary }]}>
+            <Text style={[styles.context, { color: colors.inkSecondary }]}>
               {consulta.animalNome} · {toDisplayDate(consulta.dataHora.slice(0, 10))}
             </Text>
-            <Text style={[styles.context, styles.contextArkiveId, { color: colors.textSecondary }]} selectable>
+            <Text style={[styles.context, styles.contextArkiveId, { color: colors.inkSecondary }]} selectable>
               {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
             </Text>
           </>
@@ -91,7 +94,7 @@ export function PrescricoesScreen() {
         ) : null}
 
         {isPending ? (
-          <Text style={{ color: colors.textSecondary, textAlign: 'center' }}>
+          <Text style={{ color: colors.inkSecondary, textAlign: 'center' }}>
             {t('prescricoesList.loading')}
           </Text>
         ) : isError ? (
@@ -102,32 +105,31 @@ export function PrescricoesScreen() {
         ) : !data || data.length === 0 ? (
           <EmptyState title={t('prescricoesList.emptyTitle')} message={t('prescricoesList.emptyMessage')} />
         ) : (
-          data.map((prescricao) => (
-            <AppCard
-              key={prescricao.id}
-              onPress={() =>
-                navigation.navigate('PrescricaoDetalhe', { prescricaoId: prescricao.id, consultaId })
-              }
-            >
-              <Text style={{ color: colors.text, fontWeight: '700' }}>{prescricao.medicamento}</Text>
-              <Text style={{ color: colors.textSecondary }}>
-                {prescricao.dosagem}
-                {prescricao.frequencia ? ` · ${prescricao.frequencia}` : ''}
-              </Text>
-              <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs }}>
-                {toDisplayDate(prescricao.dataInicio)}
-                {prescricao.dataFim ? ` – ${toDisplayDate(prescricao.dataFim)}` : ''}
-              </Text>
-            </AppCard>
-          ))
+          <AppCard style={styles.list}>
+            {data.map((prescricao) => (
+              <ListRow
+                key={prescricao.id}
+                icon="medkit-outline"
+                title={prescricao.medicamento}
+                subtitle={[prescricao.dosagem, prescricao.frequencia].filter(Boolean).join(' · ')}
+                trailing={
+                  toDisplayDate(prescricao.dataInicio) +
+                  (prescricao.dataFim ? ` – ${toDisplayDate(prescricao.dataFim)}` : '')
+                }
+                onPress={() =>
+                  navigation.navigate('PrescricaoDetalhe', { prescricaoId: prescricao.id, consultaId })
+                }
+              />
+            ))}
+          </AppCard>
         )}
 
         {isFinalizada ? (
-          <View style={[styles.pdfSection, { borderTopColor: colors.border }]}>
-            <Text style={[commonStyles.eyebrow, { color: colors.primary, marginBottom: spacing.xs }]}>
+          <View style={[styles.pdfSection, { borderTopColor: colors.line }]}>
+            <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.xs }]}>
               {t('consultaPdf.sectionTitle')}
             </Text>
-            <Text style={[styles.pdfHelper, { color: colors.textSecondary }]}>
+            <Text style={[styles.pdfHelper, { color: colors.inkSecondary }]}>
               {t('consultaPdf.sectionHelper')}
             </Text>
             {pdfErrorMessage ? (
@@ -152,6 +154,7 @@ const styles = StyleSheet.create({
   context: { fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.md },
   contextArkiveId: { fontSize: fontSize.xs, marginTop: -spacing.sm },
   newButton: { marginBottom: spacing.md },
+  list: { padding: 0, overflow: 'hidden' },
   // Visually distinct from the prescription cards above — a top border and
   // extra spacing is enough separation, no card/background of its own so it
   // never reads as "just another prescription". Full-width, no fixed

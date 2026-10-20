@@ -6,6 +6,7 @@ import { ScreenContainer } from '../components/ScreenContainer';
 import { EmptyState } from '../components/EmptyState';
 import { PrescricaoForm } from '../components/PrescricaoForm';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { useConsulta } from '../hooks/useConsultas';
 import { useCreatePrescricao } from '../hooks/usePrescricoes';
@@ -13,7 +14,7 @@ import { describePrescricaoError } from '../utils/errorMessages';
 import { toDisplayDate } from '../utils/isoDate';
 import type { PrescricaoRequestInput } from '../services/prescricaoService';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing } from '../styles/theme';
+import { spacing, layout } from '../styles/theme';
 
 /**
  * Prescriptions only make sense for a finalized consultation
@@ -28,6 +29,7 @@ export function NewPrescricaoScreen() {
   const navigation = useNavigation();
   const colors = useThemeColors();
   const { t } = useTranslation();
+  const wide = useBreakpoint() === 'wide';
   const { consultaId } = route.params;
 
   const { data: consulta, isPending } = useConsulta(consultaId);
@@ -46,7 +48,7 @@ export function NewPrescricaoScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <AppHeader title={t('prescricaoForm.newTitle')} />
-        <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl }}>
+        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
           {t('prescricaoForm.loadingConsulta')}
         </Text>
       </View>
@@ -70,7 +72,7 @@ export function NewPrescricaoScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AppHeader title={t('prescricaoForm.newTitle')} />
-      <ScreenContainer>
+      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
         <PrescricaoForm
           patientName={consulta.animalNome}
           patientArkiveId={consulta.animalArkivePatientId}
