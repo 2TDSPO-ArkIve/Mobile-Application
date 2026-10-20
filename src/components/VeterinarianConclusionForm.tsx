@@ -6,8 +6,9 @@ import { SegmentedControl } from './SegmentedControl';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import type { FinalizarConsultaRequest, Severidade } from '../services/consultaService';
-import { spacing, fontSize, font } from '../styles/theme';
+import { spacing, fontSize, font, radius } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 /**
  * V19 — `AUSENTE` is now a real, explicit `Severidade` value Java accepts
@@ -81,10 +82,10 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
 
   return (
     <View style={styles.root}>
-      <Text style={[styles.intro, { color: colors.textSecondary }]}>{t('conclusion.intro')}</Text>
+      <Text style={[styles.intro, { color: colors.inkSecondary }]}>{t('conclusion.intro')}</Text>
 
       <View style={styles.section}>
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
+        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
           {t('conclusion.diagnosisLabel')}
         </Text>
         <AppInput
@@ -95,25 +96,26 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
           multiline
         />
         <View style={styles.quickFillRow}>
-          <Pressable
-            onPress={() => handleQuickFill(t('conclusion.routineOption'))}
-            disabled={isSubmitting}
-            accessibilityRole="button"
-          >
-            <Text style={[styles.quickFillText, { color: colors.primary }]}>{t('conclusion.routineOption')}</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => handleQuickFill(t('conclusion.noDiseaseOption'))}
-            disabled={isSubmitting}
-            accessibilityRole="button"
-          >
-            <Text style={[styles.quickFillText, { color: colors.primary }]}>{t('conclusion.noDiseaseOption')}</Text>
-          </Pressable>
+          {[t('conclusion.routineOption'), t('conclusion.noDiseaseOption')].map((option) => (
+            <Pressable
+              key={option}
+              onPress={() => handleQuickFill(option)}
+              disabled={isSubmitting}
+              accessibilityRole="button"
+              style={(state: InteractionState) => [
+                styles.chip,
+                { backgroundColor: isActive(state) ? colors.line : colors.sunken },
+                focusRing(state, colors),
+              ]}
+            >
+              <Text style={[styles.chipText, { color: colors.ink }]}>{option}</Text>
+            </Pressable>
+          ))}
         </View>
       </View>
 
       <View style={styles.section}>
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
+        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
           {t('conclusion.severityLabel')}
         </Text>
         <SegmentedControl
@@ -125,7 +127,7 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
       </View>
 
       <View style={styles.section}>
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.primary }]}>
+        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
           {t('conclusion.conclusionLabel')}
         </Text>
         <AppInput
@@ -162,8 +164,14 @@ const styles = StyleSheet.create({
   // marginBottom, not the section's own rhythm).
   section: { marginBottom: spacing.xl },
   sectionLabel: { marginBottom: spacing.sm },
-  quickFillRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.xs, flexWrap: 'wrap' },
-  quickFillText: { fontSize: fontSize.sm, ...font('semibold') },
+  quickFillRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm, flexWrap: 'wrap' },
+  chip: {
+    minHeight: 36,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.full,
+  },
+  chipText: { fontSize: fontSize.sm, ...font('medium') },
   conclusaoInput: { minHeight: 120, textAlignVertical: 'top' },
   error: { fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.md },
   submitButton: { marginTop: spacing.sm },
