@@ -9,6 +9,8 @@ interface Props {
   scroll?: boolean;
   style?: ViewStyle;
   edges?: ('top' | 'bottom' | 'left' | 'right')[];
+  /** Overrides the screen background (e.g. `aiTint` while the AI works). */
+  background?: string;
 }
 
 export function ScreenContainer({
@@ -16,6 +18,7 @@ export function ScreenContainer({
   scroll = true,
   style,
   edges = ['bottom'],
+  background,
 }: Props) {
   const colors = useThemeColors();
 
@@ -55,7 +58,7 @@ export function ScreenContainer({
 
   return (
     <SafeAreaView
-      style={[styles.safe, { backgroundColor: colors.background }]}
+      style={[styles.safe, { backgroundColor: background ?? colors.background }]}
       edges={edges}
     >
       {body}

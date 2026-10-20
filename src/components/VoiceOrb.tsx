@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { View, Text, Pressable, Animated, ActivityIndicator, StyleSheet, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useTranslation } from '../i18n/useTranslation';
 import { spacing, fontSize, font } from '../styles/theme';
 
@@ -56,6 +57,7 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
   const colors = useThemeColors();
   const { t } = useTranslation();
   const { orb: ORB_SIZE, ringOuter: RING_OUTER, ringInner: RING_INNER } = useOrbSizes();
+  const reducedMotion = useReducedMotion();
 
   const ring1 = useRef(new Animated.Value(0)).current;
   const ring2 = useRef(new Animated.Value(0)).current;
@@ -75,7 +77,7 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
 
   // Decorative concentric-ring pulse for every non-idle mode.
   useEffect(() => {
-    if (mode === 'idle') return;
+    if (mode === 'idle' || reducedMotion) return;
     ring1.setValue(0);
     ring2.setValue(0);
     const duration = mode === 'recording' ? 1400 : 1800;
@@ -92,11 +94,11 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
       loop1.stop();
       loop2.stop();
     };
-  }, [mode, ring1, ring2]);
+  }, [mode, reducedMotion, ring1, ring2]);
 
   // Gentle breathing on the center itself while idle.
   useEffect(() => {
-    if (mode !== 'idle') return;
+    if (mode !== 'idle' || reducedMotion) return;
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(breathe, { toValue: 1, duration: 1600, useNativeDriver: true }),
@@ -105,7 +107,7 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
     );
     loop.start();
     return () => loop.stop();
-  }, [mode, breathe]);
+  }, [mode, reducedMotion, breathe]);
 
   const orbColor = mode === 'recording' ? colors.accent : colors.ink;
 
@@ -146,7 +148,7 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
         accessibilityLabel={accessibilityLabel}
         style={[styles.orbArea, { width: RING_OUTER, height: RING_OUTER }]}
       >
-        {mode !== 'idle' ? (
+        {mode !== 'idle' && !reducedMotion ? (
           <>
             <Animated.View style={ringStyle(ring1, RING_OUTER)} />
             <Animated.View style={ringStyle(ring2, RING_INNER)} />

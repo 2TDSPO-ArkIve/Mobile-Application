@@ -6,22 +6,22 @@ import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { AppButton } from '../components/AppButton';
 import { VoiceOrb } from '../components/VoiceOrb';
+import { AiWaitSteps } from '../components/AiWaitSteps';
 import { CancelConsultaModal } from '../components/CancelConsultaModal';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useClinicalSupportGeneration } from '../hooks/useClinicalSupportGeneration';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
 
-// Truthful, rotating status copy — never claims an action we can't prove
+// Truthful, time-paced status copy — never claims an action we can't prove
 // (no "consultando N estudos"/"pesquisando artigos"/"validando diagnóstico").
 // This screen's real job, besides informing the veterinarian, is to absorb
 // the clinical engine's cold-start window without it ever reading as a
 // failure — recovery here is GET-only and bounded (see
 // `useClinicalSupportGeneration`), reaching `uncertain` rather than
 // retrying/rotating forever once that window elapses.
-const MESSAGE_KEYS = ['aiAnalysis.rotating1', 'aiAnalysis.rotating2', 'aiAnalysis.rotating3'] as const;
-const MESSAGE_INTERVAL_MS = 3500;
+const STEP_KEYS = ['aiAnalysis.rotating1', 'aiAnalysis.rotating2', 'aiAnalysis.rotating3'] as const;
 
 /**
  * Dedicated full-screen analysis experience. Generation/recovery is fully
@@ -69,7 +69,6 @@ export function ArkiveAnalysisScreen() {
   const { consultaId } = route.params;
 
   const { phase, errorMessage, isSlow, generate, recheck } = useClinicalSupportGeneration(consultaId);
-  const [messageIndex, setMessageIndex] = useState(0);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
   useEffect(() => {
@@ -85,26 +84,18 @@ export function ArkiveAnalysisScreen() {
     }
   }, [phase, consultaId, navigation]);
 
-  useEffect(() => {
-    if (phase !== 'analyzing') return;
-    const interval = setInterval(() => {
-      setMessageIndex((current) => (current + 1) % MESSAGE_KEYS.length);
-    }, MESSAGE_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [phase]);
-
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('aiAnalysis.title')} />
 
-      <ScreenContainer>
+      <ScreenContainer background={phase === 'analyzing' ? colors.aiTint : undefined}>
         <View style={styles.center}>
           <VoiceOrb mode="analyzing" />
 
           {phase === 'canceled' ? (
             <>
-              <Text style={[styles.title, { color: colors.text }]}>{t('aiAnalysis.canceledTitle')}</Text>
-              <Text style={[styles.message, { color: colors.textSecondary }]}>{t('aiAnalysis.canceledMessage')}</Text>
+              <Text style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.canceledTitle')}</Text>
+              <Text style={[styles.message, { color: colors.inkSecondary }]}>{t('aiAnalysis.canceledMessage')}</Text>
               <AppButton
                 title={t('aiAnalysis.backToConsultation')}
                 onPress={() => navigation.popTo('ConsultaDetalhe', { consultaId })}
@@ -113,8 +104,8 @@ export function ArkiveAnalysisScreen() {
             </>
           ) : phase === 'unavailable' ? (
             <>
-              <Text style={[styles.title, { color: colors.text }]}>{t('aiAnalysis.unavailableTitle')}</Text>
-              <Text style={[styles.message, { color: colors.textSecondary }]}>{t('aiAnalysis.unavailableMessage')}</Text>
+              <Text style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.unavailableTitle')}</Text>
+              <Text style={[styles.message, { color: colors.inkSecondary }]}>{t('aiAnalysis.unavailableMessage')}</Text>
               <AppButton
                 title={t('aiAnalysis.backToConsultation')}
                 onPress={() => navigation.popTo('ConsultaDetalhe', { consultaId })}
@@ -123,8 +114,8 @@ export function ArkiveAnalysisScreen() {
             </>
           ) : phase === 'uncertain' ? (
             <>
-              <Text style={[styles.title, { color: colors.text }]}>{t('aiAnalysis.uncertainTitle')}</Text>
-              <Text style={[styles.message, { color: colors.textSecondary }]}>{errorMessage}</Text>
+              <Text style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.uncertainTitle')}</Text>
+              <Text style={[styles.message, { color: colors.inkSecondary }]}>{errorMessage}</Text>
 
               <AppButton title={t('aiAnalysis.recheckButton')} onPress={recheck} style={styles.actionButton} />
               <AppButton
@@ -142,7 +133,7 @@ export function ArkiveAnalysisScreen() {
             </>
           ) : phase === 'error' ? (
             <>
-              <Text style={[styles.title, { color: colors.text }]}>{t('aiAnalysis.errorTitle')}</Text>
+              <Text style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.errorTitle')}</Text>
               <Text style={[styles.message, { color: colors.error }]}>{errorMessage}</Text>
 
               <AppButton title={t('common.tryAgain')} onPress={generate} style={styles.actionButton} />
@@ -155,14 +146,14 @@ export function ArkiveAnalysisScreen() {
             </>
           ) : (
             <>
-              <Text style={[styles.title, { color: colors.text }]}>{t('aiAnalysis.analyzingTitle')}</Text>
-              <Text style={[styles.message, { color: colors.textSecondary }]}>
+              <Text style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.analyzingTitle')}</Text>
+              <Text style={[styles.message, { color: colors.inkSecondary }]}>
                 {t('aiAnalysis.analyzingSubtitle')}
               </Text>
-              <Text style={[styles.rotating, { color: colors.primary }]}>{t(MESSAGE_KEYS[messageIndex])}</Text>
+              <AiWaitSteps steps={STEP_KEYS.map((key) => t(key))} />
 
               {isSlow ? (
-                <Text style={[styles.slow, { color: colors.textSecondary }]}>{t('aiAnalysis.slowMessage')}</Text>
+                <Text style={[styles.slow, { color: colors.inkSecondary }]}>{t('aiAnalysis.slowMessage')}</Text>
               ) : null}
 
               <AppButton
@@ -195,14 +186,13 @@ export function ArkiveAnalysisScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   center: { alignItems: 'center', paddingTop: spacing.xl, paddingHorizontal: spacing.md },
-  title: { fontSize: fontSize.xl, fontWeight: '700', marginTop: spacing.md, textAlign: 'center' },
+  title: { fontSize: fontSize.xl, ...font('bold'), marginTop: spacing.md, textAlign: 'center' },
   message: {
     fontSize: fontSize.md,
     textAlign: 'center',
     marginTop: spacing.sm,
     lineHeight: 22,
   },
-  rotating: { fontSize: fontSize.sm, fontWeight: '600', textAlign: 'center', marginTop: spacing.lg },
   slow: { fontSize: fontSize.sm, textAlign: 'center', marginTop: spacing.lg, lineHeight: 20 },
   actionButton: { marginTop: spacing.md, alignSelf: 'stretch' },
 });
