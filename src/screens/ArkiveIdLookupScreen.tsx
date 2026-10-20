@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import * as Clipboard from 'expo-clipboard';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { AppCard } from '../components/AppCard';
@@ -10,6 +11,7 @@ import { AppButton } from '../components/AppButton';
 import { EmptyState } from '../components/EmptyState';
 import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { useLookupPatientByArkiveId } from '../hooks/usePatients';
 import { useCreateAccessRequest } from '../hooks/usePatientAccessRequests';
@@ -21,7 +23,8 @@ import {
   describeArkiveLookupOtherError,
   describeAccessRequestCreateError,
 } from '../utils/errorMessages';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, layout } from '../styles/theme';
+import { commonStyles } from '../styles/common';
 
 /**
  * Reused by BOTH `AppStack` (VETERINARIO) and `ResponsavelAppStack`
@@ -53,6 +56,7 @@ export function ArkiveIdLookupScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<ArkiveIdLookupNavigationParamList>>();
   const colors = useThemeColors();
   const { t } = useTranslation();
+  const wide = useBreakpoint() === 'wide';
   const { isVeterinario } = useAuth();
   const lookup = useLookupPatientByArkiveId();
   const createAccessRequest = useCreateAccessRequest();
@@ -67,6 +71,11 @@ export function ArkiveIdLookupScreen() {
   const [lastNormalizedId, setLastNormalizedId] = useState('');
   const [accessRequestSent, setAccessRequestSent] = useState(false);
   const [accessRequestError, setAccessRequestError] = useState('');
+
+  const handlePaste = async () => {
+    setInput(await Clipboard.getStringAsync());
+    setValidationError('');
+  };
 
   const handleSubmit = async () => {
     setValidationError('');
@@ -127,7 +136,7 @@ export function ArkiveIdLookupScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('arkiveLookup.title')} />
-      <ScreenContainer>
+      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
         <AppCard>
           <AppInput
             label={t('arkiveLookup.label')}
@@ -142,13 +151,27 @@ export function ArkiveIdLookupScreen() {
             autoCapitalize="characters"
             autoCorrect={false}
             editable={!lookup.isPending}
+            multiline
+            submitBehavior="submit"
+            onSubmitEditing={handleSubmit}
+            style={commonStyles.arkiveId}
           />
-          <AppButton
-            title={t('arkiveLookup.submit')}
-            onPress={handleSubmit}
-            loading={lookup.isPending}
-            disabled={lookup.isPending}
-          />
+          <View style={styles.actions}>
+            <AppButton
+              title={t('arkiveLookup.paste')}
+              variant="secondary"
+              icon="clipboard-outline"
+              onPress={handlePaste}
+              disabled={lookup.isPending}
+            />
+            <AppButton
+              title={t('arkiveLookup.submit')}
+              onPress={handleSubmit}
+              loading={lookup.isPending}
+              disabled={lookup.isPending}
+              style={styles.submit}
+            />
+          </View>
         </AppCard>
 
         {outcome === 'forbidden' ? (
@@ -157,7 +180,7 @@ export function ArkiveIdLookupScreen() {
               title={t('arkiveLookup.forbiddenTitle')}
               message={describeArkiveLookupForbidden()}
             />
-            <Text style={[styles.guidance, { color: colors.textSecondary }]}>
+            <Text style={[styles.guidance, { color: colors.inkSecondary }]}>
               {t('arkiveLookup.forbiddenGuidance')}
             </Text>
             {/* VETERINARIO-only shortcut — the manual invitation-code screen
@@ -187,7 +210,7 @@ export function ArkiveIdLookupScreen() {
                 <>
                   <AppButton
                     title={t('arkiveLookup.requestAccessButton')}
-                    variant="outline"
+                    variant="secondary"
                     onPress={handleRequestAccess}
                     loading={createAccessRequest.isPending}
                     disabled={createAccessRequest.isPending}
@@ -208,7 +231,7 @@ export function ArkiveIdLookupScreen() {
         {outcome === 'other' ? (
           <>
             <EmptyState title={t('arkiveLookup.errorTitle')} message={otherErrorMessage} />
-            <AppButton title={t('common.tryAgain')} variant="outline" onPress={handleSubmit} />
+            <AppButton title={t('common.tryAgain')} variant="secondary" onPress={handleSubmit} />
           </>
         ) : null}
       </ScreenContainer>
@@ -218,6 +241,8 @@ export function ArkiveIdLookupScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  actions: { flexDirection: 'row', gap: spacing.sm },
+  submit: { flex: 1 },
   guidance: { fontSize: fontSize.sm, lineHeight: 20, marginBottom: spacing.sm },
   requestSuccess: { fontSize: fontSize.sm, lineHeight: 20, textAlign: 'center', marginTop: spacing.sm },
   requestError: { fontSize: fontSize.sm, marginTop: spacing.sm },

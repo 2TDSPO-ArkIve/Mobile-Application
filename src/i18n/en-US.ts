@@ -505,6 +505,7 @@ export const en = {
     placeholder: 'ARK-PET-XXXXX-XXXXX-XXXXX-XXXXX-XXXXXX',
     helper: "Use the patient's permanent identifier. The ID isn't secret, but it alone doesn't grant access.",
     submit: 'Find patient',
+    paste: 'Paste',
     invalidId: 'Enter a valid ArkIve ID (starts with ARK-PET-).',
     forbiddenTitle: "You don't have access to this patient",
     forbiddenMessage:

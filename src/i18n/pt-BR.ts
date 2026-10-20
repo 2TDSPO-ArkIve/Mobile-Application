@@ -507,6 +507,7 @@ export const pt = {
     placeholder: 'ARK-PET-XXXXX-XXXXX-XXXXX-XXXXX-XXXXXX',
     helper: 'Use o identificador permanente do paciente. O ID não é secreto, mas por si só não concede acesso.',
     submit: 'Buscar paciente',
+    paste: 'Colar',
     invalidId: 'Informe um ID ArkIve válido (começa com ARK-PET-).',
     forbiddenTitle: 'Você não possui acesso a este paciente',
     forbiddenMessage:
