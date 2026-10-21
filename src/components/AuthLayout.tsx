@@ -23,7 +23,7 @@ interface Props {
 }
 
 /**
- * Login and Cadastro shell: `accent` panel with the ArkIve wordmark on top
+ * Login and Cadastro shell: `accent` panel with the logo over "ArkIve" on top
  * and the form on `surface` below; on wide windows, panel on the left (2/5)
  * and the form in a card of up to 400 px on the right (3/5).
  */
@@ -34,9 +34,12 @@ export function AuthLayout({ panelHeight, children }: Props) {
   const wide = useBreakpoint() === 'wide';
   const { t } = useTranslation();
   const panelMinHeight = height * panelHeight;
-  // The wordmark runs about 3.4 font sizes wide; this fills ~80% of the panel.
-  const wordSize = wide ? Math.min(width * 0.4 * 0.24, 180) : Math.min(width * 0.24, panelMinHeight * 0.45, 120);
-  const wordStyle = [styles.word, { fontSize: wordSize, lineHeight: wordSize * 1.1, letterSpacing: wordSize * -0.04, color: colors.onInk }];
+  // Base unit for the brand stack: the logo (1.5×) leads, "ArkIve" (0.7×)
+  // sits below it. Stack is ~2.3 units tall, hence the 0.26 height cap.
+  const wordSize = wide ? Math.min(width * 0.4 * 0.24, 180) : Math.min(width * 0.24, panelMinHeight * 0.26, 120);
+  const logoSize = wordSize * 1.5;
+  const textSize = wordSize * 0.7;
+  const wordStyle = [styles.word, { fontSize: textSize, lineHeight: textSize * 1.1, letterSpacing: textSize * -0.04, color: colors.onInk }];
 
   return (
     <KeyboardAvoidingView
@@ -57,21 +60,11 @@ export function AuthLayout({ panelHeight, children }: Props) {
             { backgroundColor: colors.accent, paddingTop: insets.top },
           ]}
         >
-          {/* Same wordmark as the engine's home page: the logo stands in for
-              the "I". The wrapper OWNS the glyph's size, never the Image:
-              on web, react-native-web injects the asset's intrinsic
-              dimensions into the Image's own style. */}
+          {/* Logo stacked above the full "ArkIve" word. The wrapper OWNS the
+              glyph's size, never the Image: on web, react-native-web injects
+              the asset's intrinsic dimensions into the Image's own style. */}
           <View accessible accessibilityRole="header" accessibilityLabel={t('common.appName')} style={styles.wordmark}>
-            <Text style={wordStyle} importantForAccessibility="no">Ark</Text>
-            <View
-              style={{
-                width: wordSize * 0.9,
-                height: wordSize * 0.9,
-                marginLeft: wordSize * -0.04,
-                marginRight: wordSize * -0.07,
-                marginBottom: wordSize * 0.14,
-              }}
-            >
+            <View style={{ width: logoSize, height: logoSize }}>
               <Image
                 source={require('../assets/branding/definitive-square.png')}
                 style={styles.glyph}
@@ -81,7 +74,7 @@ export function AuthLayout({ panelHeight, children }: Props) {
                 tintColor={colors.onInk}
               />
             </View>
-            <Text style={wordStyle} importantForAccessibility="no">ve</Text>
+            <Text style={wordStyle} importantForAccessibility="no">ArkIve</Text>
           </View>
         </View>
 
@@ -119,7 +112,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.card,
     padding: spacing.lg,
   },
-  wordmark: { flexDirection: 'row', alignItems: 'flex-end' },
+  wordmark: { alignItems: 'center', gap: spacing.sm },
   word: { ...font('bold') },
   glyph: { width: '100%', height: '100%' },
 });

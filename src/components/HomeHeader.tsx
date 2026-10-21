@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { NotificationBell } from './NotificationBell';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { spacing, fontSize, radius, font, layout } from '../styles/theme';
@@ -15,10 +16,16 @@ import { focusRing, isActive, type InteractionState } from '../styles/interactio
  * White surface with a thin bottom border, matching AppHeader — one coherent
  * header system app-wide.
  */
-export function HomeHeader() {
+interface Props {
+  /** Account button target; defaults to the veterinarian `Perfil`. */
+  account?: { onPress: () => void; label: string };
+}
+
+export function HomeHeader({ account }: Props = {}) {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const wide = useBreakpoint() === 'wide';
   const navigation =
     useNavigation<NativeStackNavigationProp<AppStackParamList>>();
 
@@ -34,20 +41,27 @@ export function HomeHeader() {
       ]}
     >
       <View style={styles.inner}>
-        <Image
-          source={require('../assets/branding/favicon.png')}
-          style={styles.logo}
-          resizeMode="contain"
-          tintColor={colors.ink}
-        />
-        <Text style={[styles.brand, { color: colors.ink }]} numberOfLines={1}>
-          ArkIve
-        </Text>
+        {/* The sidebar already shows the brand from the wide band up. */}
+        {wide ? (
+          <View style={styles.spacer} />
+        ) : (
+          <>
+            <Image
+              source={require('../assets/branding/favicon.png')}
+              style={styles.logo}
+              resizeMode="contain"
+              tintColor={colors.ink}
+            />
+            <Text style={[styles.brand, { color: colors.ink }]} numberOfLines={1}>
+              ArkIve
+            </Text>
+          </>
+        )}
 
         <NotificationBell onPress={() => navigation.navigate('Notificacoes')} />
 
         <Pressable
-          onPress={() => navigation.navigate('Perfil')}
+          onPress={account?.onPress ?? (() => navigation.navigate('Perfil'))}
           style={(state: InteractionState) => [
             styles.iconBtn,
             { borderColor: colors.line },
@@ -55,7 +69,7 @@ export function HomeHeader() {
             focusRing(state, colors),
           ]}
           accessibilityRole="button"
-          accessibilityLabel={t('profile.title')}
+          accessibilityLabel={account?.label ?? t('profile.title')}
         >
           <Ionicons name="person-circle-outline" size={26} color={colors.ink} />
         </Pressable>
@@ -84,6 +98,7 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
   },
   brand: { flex: 1, fontSize: fontSize.xl, ...font('bold') },
+  spacer: { flex: 1 },
   iconBtn: {
     width: 44,
     height: 44,

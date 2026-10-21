@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AppHeader } from '../components/AppHeader';
+import { HomeHeader } from '../components/HomeHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { SearchBar } from '../components/SearchBar';
 import { AppCard } from '../components/AppCard';
@@ -17,7 +17,6 @@ import { useReceivedAccessRequests } from '../hooks/usePatientAccessRequests';
 import { useTranslation } from '../i18n/useTranslation';
 import { useMyAnimals } from '../hooks/usePatients';
 import { usePendingShareAutoReturn } from '../hooks/useShares';
-import { useUnreadNotificationCount } from '../hooks/useNotifications';
 import { patientSummaryLine, patientArkiveIdLine } from '../utils/patientDisplay';
 import type { ResponsavelAppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font, radius, layout } from '../styles/theme';
@@ -31,10 +30,9 @@ const SEARCH_DEBOUNCE_MS = 300;
  * ArkIve shell. Deliberately NOT a reskin of the veterinarian `PatientsScreen`:
  * that screen is wired to `GET /api/animais/me` (VETERINARIO-scoped); this one
  * uses `useMyAnimals` -> `GET /api/animais` (confirmed RESPONSAVEL-scoped
- * server-side — see `listAccessibleAnimals`'s own note). `AppHeader`'s single
- * action opens the account screen rather than reusing `HomeHeader` (which
- * hardcodes a navigate to the veterinarian-only `Perfil` route and would not
- * even type-check against this stack).
+ * server-side — see `listAccessibleAnimals`'s own note). `HomeHeader`'s
+ * account button is pointed at `MinhaConta` instead of the veterinarian-only
+ * `Perfil`.
  *
  * Chunk 3: "Cadastrar animal" navigates to `CadastrarAnimal`
  * (`NewAnimalScreen`) — Java's `AnimalService.criar` now has a dedicated
@@ -69,7 +67,6 @@ export function MeusAnimaisScreen() {
   const animalsQuery = useMyAnimals({ busca: trimmedSearch || undefined });
   const { isPending, isError, error } = animalsQuery;
   const data = animalsQuery.data?.pages.flatMap((page) => page.content);
-  const { data: unreadCount } = useUnreadNotificationCount();
   // ponytail: counts the first page only (default page size); fine while pending requests stay few.
   const pendingCount = useReceivedAccessRequests({ status: 'PENDING' }).data?.length ?? 0;
 
@@ -77,28 +74,18 @@ export function MeusAnimaisScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <AppHeader
-        title={t('myAnimals.title')}
-        showBack={false}
-        actions={[
-          {
-            icon: unreadCount && unreadCount > 0 ? 'notifications' : 'notifications-outline',
-            onPress: () => navigation.navigate('Notificacoes'),
-            accessibilityLabel:
-              unreadCount && unreadCount > 0
-                ? t('notifications.bellLabelUnread', { count: unreadCount })
-                : t('notifications.bellLabel'),
-            badgeCount: unreadCount,
-          },
-          {
-            icon: 'person-circle-outline',
-            onPress: () => navigation.navigate('MinhaConta'),
-            accessibilityLabel: t('myAnimals.accountAccessibilityLabel'),
-          },
-        ]}
+      <HomeHeader
+        account={{
+          onPress: () => navigation.navigate('MinhaConta'),
+          label: t('myAnimals.accountAccessibilityLabel'),
+        }}
       />
 
       <ScreenContainer style={wide ? { maxWidth: layout.contentMax } : undefined} onRefresh={animalsQuery.refetch}>
+        <Text style={[styles.pageTitle, { color: colors.ink }]} numberOfLines={1}>
+          {t('myAnimals.title')}
+        </Text>
+
         <SearchBar value={searchInput} onChangeText={setSearchInput} placeholder={t('myAnimals.searchPlaceholder')} />
 
         {/* "Buscar por ID ArkIve" opens an already-authorized shared patient: retrieval only, never a path to creating a new animal. */}
@@ -194,6 +181,7 @@ export function MeusAnimaisScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  pageTitle: { fontSize: fontSize.xl, ...font('bold'), marginBottom: spacing.md, textAlign: 'center' },
   actionsRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
   action: { flex: 1 },
   group: { padding: 0, overflow: 'hidden', marginBottom: spacing.md },
