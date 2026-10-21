@@ -89,7 +89,7 @@ export function ArkiveAnalysisScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('aiAnalysis.title')} />
 
-      <ScreenContainer background={phase === 'analyzing' ? colors.aiTint : undefined}>
+      <ScreenContainer>
         {/* The case is in EP while the analysis runs; the trail keeps that visible between Detail and Insight. */}
         {phase === 'canceled' ? null : <StatusTrail status="EP" />}
         <View style={styles.center}>

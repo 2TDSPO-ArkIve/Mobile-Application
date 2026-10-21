@@ -9,8 +9,6 @@ interface Props {
   scroll?: boolean;
   style?: ViewStyle;
   edges?: ('top' | 'bottom' | 'left' | 'right')[];
-  /** Overrides the screen background (e.g. `aiTint` while the AI works). */
-  background?: string;
   /** Enables pull-to-refresh; the spinner shows only for a pull, never for background refetches. */
   onRefresh?: () => Promise<unknown>;
 }
@@ -20,7 +18,6 @@ export function ScreenContainer({
   scroll = true,
   style,
   edges = ['bottom'],
-  background,
   onRefresh,
 }: Props) {
   const colors = useThemeColors();
@@ -81,10 +78,7 @@ export function ScreenContainer({
     );
 
   return (
-    <SafeAreaView
-      style={[styles.safe, { backgroundColor: background ?? colors.background }]}
-      edges={edges}
-    >
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={edges}>
       {body}
     </SafeAreaView>
   );

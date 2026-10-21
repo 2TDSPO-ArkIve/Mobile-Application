@@ -69,10 +69,7 @@ export function ArkiveInsightScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('aiInsight.title')} />
 
-      <ScreenContainer
-        style={isWaiting ? styles.waitingContent : undefined}
-        background={isWaiting ? colors.aiTint : undefined}
-      >
+      <ScreenContainer style={isWaiting ? styles.waitingContent : undefined}>
         {consulta && consulta.status !== 'CA' ? <StatusTrail status={consulta.status} /> : null}
         {isWaiting ? (
           <View style={styles.heroWrap}>

@@ -18,7 +18,6 @@ import { CancelConsultaModal } from '../components/CancelConsultaModal';
 import { DeleteConsultaModal } from '../components/DeleteConsultaModal';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../i18n/useTranslation';
 import {
   useConsulta,
@@ -35,7 +34,6 @@ import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
 import { t } from '../i18n/store';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, lineHeight, font, layout } from '../styles/theme';
-import { shadows } from '../styles/shadows';
 import { commonStyles } from '../styles/common';
 import { LoadingState } from '../components/LoadingState';
 
@@ -63,7 +61,6 @@ export function ConsultaDetailScreen() {
   const route = useRoute<RouteProp<AppStackParamList, 'ConsultaDetalhe'>>();
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const colors = useThemeColors();
-  const { scheme } = useTheme();
   const insets = useSafeAreaInsets();
   const wide = useBreakpoint() === 'wide';
   const { t } = useTranslation();
@@ -247,10 +244,8 @@ export function ConsultaDetailScreen() {
   const isFinalizada = consulta.status === 'FI';
   const isCancelada = consulta.status === 'CA';
 
-  // The one primary action of each status lives in the fixed footer.
-  const footerAction = canStart ? (
-    <AppButton title={t('consultaDetail.startConsulta')} onPress={handleStart} loading={startMutation.isPending} />
-  ) : isFinalizada ? (
+  // FI's one action stays reachable in a fixed footer below the long clinical record.
+  const footerAction = isFinalizada ? (
     <AppButton
       title={t('consultaDetail.prescricoesButton')}
       onPress={() => navigation.navigate('Prescricoes', { consultaId: consulta.id })}
@@ -398,6 +393,12 @@ export function ConsultaDetailScreen() {
 
         {wide && isFinalizada ? null : closedNote}
 
+        {actionError ? <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{actionError}</Text> : null}
+
+        {canStart ? (
+          <AppButton title={t('consultaDetail.startConsulta')} onPress={handleStart} loading={startMutation.isPending} />
+        ) : null}
+
         {canEdit ? (
           <AppButton
             title={t('consultaDetail.editConsulta')}
@@ -421,19 +422,8 @@ export function ConsultaDetailScreen() {
       </ScreenContainer>
 
       {footerAction ? (
-        <View
-          style={[
-            styles.footer,
-            { backgroundColor: colors.raised, paddingBottom: insets.bottom + spacing.sm },
-            scheme === 'dark' ? { borderTopWidth: 1, borderTopColor: colors.line } : shadows.md,
-          ]}
-        >
-          <View style={styles.footerInner}>
-            {actionError ? (
-              <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{actionError}</Text>
-            ) : null}
-            {footerAction}
-          </View>
+        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
+          <View style={styles.footerInner}>{footerAction}</View>
         </View>
       ) : null}
 
