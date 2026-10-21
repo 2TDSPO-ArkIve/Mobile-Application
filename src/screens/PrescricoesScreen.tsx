@@ -18,7 +18,7 @@ import { toDisplayDate } from '../utils/isoDate';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { commonStyles } from '../styles/common';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize, layout } from '../styles/theme';
+import { spacing, fontSize, layout, font } from '../styles/theme';
 import { LoadingState } from '../components/LoadingState';
 import { describeLoadError } from '../utils/errorMessages';
 
@@ -50,7 +50,8 @@ export function PrescricoesScreen() {
         {consulta ? (
           <>
             <Text style={[styles.context, { color: colors.inkSecondary }]}>
-              {consulta.animalNome} · {toDisplayDate(consulta.dataHora.slice(0, 10))}
+              <Text style={[styles.contextName, { color: colors.ink }]}>{consulta.animalNome}</Text>
+              {` · ${toDisplayDate(consulta.dataHora.slice(0, 10))}`}
             </Text>
             <Text style={[styles.context, styles.contextArkiveId, { color: colors.inkSecondary }]} selectable>
               {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
@@ -133,7 +134,8 @@ export function PrescricoesScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  context: { fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.md },
+  context: { fontSize: fontSize.sm, marginBottom: spacing.md },
+  contextName: { fontSize: fontSize.md, ...font('semibold') },
   contextArkiveId: { fontSize: fontSize.xs, marginTop: -spacing.sm },
   newButton: { marginBottom: spacing.md },
   list: { padding: 0, overflow: 'hidden' },

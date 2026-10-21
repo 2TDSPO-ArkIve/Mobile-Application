@@ -3,6 +3,7 @@ import { View, Text, Pressable, Modal, KeyboardAvoidingView, Platform, StyleShee
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppButton } from './AppButton';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useModalAnimation } from '../hooks/useReducedMotion';
 import { useTranslation } from '../i18n/useTranslation';
 import { useApproveAccessRequest, useRejectAccessRequest } from '../hooks/usePatientAccessRequests';
 import { describeAccessRequestDecisionError } from '../utils/errorMessages';
@@ -30,6 +31,7 @@ interface Props {
  */
 export function AccessRequestDecisionModal({ visible, requestId, action, onClose, onDecided }: Props) {
   const colors = useThemeColors();
+  const modalAnimation = useModalAnimation();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const approveMutation = useApproveAccessRequest();
@@ -65,7 +67,7 @@ export function AccessRequestDecisionModal({ visible, requestId, action, onClose
       : t('accessRequestDecision.confirmRejectButton');
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
+    <Modal visible={visible} transparent animationType={modalAnimation} onRequestClose={handleClose}>
       {/* A Modal sits outside ScreenContainer, so it handles the iOS keyboard and the home indicator itself. */}
       <KeyboardAvoidingView
         style={[styles.backdrop, { backgroundColor: colors.scrim }]}

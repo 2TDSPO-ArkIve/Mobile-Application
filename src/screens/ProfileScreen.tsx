@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
@@ -7,6 +7,7 @@ import { ScreenContainer } from '../components/ScreenContainer';
 import { AppCard } from '../components/AppCard';
 import { AppButton } from '../components/AppButton';
 import { ListRow } from '../components/ListRow';
+import { AccountIdentityCard, AccountSectionTitle, accountStyles } from '../components/AccountIdentity';
 import { EmptyState } from '../components/EmptyState';
 import { useAuth } from '../hooks/useAuth';
 import { useOwnVeterinario } from '../hooks/useVeterinario';
@@ -14,8 +15,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { nameInitials } from '../utils/patientDisplay';
-import { spacing, fontSize, font, radius, layout } from '../styles/theme';
+import { layout } from '../styles/theme';
 import { LoadingState } from '../components/LoadingState';
 import { confirmAction } from '../utils/dialog';
 
@@ -47,10 +47,6 @@ export function ProfileScreen() {
       onConfirm: () => logout(),
     });
 
-  const sectionTitle = (title: string) => (
-    <Text accessibilityRole="header" style={[styles.sectionTitle, { color: colors.ink }]}>{title}</Text>
-  );
-
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('profile.title')} />
@@ -67,33 +63,24 @@ export function ProfileScreen() {
             onAction={() => refetch()}
           />
         ) : (
-          <AppCard style={styles.identity}>
-            <View style={[styles.initials, { backgroundColor: colors.accentTint }]}>
-              <Text style={[styles.initialsText, { color: colors.accent }]}>{nameInitials(veterinario.nome)}</Text>
-            </View>
-            <View style={styles.identityText}>
-              <Text style={[styles.name, { color: colors.ink }]}>{veterinario.nome}</Text>
-              <Text style={[styles.detail, { color: colors.inkSecondary }]}>{t('profile.roleLabel')}</Text>
-              <Text style={[styles.detail, styles.facts, { color: colors.inkSecondary }]}>{veterinario.email}</Text>
-              <Text style={[styles.detail, { color: colors.inkSecondary }]}>
-                {t('profile.crmvLabel', { value: veterinario.crmv })}
-              </Text>
-              {veterinario.especialidade ? (
-                <Text style={[styles.detail, { color: colors.inkSecondary }]}>{veterinario.especialidade}</Text>
-              ) : null}
-              {veterinario.clinicaNome ? (
-                <Text style={[styles.detail, { color: colors.inkSecondary }]}>{veterinario.clinicaNome}</Text>
-              ) : null}
-            </View>
-          </AppCard>
+          <AccountIdentityCard
+            name={veterinario.nome}
+            role={t('profile.roleLabel')}
+            details={[
+              veterinario.email,
+              t('profile.crmvLabel', { value: veterinario.crmv }),
+              veterinario.especialidade,
+              veterinario.clinicaNome,
+            ]}
+          />
         )}
 
         {/* The same two sections the wide sidebar lists under the main
             ones, with the same names and icons, so phone and desktop share
             one map. Not on Home (unrelated to the day's cases) and absent
             from ResponsavelAppStack, which has no route to either screen. */}
-        {sectionTitle(t('profile.managementSection'))}
-        <AppCard style={styles.group}>
+        <AccountSectionTitle title={t('profile.managementSection')} />
+        <AppCard style={accountStyles.group}>
           <ListRow
             icon="bar-chart-outline"
             title={t('vetCosts.title')}
@@ -107,8 +94,8 @@ export function ProfileScreen() {
           />
         </AppCard>
 
-        {sectionTitle(t('profile.securitySection'))}
-        <AppCard style={styles.group}>
+        <AccountSectionTitle title={t('profile.securitySection')} />
+        <AppCard style={accountStyles.group}>
           <ListRow
             icon="lock-closed-outline"
             title={t('profile.changePasswordButton')}
@@ -123,8 +110,8 @@ export function ProfileScreen() {
 
         {/* Chunk 8 — moved out of Segurança (sharing an animal's access isn't
             an account-security action). */}
-        {sectionTitle(t('profile.sharingSection'))}
-        <AppCard style={styles.group}>
+        <AccountSectionTitle title={t('profile.sharingSection')} />
+        <AppCard style={accountStyles.group}>
           <ListRow
             icon="qr-code-outline"
             title={t('scanShareQr.entryLink')}
@@ -153,7 +140,7 @@ export function ProfileScreen() {
           variant="danger"
           icon="log-out-outline"
           onPress={handleLogout}
-          style={styles.logout}
+          style={accountStyles.logout}
         />
       </ScreenContainer>
     </View>
@@ -162,20 +149,4 @@ export function ProfileScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  identity: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
-  initials: {
-    width: 56,
-    height: 56,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  initialsText: { fontSize: fontSize.lg, ...font('semibold') },
-  identityText: { flex: 1, minWidth: 0 },
-  name: { fontSize: fontSize.lg, ...font('bold') },
-  detail: { fontSize: fontSize.sm, marginTop: 2 },
-  facts: { marginTop: spacing.sm },
-  sectionTitle: { fontSize: fontSize.lg, ...font('semibold'), marginTop: spacing.lg, marginBottom: spacing.sm },
-  group: { padding: 0, overflow: 'hidden' },
-  logout: { marginTop: spacing.xl },
 });

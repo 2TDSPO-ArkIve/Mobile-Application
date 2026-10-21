@@ -5,6 +5,7 @@ import { AppInput } from './AppInput';
 import { AppButton } from './AppButton';
 import { ChipGroup } from './ChipGroup';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useModalAnimation } from '../hooks/useReducedMotion';
 import { useTranslation } from '../i18n/useTranslation';
 import { useCreateRaca } from '../hooks/useLookups';
 import { ApiError } from '../services/apiClient';
@@ -30,6 +31,7 @@ const PORTE_VALUES: Porte[] = ['PEQUENO', 'MEDIO', 'GRANDE'];
  */
 export function CreateBreedModal({ visible, especieId, especieNome, onClose, onCreated }: Props) {
   const colors = useThemeColors();
+  const modalAnimation = useModalAnimation();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const createMutation = useCreateRaca();
@@ -67,7 +69,7 @@ export function CreateBreedModal({ visible, especieId, especieNome, onClose, onC
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
+    <Modal visible={visible} transparent animationType={modalAnimation} onRequestClose={handleClose}>
       {/* A Modal sits outside ScreenContainer, so it handles the iOS keyboard and the home indicator itself. */}
       <KeyboardAvoidingView
         style={[styles.backdrop, { backgroundColor: colors.scrim }]}

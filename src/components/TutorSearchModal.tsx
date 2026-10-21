@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, Modal, StyleSheet, ScrollView } from 'react-native';
 import { SearchBar } from './SearchBar';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useModalAnimation } from '../hooks/useReducedMotion';
 import { useTranslation } from '../i18n/useTranslation';
 import { useSearchResponsaveis } from '../hooks/useTutores';
 import type { ResponsavelLookupDto } from '../services/responsavelService';
@@ -27,6 +28,7 @@ interface Props {
  */
 export function TutorSearchModal({ visible, onClose, onSelect }: Props) {
   const colors = useThemeColors();
+  const modalAnimation = useModalAnimation();
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [debounced, setDebounced] = useState('');
@@ -52,7 +54,7 @@ export function TutorSearchModal({ visible, onClose, onSelect }: Props) {
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType={modalAnimation} onRequestClose={onClose}>
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <View style={[styles.header, { borderBottomColor: colors.line }]}>
           <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('tutor.searchModalTitle')}</Text>

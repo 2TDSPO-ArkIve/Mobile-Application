@@ -52,18 +52,26 @@ export function SidebarLayout({ groups, footer, activeKey, children }: Props) {
   );
 }
 
+// Read once at import, while the app boots, so the first wide render already
+// has the saved width instead of opening expanded and then snapping shut.
+let savedCollapsed: boolean | null = null;
+getJson(STORAGE_KEYS.sidebarCollapsed, false).then((value) => {
+  savedCollapsed = value;
+});
+
 function Sidebar({ groups, footer, activeKey }: Omit<Props, 'children'>) {
   const colors = useThemeColors();
   const { t } = useTranslation();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(savedCollapsed ?? false);
 
   useEffect(() => {
-    getJson(STORAGE_KEYS.sidebarCollapsed, false).then(setCollapsed);
+    if (savedCollapsed === null) getJson(STORAGE_KEYS.sidebarCollapsed, false).then(setCollapsed);
   }, []);
 
   const toggle = () => {
     setCollapsed((value) => {
       setJson(STORAGE_KEYS.sidebarCollapsed, !value);
+      savedCollapsed = !value;
       return !value;
     });
   };

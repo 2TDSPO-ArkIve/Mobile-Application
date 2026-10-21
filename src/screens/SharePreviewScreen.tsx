@@ -275,6 +275,7 @@ export function SharePreviewScreen() {
           </>
         ) : (
           <>
+            <Text style={[styles.consequence, { color: colors.inkSecondary }]}>{t('sharePreview.acceptConsequence')}</Text>
             <AppButton
               title={t('sharePreview.acceptButton')}
               onPress={handleAccept}
@@ -294,4 +295,5 @@ const styles = StyleSheet.create({
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
   firstField: { marginTop: 0, fontSize: fontSize.md },
   mismatchMessage: { fontSize: fontSize.sm, lineHeight: 20, marginBottom: spacing.sm },
+  consequence: { fontSize: fontSize.sm, lineHeight: 20, marginTop: spacing.md, marginBottom: spacing.sm },
 });

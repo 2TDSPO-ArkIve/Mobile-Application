@@ -20,6 +20,7 @@ import type { AnimalReportDto } from '../services/animalReportService';
 import { spacing, radius, fontSize, lineHeight, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 import { LoadingState } from '../components/LoadingState';
+import { LoadMoreButton } from '../components/LoadMoreButton';
 import { ArkiveIdField } from '../components/ArkiveIdField';
 import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
@@ -100,7 +101,6 @@ export function AnimalReportsScreen() {
 
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [loadMoreError, setLoadMoreError] = useState('');
 
   // Chunk 9 — resets pagination implicitly: `debouncedSearch` is part of
   // `useAnimalReports`' query key, so a changed search term is an entirely
@@ -119,29 +119,18 @@ export function AnimalReportsScreen() {
     refetch: refetchPatient,
   } = usePatient(patientId);
 
+  const reportsQuery = useAnimalReports(patientId, debouncedSearch);
   const {
     data,
     isPending: reportsPending,
     isError: reportsIsError,
     error: reportsError,
     refetch: refetchReports,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useAnimalReports(patientId, debouncedSearch);
+  } = reportsQuery;
 
   const reports = data?.pages.flatMap((page) => page.content) ?? [];
   const totalElements = data?.pages[0]?.totalElements ?? 0;
   const hasSearch = debouncedSearch.length > 0;
-
-  const handleLoadMore = async () => {
-    setLoadMoreError('');
-    try {
-      await fetchNextPage();
-    } catch {
-      setLoadMoreError(t('animalReports.loadMoreError'));
-    }
-  };
 
   const handleAddReport = () => {
     navigation.navigate('NovoRelatoAnimal', { patientId });
@@ -222,24 +211,15 @@ export function AnimalReportsScreen() {
         ) : (
           <>
             <Text style={[styles.resultsCount, { color: colors.inkSecondary }]}>
-              {t('animalReports.resultsCount', { count: totalElements })}
+              {totalElements === 1
+                ? t('animalReports.resultsCountOne')
+                : t('animalReports.resultsCount', { count: totalElements })}
             </Text>
             {reports.map((report) => (
               <ReportCard key={report.id} report={report} />
             ))}
 
-            {loadMoreError ? (
-              <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{loadMoreError}</Text>
-            ) : null}
-            {hasNextPage ? (
-              <AppButton
-                title={isFetchingNextPage ? t('animalReports.loadingMore') : t('animalReports.loadMoreButton')}
-                variant="secondary"
-                onPress={handleLoadMore}
-                loading={isFetchingNextPage}
-                disabled={isFetchingNextPage}
-              />
-            ) : null}
+            <LoadMoreButton query={reportsQuery} />
           </>
         )}
       </ScreenContainer>

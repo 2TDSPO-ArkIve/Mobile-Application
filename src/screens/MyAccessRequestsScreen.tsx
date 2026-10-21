@@ -55,7 +55,7 @@ const POLL_MS = 30_000;
  * (access was revoked after this list was fetched) or 404 is shown as an
  * honest inline error, never silently retried as a POST would be.
  */
-function AccessRequestRow({ request }: { request: AccessRequestDto }) {
+function AccessRequestRow({ request, highlighted }: { request: AccessRequestDto; highlighted: boolean }) {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
@@ -84,7 +84,7 @@ function AccessRequestRow({ request }: { request: AccessRequestDto }) {
   };
 
   return (
-    <AppCard>
+    <AppCard style={highlighted ? { borderColor: colors.ink, borderWidth: 1 } : undefined}>
       <View style={styles.headerRow}>
         <Text style={[styles.arkiveIdText, { color: colors.ink }]} selectable>
           {patientArkiveIdLine({ arkivePatientId: request.arkivePatientId })}
@@ -139,7 +139,7 @@ function AccessRequestRow({ request }: { request: AccessRequestDto }) {
  * and submission only happens on an explicit tap. No preliminary GET is ever
  * made; the 403-shortcut on `ArkiveIdLookupScreen` remains available too.
  */
-function NewAccessRequestSection() {
+function NewAccessRequestSection({ onCreated }: { onCreated: (id: number) => void }) {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const createAccessRequest = useCreateAccessRequest();
@@ -158,7 +158,8 @@ function NewAccessRequestSection() {
       return;
     }
     try {
-      await createAccessRequest.mutateAsync(normalized);
+      const created = await createAccessRequest.mutateAsync(normalized);
+      onCreated(created.id);
       setSuccess(true);
       setInput('');
       setOpen(false);
@@ -173,14 +174,11 @@ function NewAccessRequestSection() {
         <AppButton
           title={t('myAccessRequests.newRequestButton')}
           icon="add"
-          onPress={() => {
-            setSuccess(false);
-            setOpen(true);
-          }}
+          onPress={() => setOpen(true)}
           style={styles.newRequestToggle}
         />
         {success ? (
-          <Text style={[styles.field, styles.newRequestSuccess, { color: colors.success }]}>
+          <Text accessibilityLiveRegion="polite" style={[styles.field, styles.newRequestSuccess, { color: colors.success }]}>
             {t('myAccessRequests.newRequestSuccess')}
           </Text>
         ) : null}
@@ -249,12 +247,13 @@ export function MyAccessRequestsScreen() {
   const { t } = useTranslation();
   const { data, isPending, isError, error, refetch } = useMyAccessRequests(undefined, { refetchInterval: POLL_MS });
   const wide = useBreakpoint() === 'wide';
+  const [createdId, setCreatedId] = useState<number | null>(null);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('myAccessRequests.title')} />
       <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined} onRefresh={refetch}>
-        <NewAccessRequestSection />
+        <NewAccessRequestSection onCreated={setCreatedId} />
 
         {isPending ? (
           <LoadingState message={t('myAccessRequests.loading')} />
@@ -271,7 +270,9 @@ export function MyAccessRequestsScreen() {
         ) : !data || data.length === 0 ? (
           <EmptyState title={t('myAccessRequests.emptyTitle')} message={t('myAccessRequests.emptyMessage')} />
         ) : (
-          data.map((request) => <AccessRequestRow key={request.id} request={request} />)
+          data.map((request) => (
+            <AccessRequestRow key={request.id} request={request} highlighted={request.id === createdId} />
+          ))
         )}
       </ScreenContainer>
     </View>

@@ -20,6 +20,9 @@ export const accents = {
   },
 } satisfies Record<string, { light: AccentTokens; dark: AccentTokens }>;
 
+/** Shadow tint for `shadows.md`. Light mode only: dark mode floats with `raised` + `line`. */
+export const shadowColor = '#0F172A';
+
 export type AccentName = keyof typeof accents;
 
 /** Accent in use. Changing it here changes the whole app. */

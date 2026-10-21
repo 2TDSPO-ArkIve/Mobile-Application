@@ -221,7 +221,7 @@ export function PatientDetailScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   cover: { paddingVertical: spacing.md, marginBottom: spacing.sm },
-  coverName: { fontSize: 28, lineHeight: 34, ...font('bold'), marginBottom: spacing.xs },
+  coverName: { fontSize: fontSize.xxl, lineHeight: 30, ...font('bold'), marginBottom: spacing.xs },
   // Two columns of label over value; long values wrap inside their column.
   fields: { flexDirection: 'row', flexWrap: 'wrap', rowGap: spacing.md },
   fieldItem: { width: '50%', paddingRight: spacing.sm },

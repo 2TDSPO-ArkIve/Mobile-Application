@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Text, StyleSheet } from 'react-native';
-import { AppCard } from './AppCard';
+import { View, Text, StyleSheet } from 'react-native';
 import { AppInput } from './AppInput';
 import { AppButton } from './AppButton';
 import { ChipGroup } from './ChipGroup';
@@ -12,7 +11,7 @@ import type { PrescricaoRequestInput, ViaAdministracao } from '../services/presc
 import { VIA_ADMINISTRACAO_OPTIONS, viaAdministracaoLabel } from '../utils/viaAdministracao';
 import { parseMoneyInput, moneyToInputValue } from '../utils/money';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, fontSize, font } from '../styles/theme';
 import { useDiscardGuard } from '../hooks/useDiscardGuard';
 
 export interface PrescricaoFormValues {
@@ -134,12 +133,12 @@ export function PrescricaoForm({
   };
 
   return (
-    <AppCard>
+    <View>
       {/* Hidden until the consultation arrives, instead of an empty line and a fallback ID. */}
       {patientName ? (
         <>
           <Text style={[styles.context, { color: colors.inkSecondary }]}>
-            {patientName}
+            <Text style={[styles.contextName, { color: colors.ink }]}>{patientName}</Text>
             {consultaLabel ? ` · ${consultaLabel}` : ''}
           </Text>
           <Text style={[styles.contextArkiveId, { color: colors.inkSecondary }]} selectable>
@@ -242,11 +241,12 @@ export function PrescricaoForm({
         loading={isSubmitting}
         disabled={isSubmitting}
       />
-    </AppCard>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  context: { fontSize: fontSize.xs },
+  context: { fontSize: fontSize.sm },
+  contextName: { fontSize: fontSize.md, ...font('semibold') },
   contextArkiveId: { fontSize: fontSize.xs, marginBottom: spacing.md, marginTop: 2 },
 });

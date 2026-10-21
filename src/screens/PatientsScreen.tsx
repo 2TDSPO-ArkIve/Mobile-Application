@@ -80,9 +80,9 @@ export function PatientsScreen() {
           />
           <AppButton
             title={t('patientsList.lookupByArkiveId')}
-            variant="secondary"
+            variant="ghost"
+            icon="search-outline"
             onPress={() => navigation.navigate('BuscarPacienteArkive')}
-            style={styles.action}
           />
         </View>
 
@@ -141,8 +141,8 @@ export function PatientsScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   pageTitle: { fontSize: fontSize.xl, ...font('bold'), marginBottom: spacing.md },
-  actionsRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
-  action: { flex: 1 },
+  actionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.md },
+  action: { flexGrow: 1 },
   cardRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   initial: { width: 44, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
   initialText: { fontSize: fontSize.lg, ...font('bold') },

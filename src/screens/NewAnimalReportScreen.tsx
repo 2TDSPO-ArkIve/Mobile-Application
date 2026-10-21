@@ -86,6 +86,8 @@ export function NewAnimalReportScreen() {
 
   const handleTextChange = (value: string) => {
     setTexto(value);
+    // Clearing the draft drops the dictated content too, so the provenance goes with it.
+    if (!value.trim()) setOriginadoDeTranscricao(false);
     if (validationError) setValidationError('');
   };
 

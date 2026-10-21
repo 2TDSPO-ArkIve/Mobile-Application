@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Platform, Modal } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useModalAnimation } from '../hooks/useReducedMotion';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../i18n/useTranslation';
 import { spacing, radius, fontSize, font } from '../styles/theme';
@@ -43,6 +44,7 @@ interface Props {
  */
 export function DateField({ label, value, onChange, error, minimumDate, maximumDate, onClear }: Props) {
   const colors = useThemeColors();
+  const modalAnimation = useModalAnimation();
   const { scheme } = useTheme();
   const { t, language } = useTranslation();
   const [iosOpen, setIosOpen] = useState(false);
@@ -98,7 +100,7 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
       {error ? <Text style={[commonStyles.errorText, { color: colors.error }]}>{error}</Text> : null}
 
       {Platform.OS === 'ios' ? (
-        <Modal visible={iosOpen} transparent animationType="slide" onRequestClose={() => setIosOpen(false)}>
+        <Modal visible={iosOpen} transparent animationType={modalAnimation} onRequestClose={() => setIosOpen(false)}>
           <View style={[styles.modalRoot, { backgroundColor: colors.scrim }]}>
             <Pressable style={StyleSheet.absoluteFill} onPress={() => setIosOpen(false)} />
             <View style={[styles.sheet, { backgroundColor: colors.raised }]}>

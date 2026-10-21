@@ -69,6 +69,8 @@ const SECTION: Partial<Record<keyof AppStackParamList, Section>> = {
   Configuracoes: 'Perfil',
   AlterarSenha: 'Perfil',
   SolicitacoesAcessoEnviadas: 'Perfil',
+  // The bell lives in the Home header.
+  Notificacoes: 'Home',
 };
 
 function activeSection(state: NavigationState): Section | null {

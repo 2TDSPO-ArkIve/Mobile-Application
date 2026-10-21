@@ -651,7 +651,7 @@ export function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: fontSize.lg, ...font('bold'), marginBottom: spacing.sm, textAlign: 'center' },
+  title: { fontSize: fontSize.xxl, ...font('bold'), marginBottom: spacing.sm, textAlign: 'center' },
   message: { fontSize: fontSize.md, textAlign: 'center', marginBottom: spacing.lg, lineHeight: 22 },
   error: { fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.sm },
   backLink: { marginTop: spacing.sm },

@@ -227,27 +227,19 @@ export function VeterinarianCostScreen() {
         <Text style={[styles.intro, { color: colors.inkSecondary }]}>{t('vetCosts.intro')}</Text>
 
         {data.consultas.length === 0 ? (
-          <>
-            <EmptyState title={t('vetCosts.emptyTitle')} message={t('vetCosts.emptyMessage')} />
-            <StatusCountsSection />
-          </>
+          <EmptyState title={t('vetCosts.emptyTitle')} message={t('vetCosts.emptyMessage')} />
         ) : (
           <CostDashboard
             rows={data.consultas}
             showComparison
             renderRow={(consulta) => <ConsultationCostRow key={consulta.consultaId} consulta={consulta} />}
-            renderExtra={(periodRows) => (
-              <View style={twoPanels ? styles.panelRow : undefined}>
-                <View style={twoPanels ? styles.panelColumn : undefined}>
-                  <TopPatientsSection rows={periodRows} />
-                </View>
-                <View style={twoPanels ? styles.panelColumn : undefined}>
-                  <StatusCountsSection />
-                </View>
-              </View>
-            )}
+            renderExtra={(periodRows) => <TopPatientsSection rows={periodRows} />}
           />
         )}
+
+        <View style={styles.allDates}>
+          <StatusCountsSection />
+        </View>
       </ScreenContainer>
     </View>
   );
@@ -265,6 +257,5 @@ const styles = StyleSheet.create({
   countText: { fontSize: fontSize.xs },
   panel: { marginBottom: spacing.sm },
   panelTitle: { fontSize: fontSize.md, ...font('bold'), marginBottom: spacing.sm },
-  panelRow: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' },
-  panelColumn: { flex: 1 },
+  allDates: { marginTop: spacing.lg },
 });

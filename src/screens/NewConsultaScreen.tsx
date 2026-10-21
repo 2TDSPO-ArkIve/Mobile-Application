@@ -223,7 +223,7 @@ export function NewConsultaScreen() {
                       {patientArkiveIdLine(selectedAnimal)}
                     </Text>
                   </View>
-                  <Ionicons name="checkmark-circle" size={22} color={colors.success} />
+                  <Ionicons name="checkmark-circle" size={22} color={colors.ink} />
                 </View>
               </AppCard>
             ) : (
@@ -303,7 +303,7 @@ export function NewConsultaScreen() {
                           <Ionicons
                             name={selected ? 'checkmark-circle' : 'chevron-forward'}
                             size={selected ? 22 : 18}
-                            color={selected ? colors.success : colors.inkSecondary}
+                            color={selected ? colors.ink : colors.inkSecondary}
                           />
                         </Pressable>
                       );

@@ -112,7 +112,7 @@ export function HomeScreen() {
   const [current, ...otherInProgress] = inProgressConsultas;
 
   /** Compact row: time, patient, status. Rows share one card, split by `line`. */
-  const renderRow = (consulta: ConsultaDto, index: number) => (
+  const renderRow = (showDate: boolean) => (consulta: ConsultaDto, index: number) => (
     <Pressable
       key={consulta.id}
       onPress={() => goToConsulta(consulta.id)}
@@ -130,7 +130,7 @@ export function HomeScreen() {
           {consulta.animalNome}
         </Text>
         <Text style={[styles.rowMeta, { color: colors.inkSecondary }]} numberOfLines={1}>
-          {formatData(consulta.dataHora)} · {modalidade(consulta)}
+          {showDate ? `${formatData(consulta.dataHora)} · ${modalidade(consulta)}` : modalidade(consulta)}
         </Text>
       </View>
       <StatusBadge label={consulta.statusDescricao} tone={consultaStatusPresentation(consulta.status).tone} />
@@ -183,7 +183,7 @@ export function HomeScreen() {
       ) : (
         <EmptyState title={t('home.emptyInProgressTitle')} />
       )}
-      {otherInProgress.length > 0 ? <AppCard style={styles.list}>{otherInProgress.map(renderRow)}</AppCard> : null}
+      {otherInProgress.length > 0 ? <AppCard style={styles.list}>{otherInProgress.map(renderRow(true))}</AppCard> : null}
     </>
   );
 
@@ -197,7 +197,7 @@ export function HomeScreen() {
       ) : todayConsultas.length === 0 ? (
         <EmptyState title={t('home.emptyTodayTitle')} message={t('home.emptyTodayMessage')} />
       ) : (
-        <AppCard style={styles.list}>{todayConsultas.map(renderRow)}</AppCard>
+        <AppCard style={styles.list}>{todayConsultas.map(renderRow(false))}</AppCard>
       )}
     </>
   );

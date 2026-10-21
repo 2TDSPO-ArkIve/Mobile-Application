@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, Platform, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, Pressable, Platform, StyleSheet, useWindowDimensions } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
@@ -14,7 +15,8 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { usePendingShare } from '../context/PendingShareContext';
 import { parsePatientShareUrl } from '../utils/shareLink';
-import { spacing } from '../styles/theme';
+import { spacing, iconSize } from '../styles/theme';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 /**
  * QR scanning only (`barcodeTypes: ['qr']`) — never logs scanned content,
@@ -41,6 +43,7 @@ function CameraScanner() {
   // Up to 320, never more than 45% of the window, never below the 220 scan frame plus a margin.
   const { height: windowHeight } = useWindowDimensions();
   const cameraHeight = Math.max(260, Math.min(320, windowHeight * 0.45));
+  const [torch, setTorch] = useState(false);
   const navigation = useNavigation<NativeStackNavigationProp<ScanShareQrNavigationParamList>>();
   const colors = useThemeColors();
   const { t } = useTranslation();
@@ -112,10 +115,25 @@ function CameraScanner() {
           facing="back"
           barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
           onBarcodeScanned={handleBarcodeScanned}
+          enableTorch={torch}
         />
         <View style={styles.frameOverlay} pointerEvents="none">
           <View style={[styles.frame, { borderColor: colors.onCamera }]} />
         </View>
+        {/* Exam rooms are often dim; the torch lights the code on the other phone or paper. */}
+        <Pressable
+          onPress={() => setTorch((on) => !on)}
+          accessibilityRole="switch"
+          accessibilityState={{ checked: torch }}
+          accessibilityLabel={t('scanShareQr.torchLabel')}
+          style={(state: InteractionState) => [
+            styles.torch,
+            { backgroundColor: colors.scrim, opacity: isActive(state) ? 0.8 : 1 },
+            focusRing(state, colors),
+          ]}
+        >
+          <Ionicons name={torch ? 'flashlight' : 'flashlight-outline'} size={iconSize.md} color={colors.onCamera} />
+        </Pressable>
       </View>
       <ScreenContainer>
         <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginBottom: spacing.sm }}>
@@ -158,4 +176,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   footerCard: { padding: 0, overflow: 'hidden', marginTop: spacing.md },
+  torch: {
+    position: 'absolute',
+    right: spacing.md,
+    bottom: spacing.md,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

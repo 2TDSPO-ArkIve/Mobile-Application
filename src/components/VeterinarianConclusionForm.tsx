@@ -88,6 +88,8 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
 
   return (
     <View style={styles.root}>
+      <View style={[styles.authorBar, { backgroundColor: colors.accent }]} />
+      <Text accessibilityRole="header" style={[styles.formTitle, { color: colors.ink }]}>{t('conclusion.formTitle')}</Text>
       <Text style={[styles.intro, { color: colors.inkSecondary }]}>{t('conclusion.intro')}</Text>
 
       <View style={styles.section}>
@@ -175,7 +177,9 @@ const CHIP_HIT_SLOP = { top: 4, bottom: 4 };
 
 const styles = StyleSheet.create({
   root: { paddingTop: spacing.sm, paddingBottom: spacing.xl },
-  intro: { fontSize: fontSize.md, textAlign: 'center', marginBottom: spacing.xl, lineHeight: 22 },
+  authorBar: { width: 32, height: 4, borderRadius: radius.full, marginBottom: spacing.sm },
+  formTitle: { fontSize: fontSize.lg, ...font('bold'), marginBottom: spacing.xs },
+  intro: { fontSize: fontSize.md, marginBottom: spacing.xl, lineHeight: 22 },
   // Larger gap BETWEEN sections, tighter spacing within one (the eyebrow
   // label sits close to its own field via commonStyles.eyebrow + a small
   // marginBottom, not the section's own rhythm).

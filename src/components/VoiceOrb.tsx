@@ -110,7 +110,8 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
     return () => loop.stop();
   }, [mode, reducedMotion, breathe]);
 
-  const orbColor = mode === 'recording' ? colors.accent : colors.ink;
+  // `ai` while the analysis runs: that wait is the AI's, not the dictation's.
+  const orbColor = mode === 'recording' ? colors.accent : mode === 'analyzing' ? colors.ai : colors.ink;
 
   const centerScale = Animated.add(
     breathe.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] }),

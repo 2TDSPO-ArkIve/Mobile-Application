@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Platform, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -311,13 +311,15 @@ export function ConsultasScreen() {
           </Text>
           <View style={styles.actionsRow}>
             {wide ? null : (
-              <HeaderIconButton
+              <AppButton
+                title={t('consultasList.filtersButton')}
+                variant={filtersOpen || hasActiveFilters ? 'secondary' : 'ghost'}
+                size="small"
                 icon={filtersOpen || hasActiveFilters ? 'filter' : 'filter-outline'}
                 onPress={() => setFiltersOpen((current) => !current)}
-                accessibilityLabel={t('consultasList.filtersAccessibilityLabel')}
               />
             )}
-            {!isPending && !failed ? (
+            {Platform.OS === 'web' && !isPending && !failed ? (
               <HeaderIconButton
                 icon="refresh"
                 onPress={refetch}

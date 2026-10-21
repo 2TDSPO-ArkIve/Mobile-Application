@@ -54,9 +54,11 @@ export function MandatoryPasswordChangeScreen() {
 
         <AppButton
           title={t('changePassword.cancelButton')}
-          variant="ghost"
+          variant="danger"
+          icon="log-out-outline"
           onPress={handleCancel}
           disabled={submitting}
+          style={styles.logout}
         />
       </ScreenContainer>
     </View>
@@ -66,4 +68,6 @@ export function MandatoryPasswordChangeScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   subtitle: { fontSize: fontSize.md, lineHeight: 22, marginBottom: spacing.lg },
+  // Same sign-out button as Perfil and Minha conta, set apart from the form.
+  logout: { marginTop: spacing.xl },
 });

@@ -14,6 +14,7 @@ import { useTranslation } from '../i18n/useTranslation';
 import { usePatientHistory } from '../hooks/usePatients';
 import { usePatientHistoryPdf } from '../hooks/usePatientHistoryPdf';
 import { consultaStatusPresentation } from '../utils/statusPresentation';
+import { useAuth } from '../hooks/useAuth';
 import { severidadeLabel } from '../utils/severidade';
 import { viaAdministracaoLabel } from '../utils/viaAdministracao';
 import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
@@ -90,6 +91,12 @@ function ConsultationCard({ consulta }: { consulta: AnimalHistoryConsultation })
   const hasValidDate = !Number.isNaN(date.getTime());
   const modalidadeLabel = consulta.modalidade === 'PRESENCIAL' ? t('home.presencial') : t('home.remota');
   const tone = consultaStatusPresentation(consulta.status).tone;
+  const { isResponsavel } = useAuth();
+  // The clinic's EP/AP names mean nothing to an owner; they get what is happening instead.
+  const statusLabel =
+    isResponsavel && (consulta.status === 'EP' || consulta.status === 'AP')
+      ? t(`consultaStatusResponsavel.${consulta.status}`)
+      : consulta.statusDescricao;
 
   const vetLine = [
     consulta.veterinarioNome ? t('patientHistory.veterinarianLabel', { name: consulta.veterinarioNome }) : null,
@@ -122,7 +129,7 @@ function ConsultationCard({ consulta }: { consulta: AnimalHistoryConsultation })
         <Text style={[styles.dateText, { color: colors.ink }]} numberOfLines={1}>
           {hasValidDate ? `${formatDate(date)} · ${formatTime(date)}` : ''}
         </Text>
-        <StatusBadge label={consulta.statusDescricao} tone={tone} />
+        <StatusBadge label={statusLabel} tone={tone} />
       </View>
 
       <View style={styles.meta}>

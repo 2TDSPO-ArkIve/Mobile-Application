@@ -1,4 +1,5 @@
 import { Platform, ViewStyle } from 'react-native';
+import { shadowColor } from './colors';
 
 /**
  * Cross-platform equivalents of the web's shadow-sm/shadow-md.
@@ -17,7 +18,7 @@ import { Platform, ViewStyle } from 'react-native';
 const nativeShadows = {
   sm: {},
   md: {
-    shadowColor: '#0F172A',
+    shadowColor,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 6,
@@ -27,7 +28,7 @@ const nativeShadows = {
 
 const webShadows = {
   sm: {} as ViewStyle,
-  md: { boxShadow: '0px 2px 6px rgba(15,23,42,0.14)' } as ViewStyle,
+  md: { boxShadow: `0px 2px 6px ${shadowColor}24` } as ViewStyle,
 };
 
 /**
