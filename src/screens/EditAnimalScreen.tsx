@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
-import { AppButton } from '../components/AppButton';
 import { EmptyState } from '../components/EmptyState';
 import { PatientForm } from '../components/PatientForm';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { usePatient, useUpdatePatient } from '../hooks/usePatients';
-import { describePatientError } from '../utils/errorMessages';
+import { describePatientError, describeLoadError } from '../utils/errorMessages';
 import type { AnimalRequestInput } from '../services/patientService';
-import { spacing } from '../styles/theme';
+import { LoadingState } from '../components/LoadingState';
 
 type RouteParamList = { EditarAnimal: { patientId: number } };
 
@@ -51,9 +50,7 @@ export function EditAnimalScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('animalForm.editTitle')} />
-        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-          {t('patientDetail.loading')}
-        </Text>
+        <LoadingState message={t('patientDetail.loading')} />
       </View>
     );
   }
@@ -64,10 +61,12 @@ export function EditAnimalScreen() {
         <AppHeader title={t('animalForm.editTitle')} />
         <ScreenContainer>
           <EmptyState
+            tone="error"
             title={t('patientDetail.loadErrorTitle')}
-            message={loadError instanceof Error ? loadError.message : t('patientDetail.notFound')}
+            message={describeLoadError(loadError, t('patientDetail.notFound'))}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetch()}
           />
-          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
         </ScreenContainer>
       </View>
     );

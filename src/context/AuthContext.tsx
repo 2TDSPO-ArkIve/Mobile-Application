@@ -13,11 +13,20 @@ import {
   clearCredentials,
   type StoredCredentials,
 } from '../storage/credentialStore';
-import { verifyCredentials, changePassword as changePasswordRequest, type AuthMeResponse } from '../services/authService';
+import {
+  verifyCredentials,
+  changePassword as changePasswordRequest,
+  type AuthMeResponse,
+  type CredentialVerificationResult,
+} from '../services/authService';
+import { t } from '../i18n/store';
 import { describeChangePasswordError } from '../utils/errorMessages';
 import { onUnauthorized } from '../services/authEvents';
 import { queryClient } from '../query/queryClient';
 import { disableNativePush, restorePushRegistrationIfEnabled } from '../utils/pushRegistration';
+
+/** Past this, a session restore shows BackendUnavailableScreen (with retry) instead of an endless spinner. */
+const RESTORE_TIMEOUT_MS = 45000;
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -70,7 +79,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const result = await verifyCredentials(stored);
+    // ponytail: the probe isn't aborted, only outraced; a late answer is ignored.
+    // The retry on BackendUnavailableScreen starts a fresh one.
+    const result = await Promise.race([
+      verifyCredentials(stored),
+      new Promise<CredentialVerificationResult>((resolve) =>
+        setTimeout(() => resolve({ ok: false, reason: 'unreachable', message: t('auth.unreachable') }), RESTORE_TIMEOUT_MS)
+      ),
+    ]);
     if (result.ok) {
       // Covers both normal restore AND "the browser refreshed while a
       // mandatory password change was still pending" — GET /api/auth/me is

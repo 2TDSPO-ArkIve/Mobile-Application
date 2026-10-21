@@ -15,6 +15,7 @@ import { useRecentAiUsageSample } from '../hooks/useAiUsage';
 import { formatNumber } from '../utils/localeFormat';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font, iconSize, layout } from '../styles/theme';
+import { LoadingState } from '../components/LoadingState';
 
 /**
  * "Configurações → IA ArkIve → Uso da IA" — VETERINARIO-only (gated both at
@@ -58,9 +59,7 @@ export function AiUsageScreen() {
         <Text style={[styles.intro, { color: colors.inkSecondary }]}>{t('aiUsage.intro')}</Text>
 
         {sample.isPending ? (
-          <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-            {t('aiUsage.loading')}
-          </Text>
+          <LoadingState message={t('aiUsage.loading')} />
         ) : sample.sampleSize === 0 ? (
           <EmptyState title={t('aiUsage.emptyTitle')} message={t('aiUsage.emptyMessage')} />
         ) : (
@@ -88,7 +87,7 @@ export function AiUsageScreen() {
               </Text>
             </AppCard>
 
-            <Text style={[styles.listTitle, { color: colors.ink }]}>
+            <Text accessibilityRole="header" style={[styles.listTitle, { color: colors.ink }]}>
               {t('aiUsage.listTitle')}
             </Text>
             <AppCard>

@@ -52,6 +52,8 @@ export function LoginScreen() {
     <AuthLayout panelHeight={0.35}>
       <AppInput
         label={t('auth.loginLabel')}
+        autoComplete="username"
+        textContentType="username"
         placeholder={t('auth.loginPlaceholder')}
         value={identifier}
         onChangeText={setIdentifier}
@@ -61,6 +63,8 @@ export function LoginScreen() {
 
       <AppInput
         label={t('auth.passwordLabel')}
+        autoComplete="current-password"
+        textContentType="password"
         placeholder={t('auth.passwordPlaceholder')}
         value={password}
         onChangeText={setPassword}

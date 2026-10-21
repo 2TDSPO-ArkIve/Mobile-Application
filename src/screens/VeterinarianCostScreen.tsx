@@ -5,7 +5,6 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { AppCard } from '../components/AppCard';
-import { AppButton } from '../components/AppButton';
 import { EmptyState } from '../components/EmptyState';
 import { ChipGroup } from '../components/ChipGroup';
 import { useThemeColors } from '../hooks/useThemeColors';
@@ -24,6 +23,7 @@ import type { VeterinarianCostConsultation } from '../services/veterinarioCustoS
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font, layout } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
 
 /**
  * Chunk 6 — "Resumo financeiro": a read-only overview of the VALUES RECORDED
@@ -164,7 +164,7 @@ function StatusCountsSection() {
         {t('costDashboard.statusAllDates')}
       </Text>
       {isPending ? (
-        <Text style={{ color: colors.inkSecondary }}>{t('vetCosts.loading')}</Text>
+        <LoadingState message={t('vetCosts.loading')} />
       ) : isError ? (
         <Text style={{ color: colors.error }}>{t('costDashboard.statusLoadError')}</Text>
       ) : (
@@ -196,9 +196,7 @@ export function VeterinarianCostScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('vetCosts.title')} />
-        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-          {t('vetCosts.loading')}
-        </Text>
+        <LoadingState message={t('vetCosts.loading')} />
       </View>
     );
   }
@@ -208,8 +206,13 @@ export function VeterinarianCostScreen() {
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('vetCosts.title')} />
         <ScreenContainer>
-          <EmptyState title={t('vetCosts.loadErrorTitle')} message={describeOwnCostsError(error)} />
-          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
+          <EmptyState
+            tone="error"
+            title={t('vetCosts.loadErrorTitle')}
+            message={describeOwnCostsError(error)}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetch()}
+          />
         </ScreenContainer>
       </View>
     );

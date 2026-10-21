@@ -257,7 +257,7 @@ export function CostDashboard<T extends CostRow>({
 
       {periodRows.length > 0 ? (
         <>
-          <Text style={[commonStyles.eyebrow, styles.sectionTitle, { color: colors.inkSecondary }]}>
+          <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionTitle, { color: colors.inkSecondary }]}>
             {t('costDashboard.breakdownTitle')}
           </Text>
           {periodRows.slice(0, visibleCount).map(renderRow)}

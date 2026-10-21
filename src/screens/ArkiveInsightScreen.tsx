@@ -20,6 +20,7 @@ import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font, radius } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
 
 const STEP_KEYS = ['aiInsight.rotating1', 'aiInsight.rotating2', 'aiInsight.rotating3'] as const;
 
@@ -77,7 +78,7 @@ export function ArkiveInsightScreen() {
                 <Text style={[styles.patientNameSmall, { color: colors.inkSecondary }]} numberOfLines={1}>
                   {consulta.animalNome}
                 </Text>
-                <Text style={[styles.patientArkiveIdSmall, { color: colors.inkSecondary }]} numberOfLines={1} selectable>
+                <Text style={[styles.patientArkiveIdSmall, { color: colors.inkSecondary }]} selectable>
                   {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
                 </Text>
               </>
@@ -123,13 +124,13 @@ export function ArkiveInsightScreen() {
         ) : (
           <>
             {consultaPending ? (
-              <Text style={{ color: colors.inkSecondary }}>{t('consultaDetail.loading')}</Text>
+              <LoadingState message={t('consultaDetail.loading')} />
             ) : consulta ? (
               <>
                 <Text style={[styles.patientName, { color: colors.ink }]} numberOfLines={1}>
                   {consulta.animalNome}
                 </Text>
-                <Text style={[styles.patientArkiveId, { color: colors.inkSecondary }]} numberOfLines={1} selectable>
+                <Text style={[styles.patientArkiveId, { color: colors.inkSecondary }]} selectable>
                   {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
                 </Text>
               </>

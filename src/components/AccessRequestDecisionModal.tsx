@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Modal, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppButton } from './AppButton';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
@@ -29,6 +30,7 @@ interface Props {
  */
 export function AccessRequestDecisionModal({ visible, requestId, action, onClose, onDecided }: Props) {
   const colors = useThemeColors();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const approveMutation = useApproveAccessRequest();
   const rejectMutation = useRejectAccessRequest();
@@ -64,10 +66,14 @@ export function AccessRequestDecisionModal({ visible, requestId, action, onClose
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <View style={[styles.backdrop, { backgroundColor: colors.scrim }]}>
+      {/* A Modal sits outside ScreenContainer, so it handles the iOS keyboard and the home indicator itself. */}
+      <KeyboardAvoidingView
+        style={[styles.backdrop, { backgroundColor: colors.scrim }]}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
         <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
-        <View style={[styles.sheet, { backgroundColor: colors.raised }]}>
-          <Text style={[styles.title, { color: colors.ink }]}>{title}</Text>
+        <View style={[styles.sheet, { backgroundColor: colors.raised, paddingBottom: spacing.lg + insets.bottom }]}>
+          <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{title}</Text>
           <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md }}>{message}</Text>
 
           {error ? (
@@ -83,7 +89,7 @@ export function AccessRequestDecisionModal({ visible, requestId, action, onClose
           />
           <AppButton title={t('accessRequestDecision.backButton')} variant="ghost" onPress={handleClose} disabled={isPending} />
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

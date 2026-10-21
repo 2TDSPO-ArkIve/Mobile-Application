@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Platform, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { HeaderIconButton } from './HeaderIconButton';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useTranslation } from '../i18n/useTranslation';
 import { spacing, fontSize, font } from '../styles/theme';
 import type { AppStackParamList } from '../interfaces/navigation';
 
@@ -32,6 +33,7 @@ interface Props {
  */
 export function AppHeader({ title, showBack = true, actions }: Props) {
   const colors = useThemeColors();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const navigation =
     useNavigation<NativeStackNavigationProp<AppStackParamList>>();
@@ -53,18 +55,17 @@ export function AppHeader({ title, showBack = true, actions }: Props) {
           left in an otherwise-centered layout. */}
       <View style={styles.inner}>
         {showBack ? (
-          <Pressable
-            onPress={() => navigation.goBack()}
-            style={styles.iconBtn}
-            accessibilityRole="button"
-            accessibilityLabel="Voltar"
-          >
-            <Text style={[styles.iconText, { color: colors.ink }]}>←</Text>
-          </Pressable>
+          <View style={styles.iconBtn}>
+            <HeaderIconButton
+              icon={Platform.OS === 'ios' ? 'chevron-back' : 'arrow-back'}
+              onPress={() => navigation.goBack()}
+              accessibilityLabel={t('common.back')}
+            />
+          </View>
         ) : (
           <View style={styles.iconBtn} />
         )}
-        <Text style={[styles.title, { color: colors.ink }]} numberOfLines={1}>
+        <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]} numberOfLines={1}>
           {title}
         </Text>
         {actions && actions.length > 0 ? (
@@ -113,6 +114,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconText: { fontSize: 24, ...font('semibold') },
   actionsRow: { flexDirection: 'row' },
 });

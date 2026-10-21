@@ -220,8 +220,13 @@ export function ArkiveIdLookupScreen() {
 
         {outcome === 'other' ? (
           <>
-            <EmptyState title={t('arkiveLookup.errorTitle')} message={otherErrorMessage} />
-            <AppButton title={t('common.tryAgain')} variant="secondary" onPress={handleSubmit} />
+            <EmptyState
+              tone="error"
+              title={t('arkiveLookup.errorTitle')}
+              message={otherErrorMessage}
+              actionLabel={t('common.tryAgain')}
+              onAction={handleSubmit}
+            />
           </>
         ) : null}
       </ScreenContainer>

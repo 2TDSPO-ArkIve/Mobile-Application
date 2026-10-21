@@ -35,7 +35,7 @@ export function ResponsavelAccountScreen() {
     useNavigation<NativeStackNavigationProp<ResponsavelAppStackParamList>>();
 
   const sectionTitle = (title: string) => (
-    <Text style={[styles.sectionTitle, { color: colors.ink }]}>{title}</Text>
+    <Text accessibilityRole="header" style={[styles.sectionTitle, { color: colors.ink }]}>{title}</Text>
   );
 
   return (

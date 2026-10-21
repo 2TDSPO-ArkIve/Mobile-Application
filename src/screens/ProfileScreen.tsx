@@ -16,6 +16,7 @@ import { useTranslation } from '../i18n/useTranslation';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { nameInitials } from '../utils/patientDisplay';
 import { spacing, fontSize, font, radius, layout } from '../styles/theme';
+import { LoadingState } from '../components/LoadingState';
 
 /**
  * Real identity, not the old `useAuth().user` compatibility shim (which
@@ -27,7 +28,7 @@ import { spacing, fontSize, font, radius, layout } from '../styles/theme';
  */
 export function ProfileScreen() {
   const { logout } = useAuth();
-  const { data: veterinario, isPending, isError } = useOwnVeterinario();
+  const { data: veterinario, isPending, isError, refetch } = useOwnVeterinario();
   const colors = useThemeColors();
   const { t } = useTranslation();
   const wide = useBreakpoint() === 'wide';
@@ -35,7 +36,7 @@ export function ProfileScreen() {
     useNavigation<NativeStackNavigationProp<AppStackParamList>>();
 
   const sectionTitle = (title: string) => (
-    <Text style={[styles.sectionTitle, { color: colors.ink }]}>{title}</Text>
+    <Text accessibilityRole="header" style={[styles.sectionTitle, { color: colors.ink }]}>{title}</Text>
   );
 
   return (
@@ -44,11 +45,15 @@ export function ProfileScreen() {
 
       <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
         {isPending ? (
-          <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginBottom: spacing.md }}>
-            {t('profile.loading')}
-          </Text>
+          <LoadingState message={t('profile.loading')} />
         ) : isError || !veterinario ? (
-          <EmptyState title={t('profile.loadErrorTitle')} message={t('profile.loadErrorGeneric')} />
+          <EmptyState
+            tone="error"
+            title={t('profile.loadErrorTitle')}
+            message={t('profile.loadErrorGeneric')}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetch()}
+          />
         ) : (
           <AppCard style={styles.identity}>
             <View style={[styles.initials, { backgroundColor: colors.accentTint }]}>

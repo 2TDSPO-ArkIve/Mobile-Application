@@ -24,6 +24,7 @@ import type { AccessRequestDto } from '../services/patientAccessRequestService';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, layout } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
 
 /** Java's own 30s polling cadence precedent (notification/unread-count) — compensates for a confirmed gap: the requesting veterinarian is never sent a notification when a Responsible approves/rejects their request, so this screen refetches on its own while open. */
 const POLL_MS = 30_000;
@@ -84,7 +85,7 @@ function AccessRequestRow({ request }: { request: AccessRequestDto }) {
   return (
     <AppCard>
       <View style={styles.headerRow}>
-        <Text style={[styles.arkiveIdText, { color: colors.ink }]} selectable numberOfLines={1}>
+        <Text style={[styles.arkiveIdText, { color: colors.ink }]} selectable>
           {patientArkiveIdLine({ arkivePatientId: request.arkivePatientId })}
         </Text>
         <StatusBadge label={presentation.label} tone={presentation.tone} />
@@ -237,17 +238,20 @@ export function MyAccessRequestsScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('myAccessRequests.title')} />
-      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
+      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined} onRefresh={refetch}>
         <NewAccessRequestSection />
 
         {isPending ? (
-          <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-            {t('myAccessRequests.loading')}
-          </Text>
+          <LoadingState message={t('myAccessRequests.loading')} />
         ) : isError ? (
           <>
-            <EmptyState title={t('myAccessRequests.loadErrorTitle')} message={describeAccessRequestListError(error)} />
-            <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
+            <EmptyState
+              tone="error"
+              title={t('myAccessRequests.loadErrorTitle')}
+              message={describeAccessRequestListError(error)}
+              actionLabel={t('common.tryAgain')}
+              onAction={() => refetch()}
+            />
           </>
         ) : !data || data.length === 0 ? (
           <EmptyState title={t('myAccessRequests.emptyTitle')} message={t('myAccessRequests.emptyMessage')} />
@@ -261,7 +265,7 @@ export function MyAccessRequestsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm, gap: spacing.sm },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.sm, gap: spacing.sm },
   arkiveIdText: { fontSize: fontSize.sm, ...commonStyles.arkiveId, flexShrink: 1 },
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
   openButton: { marginTop: spacing.sm },

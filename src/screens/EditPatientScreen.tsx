@@ -14,12 +14,13 @@ import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { usePatient, useUpdatePatient } from '../hooks/usePatients';
 import { useAnimalTutores, useLinkTutor } from '../hooks/useTutores';
-import { describePatientError } from '../utils/errorMessages';
+import { describePatientError, describeLoadError } from '../utils/errorMessages';
 import type { AnimalRequestInput } from '../services/patientService';
 import type { ResponsavelLookupDto } from '../services/responsavelService';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, layout } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
 
 /**
  * Basic-metadata edit only, matching the backend's own restriction for
@@ -42,7 +43,7 @@ export function EditPatientScreen() {
   const wide = useBreakpoint() === 'wide';
   const { patientId } = route.params;
 
-  const { data: patient, isPending, isError, error: loadError } = usePatient(patientId);
+  const { data: patient, isPending, isError, error: loadError, refetch } = usePatient(patientId);
   const updateMutation = useUpdatePatient(patientId);
   const [error, setError] = useState('');
 
@@ -80,9 +81,7 @@ export function EditPatientScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('patientForm.editTitle')} />
-        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-          {t('patientDetail.loading')}
-        </Text>
+        <LoadingState message={t('patientDetail.loading')} />
       </View>
     );
   }
@@ -93,8 +92,11 @@ export function EditPatientScreen() {
         <AppHeader title={t('patientForm.editTitle')} />
         <ScreenContainer>
           <EmptyState
+            tone="error"
             title={t('patientDetail.loadErrorTitle')}
-            message={loadError instanceof Error ? loadError.message : t('patientDetail.notFound')}
+            message={describeLoadError(loadError, t('patientDetail.notFound'))}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetch()}
           />
         </ScreenContainer>
       </View>
@@ -121,7 +123,7 @@ export function EditPatientScreen() {
         />
 
         <AppCard>
-          <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
+          <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
             {t('tutor.section')}
           </Text>
           <Text style={{ color: colors.ink, marginBottom: spacing.sm }}>

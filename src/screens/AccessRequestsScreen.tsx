@@ -18,6 +18,7 @@ import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AccessRequestDto } from '../services/patientAccessRequestService';
 import { spacing, fontSize, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
 
 type RouteParamList = { SolicitacoesAcessoRecebidas: { focusRequestId?: number } | undefined };
 
@@ -126,18 +127,18 @@ export function AccessRequestsScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('accessRequestsReceived.title')} />
-      <ScreenContainer>
+      <ScreenContainer onRefresh={refetch}>
         {isPending ? (
-          <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-            {t('accessRequestsReceived.loading')}
-          </Text>
+          <LoadingState message={t('accessRequestsReceived.loading')} />
         ) : isError ? (
           <>
             <EmptyState
+              tone="error"
               title={t('accessRequestsReceived.loadErrorTitle')}
               message={describeAccessRequestListError(error)}
+              actionLabel={t('common.tryAgain')}
+              onAction={() => refetch()}
             />
-            <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
           </>
         ) : !orderedData || orderedData.length === 0 ? (
           <EmptyState

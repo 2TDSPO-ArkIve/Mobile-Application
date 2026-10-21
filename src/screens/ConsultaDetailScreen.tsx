@@ -30,13 +30,14 @@ import { useConsultaDiagnosticos } from '../hooks/useDiagnosticos';
 import { useAnimalReportsPresence } from '../hooks/useAnimalReports';
 import { findConfirmedDiagnosis } from '../services/diagnosticoService';
 import { consultaStatusPresentation } from '../utils/statusPresentation';
-import { describeNarrativeSaveError } from '../utils/errorMessages';
+import { describeNarrativeSaveError, describeLoadError } from '../utils/errorMessages';
 import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
 import { t } from '../i18n/store';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font, layout } from '../styles/theme';
 import { shadows } from '../styles/shadows';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
 
 function formatContextLine(dataHora: string, modalidade: string): string {
   const date = new Date(dataHora);
@@ -151,9 +152,7 @@ export function ConsultaDetailScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('consultaDetail.genericTitle')} />
-        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-          {t('consultaDetail.loading')}
-        </Text>
+        <LoadingState message={t('consultaDetail.loading')} />
       </View>
     );
   }
@@ -166,9 +165,10 @@ export function ConsultaDetailScreen() {
           <EmptyState
             tone="error"
             title={t('consultaDetail.loadErrorTitle')}
-            message={error instanceof Error ? error.message : t('consultaDetail.notFound')}
+            message={describeLoadError(error, t('consultaDetail.notFound'))}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetch()}
           />
-          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
         </ScreenContainer>
       </View>
     );
@@ -333,9 +333,7 @@ export function ConsultaDetailScreen() {
       {clinicalSupport.data ? <ClinicalSupportCard support={clinicalSupport.data} /> : null}
 
       {diagnosticos.isPending ? (
-        <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md }}>
-          {t('consultaDetail.loadingConclusion')}
-        </Text>
+        <LoadingState message={t('consultaDetail.loadingConclusion')} />
       ) : confirmedDiagnosis ? (
         <ConfirmedDiagnosisCard diagnosis={confirmedDiagnosis} conclusao={consulta.observacao} />
       ) : null}

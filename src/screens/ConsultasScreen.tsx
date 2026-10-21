@@ -25,6 +25,8 @@ import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font, iconSize, layout } from '../styles/theme';
 import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
+import { describeLoadError } from '../utils/errorMessages';
 
 const FILTER_DEBOUNCE_MS = 300;
 
@@ -156,7 +158,7 @@ export function ConsultasScreen() {
   const isPending = groups.some((group) => group.query.isPending);
   const failed = groups.find((group) => group.query.isError)?.query;
   const isRefetching = groups.some((group) => group.query.isRefetching);
-  const refetch = () => groups.forEach((group) => group.query.refetch());
+  const refetch = () => Promise.all(groups.map((group) => group.query.refetch()));
   const visibleGroups = groups
     .map((group) => ({ ...group, consultas: group.query.data?.pages.flatMap((page) => page.content) ?? [] }))
     .filter((group) => group.consultas.length > 0);
@@ -302,7 +304,7 @@ export function ConsultasScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <HomeHeader />
 
-      <ScreenContainer style={wide ? { maxWidth: layout.contentMax } : undefined}>
+      <ScreenContainer style={wide ? { maxWidth: layout.contentMax } : undefined} onRefresh={refetch}>
         <View style={styles.titleRow}>
           <Text style={[styles.pageTitle, { color: colors.ink }]} numberOfLines={1}>
             {t('consultasList.title')}
@@ -350,14 +352,14 @@ export function ConsultasScreen() {
         ) : null}
 
         {isPending ? (
-          <Text style={{ color: colors.inkSecondary, textAlign: 'center' }}>
-            {t('consultasList.loading')}
-          </Text>
+          <LoadingState message={t('consultasList.loading')} />
         ) : failed ? (
           <EmptyState
             tone="error"
             title={t('consultasList.loadErrorTitle')}
-            message={failed.error instanceof Error ? failed.error.message : t('consultasList.genericServerError')}
+            message={describeLoadError(failed.error)}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => failed.refetch()}
           />
         ) : visibleGroups.length > 0 ? (
           visibleGroups.map((group) => (

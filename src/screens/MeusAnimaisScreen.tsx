@@ -21,6 +21,8 @@ import { useUnreadNotificationCount } from '../hooks/useNotifications';
 import { patientSummaryLine, patientArkiveIdLine } from '../utils/patientDisplay';
 import type { ResponsavelAppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font, radius, layout } from '../styles/theme';
+import { LoadingState } from '../components/LoadingState';
+import { describeLoadError } from '../utils/errorMessages';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -96,7 +98,7 @@ export function MeusAnimaisScreen() {
         ]}
       />
 
-      <ScreenContainer style={wide ? { maxWidth: layout.contentMax } : undefined}>
+      <ScreenContainer style={wide ? { maxWidth: layout.contentMax } : undefined} onRefresh={animalsQuery.refetch}>
         <SearchBar value={searchInput} onChangeText={setSearchInput} placeholder={t('myAnimals.searchPlaceholder')} />
 
         {/* "Buscar por ID ArkIve" opens an already-authorized shared patient: retrieval only, never a path to creating a new animal. */}
@@ -139,13 +141,14 @@ export function MeusAnimaisScreen() {
         </AppCard>
 
         {isPending ? (
-          <Text style={{ color: colors.inkSecondary, textAlign: 'center' }}>
-            {t('myAnimals.loading')}
-          </Text>
+          <LoadingState message={t('myAnimals.loading')} />
         ) : isError ? (
           <EmptyState
+            tone="error"
             title={t('myAnimals.loadErrorTitle')}
-            message={error instanceof Error ? error.message : t('myAnimals.genericServerError')}
+            message={describeLoadError(error)}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => animalsQuery.refetch()}
           />
         ) : !data || data.length === 0 ? (
           <EmptyState

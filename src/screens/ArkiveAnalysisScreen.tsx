@@ -94,7 +94,7 @@ export function ArkiveAnalysisScreen() {
 
           {phase === 'canceled' ? (
             <>
-              <Text style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.canceledTitle')}</Text>
+              <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.canceledTitle')}</Text>
               <Text style={[styles.message, { color: colors.inkSecondary }]}>{t('aiAnalysis.canceledMessage')}</Text>
               <AppButton
                 title={t('aiAnalysis.backToConsultation')}
@@ -104,7 +104,7 @@ export function ArkiveAnalysisScreen() {
             </>
           ) : phase === 'unavailable' ? (
             <>
-              <Text style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.unavailableTitle')}</Text>
+              <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.unavailableTitle')}</Text>
               <Text style={[styles.message, { color: colors.inkSecondary }]}>{t('aiAnalysis.unavailableMessage')}</Text>
               <AppButton
                 title={t('aiAnalysis.backToConsultation')}
@@ -114,7 +114,7 @@ export function ArkiveAnalysisScreen() {
             </>
           ) : phase === 'uncertain' ? (
             <>
-              <Text style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.uncertainTitle')}</Text>
+              <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.uncertainTitle')}</Text>
               <Text style={[styles.message, { color: colors.inkSecondary }]}>{errorMessage}</Text>
 
               <AppButton title={t('aiAnalysis.recheckButton')} onPress={recheck} style={styles.actionButton} />
@@ -133,7 +133,7 @@ export function ArkiveAnalysisScreen() {
             </>
           ) : phase === 'error' ? (
             <>
-              <Text style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.errorTitle')}</Text>
+              <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.errorTitle')}</Text>
               <Text style={[styles.message, { color: colors.error }]}>{errorMessage}</Text>
 
               <AppButton title={t('common.tryAgain')} onPress={generate} style={styles.actionButton} />
@@ -146,7 +146,7 @@ export function ArkiveAnalysisScreen() {
             </>
           ) : (
             <>
-              <Text style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.analyzingTitle')}</Text>
+              <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.analyzingTitle')}</Text>
               <Text style={[styles.message, { color: colors.inkSecondary }]}>
                 {t('aiAnalysis.analyzingSubtitle')}
               </Text>

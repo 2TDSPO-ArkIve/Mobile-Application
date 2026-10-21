@@ -180,7 +180,7 @@ export function ClinicalSupportCard({ support }: Props) {
     <AppCard style={{ backgroundColor: colors.aiTint }}>
       <View style={styles.header}>
         <Ionicons name="sparkles-outline" size={iconSize.md} color={colors.ai} />
-        <Text style={[styles.title, { color: colors.ai }]}>{t('clinicalSupportCard.title')}</Text>
+        <Text accessibilityRole="header" style={[styles.title, { color: colors.ai }]}>{t('clinicalSupportCard.title')}</Text>
       </View>
       <Text style={[styles.disclaimer, { color: colors.inkSecondary }]}>
         {t('clinicalSupportCard.disclaimer')}

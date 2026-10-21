@@ -13,10 +13,13 @@ interface Props {
   topBar?: string;
   /** Forces a specific palette instead of the app's current theme — see AppButton's note on the same prop. */
   colors?: ColorPalette;
+  /** Defaults to the card's own text, read in order. */
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 /** Plano B §3.4: radius 20, no border, no shadow at rest; separated from `background` by tone. */
-export function AppCard({ children, onPress, style, topBar, colors: colorsOverride }: Props) {
+export function AppCard({ children, onPress, style, topBar, colors: colorsOverride, accessibilityLabel, accessibilityHint }: Props) {
   const themeColors = useThemeColors();
   const colors = colorsOverride ?? themeColors;
 
@@ -37,6 +40,9 @@ export function AppCard({ children, onPress, style, topBar, colors: colorsOverri
     return (
       <Pressable
         onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint={accessibilityHint}
         style={(state: InteractionState) => [
           ...cardStyle,
           isActive(state) && { backgroundColor: colors.sunken },

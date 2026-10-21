@@ -10,6 +10,7 @@ import { useClinicalVoiceRecording } from '../hooks/useClinicalVoiceRecording';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { spacing, fontSize, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { useDiscardGuard } from '../hooks/useDiscardGuard';
 
 /** Appends a transcribed segment after whatever's already in the draft, never replacing it. */
 function appendSegment(existing: string, segment: string): string {
@@ -71,6 +72,7 @@ export function ClinicalIntake({
   const [draft, setDraft] = useState(initialNarrativa);
   const [view, setView] = useState<'orb' | 'editor'>(initialNarrativa.trim() ? 'editor' : 'orb');
   const [analyzeError, setAnalyzeError] = useState('');
+  const markSubmitted = useDiscardGuard(draft, { submitting: analyzing || proceeding });
 
   // The app-wide language IS the voice-dictation locale — one setting, no
   // separate read from Settings needed here anymore (see src/i18n/store.ts).
@@ -103,6 +105,7 @@ export function ClinicalIntake({
       return;
     }
     try {
+      markSubmitted();
       await onAnalyze(draft);
     } catch (err) {
       setAnalyzeError(err instanceof Error ? err.message : t('clinicalIntake.saveFallbackError'));
@@ -115,6 +118,7 @@ export function ClinicalIntake({
   const handleProceedPress = async () => {
     setAnalyzeError('');
     try {
+      markSubmitted();
       await onProceedWithoutAnalysis(draft);
     } catch (err) {
       setAnalyzeError(err instanceof Error ? err.message : t('clinicalIntake.saveFallbackError'));
@@ -190,7 +194,7 @@ export function ClinicalIntake({
         ) : null}
         {showEditor ? (
           <View style={wide ? styles.editorColumn : null}>
-            <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
+            <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
               {t('clinicalIntake.sectionLabel')}
             </Text>
             <AppInput

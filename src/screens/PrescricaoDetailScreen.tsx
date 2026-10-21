@@ -16,9 +16,10 @@ import { usePrescricao, useDeletePrescricao } from '../hooks/usePrescricoes';
 import { viaAdministracaoLabel } from '../utils/viaAdministracao';
 import { toDisplayDate } from '../utils/isoDate';
 import { formatCurrency } from '../utils/localeFormat';
-import { describePrescricaoError } from '../utils/errorMessages';
+import { describePrescricaoError, describeLoadError } from '../utils/errorMessages';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font, layout } from '../styles/theme';
+import { LoadingState } from '../components/LoadingState';
 
 export function PrescricaoDetailScreen() {
   const route = useRoute<RouteProp<AppStackParamList, 'PrescricaoDetalhe'>>();
@@ -59,9 +60,7 @@ export function PrescricaoDetailScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('prescricaoDetail.title')} />
-        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-          {t('prescricaoDetail.loading')}
-        </Text>
+        <LoadingState message={t('prescricaoDetail.loading')} />
       </View>
     );
   }
@@ -72,10 +71,12 @@ export function PrescricaoDetailScreen() {
         <AppHeader title={t('prescricaoDetail.title')} />
         <ScreenContainer>
           <EmptyState
+            tone="error"
             title={t('prescricaoDetail.loadErrorTitle')}
-            message={error instanceof Error ? error.message : t('prescricaoDetail.notFound')}
+            message={describeLoadError(error, t('prescricaoDetail.notFound'))}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetch()}
           />
-          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
         </ScreenContainer>
       </View>
     );
@@ -86,7 +87,7 @@ export function PrescricaoDetailScreen() {
       <AppHeader title={t('prescricaoDetail.title')} />
       <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
         <AppCard>
-          <Text style={[styles.title, { color: colors.ink }]}>{prescricao.medicamento}</Text>
+          <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{prescricao.medicamento}</Text>
           <View style={styles.fields}>
             {/* `null` cost means none was recorded — omitted entirely, never shown as R$ 0,00. An explicit 0 IS a real value and must still render. */}
             {[

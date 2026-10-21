@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
@@ -14,7 +14,8 @@ import { describePrescricaoError } from '../utils/errorMessages';
 import { toDisplayDate } from '../utils/isoDate';
 import type { PrescricaoRequestInput } from '../services/prescricaoService';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, layout } from '../styles/theme';
+import { layout } from '../styles/theme';
+import { LoadingState } from '../components/LoadingState';
 
 /**
  * Prescriptions only make sense for a finalized consultation
@@ -48,9 +49,7 @@ export function NewPrescricaoScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <AppHeader title={t('prescricaoForm.newTitle')} />
-        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-          {t('prescricaoForm.loadingConsulta')}
-        </Text>
+        <LoadingState message={t('prescricaoForm.loadingConsulta')} />
       </View>
     );
   }

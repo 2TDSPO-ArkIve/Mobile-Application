@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
@@ -13,7 +13,8 @@ import { describePrescricaoError } from '../utils/errorMessages';
 import { toDisplayDate } from '../utils/isoDate';
 import type { PrescricaoRequestInput } from '../services/prescricaoService';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, layout } from '../styles/theme';
+import { layout } from '../styles/theme';
+import { LoadingState } from '../components/LoadingState';
 
 /**
  * Prefilling from the *existing prescription* is normal editing (unlike the
@@ -45,9 +46,7 @@ export function EditPrescricaoScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <AppHeader title={t('prescricaoForm.editTitle')} />
-        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-          {t('prescricaoForm.loadingPrescricao')}
-        </Text>
+        <LoadingState message={t('prescricaoForm.loadingPrescricao')} />
       </View>
     );
   }

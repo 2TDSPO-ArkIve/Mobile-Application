@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Modal, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppInput } from './AppInput';
 import { AppButton } from './AppButton';
 import { ChipGroup } from './ChipGroup';
@@ -29,6 +30,7 @@ const PORTE_VALUES: Porte[] = ['PEQUENO', 'MEDIO', 'GRANDE'];
  */
 export function CreateBreedModal({ visible, especieId, especieNome, onClose, onCreated }: Props) {
   const colors = useThemeColors();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const createMutation = useCreateRaca();
 
@@ -66,10 +68,14 @@ export function CreateBreedModal({ visible, especieId, especieNome, onClose, onC
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <View style={[styles.backdrop, { backgroundColor: colors.scrim }]}>
+      {/* A Modal sits outside ScreenContainer, so it handles the iOS keyboard and the home indicator itself. */}
+      <KeyboardAvoidingView
+        style={[styles.backdrop, { backgroundColor: colors.scrim }]}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
         <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
-        <View style={[styles.sheet, { backgroundColor: colors.raised }]}>
-          <Text style={[styles.title, { color: colors.ink }]}>{t('patientForm.createBreedModalTitle')}</Text>
+        <View style={[styles.sheet, { backgroundColor: colors.raised, paddingBottom: spacing.lg + insets.bottom }]}>
+          <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('patientForm.createBreedModalTitle')}</Text>
           <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md }}>
             {t('patientForm.createBreedSpeciesContext', { value: especieNome })}
           </Text>
@@ -102,7 +108,7 @@ export function CreateBreedModal({ visible, especieId, especieNome, onClose, onC
           />
           <AppButton title={t('common.cancel')} variant="ghost" onPress={handleClose} disabled={createMutation.isPending} />
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

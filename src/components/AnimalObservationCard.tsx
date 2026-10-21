@@ -9,6 +9,7 @@ import { useAnimalObservation, useUpdateAnimalObservation } from '../hooks/usePa
 import { describeAnimalObservationError } from '../utils/errorMessages';
 import { commonStyles } from '../styles/common';
 import { spacing, fontSize } from '../styles/theme';
+import { LoadingState } from './LoadingState';
 
 /**
  * RESPONSAVEL-only. Backed by `GET`/`PATCH /api/animais/{id}/observacao-responsavel`
@@ -69,13 +70,13 @@ export function AnimalObservationCard({ animalId }: { animalId: number }) {
 
   return (
     <AppCard>
-      <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.xs }]}>
+      <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.xs }]}>
         {t('animalObservation.sectionTitle')}
       </Text>
       <Text style={[styles.helper, { color: colors.inkSecondary }]}>{t('animalObservation.sectionHelp')}</Text>
 
       {observationQuery.isPending ? (
-        <Text style={{ color: colors.inkSecondary }}>{t('animalObservation.loading')}</Text>
+        <LoadingState message={t('animalObservation.loading')} />
       ) : observationQuery.isError ? (
         <Text style={{ color: colors.error, fontSize: fontSize.sm }}>
           {describeAnimalObservationError(observationQuery.error, false)}

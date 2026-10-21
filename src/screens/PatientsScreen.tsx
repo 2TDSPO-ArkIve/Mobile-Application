@@ -16,6 +16,8 @@ import { useMyPatients } from '../hooks/usePatients';
 import { patientSummaryLine, patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font, radius, layout } from '../styles/theme';
+import { LoadingState } from '../components/LoadingState';
+import { describeLoadError } from '../utils/errorMessages';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -59,7 +61,7 @@ export function PatientsScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <HomeHeader />
 
-      <ScreenContainer style={wide ? { maxWidth: layout.contentMax } : undefined}>
+      <ScreenContainer style={wide ? { maxWidth: layout.contentMax } : undefined} onRefresh={patientsQuery.refetch}>
         <Text style={[styles.pageTitle, { color: colors.ink }]} numberOfLines={1}>
           {t('patientsList.title')}
         </Text>
@@ -85,13 +87,14 @@ export function PatientsScreen() {
         </View>
 
         {isPending ? (
-          <Text style={{ color: colors.inkSecondary, textAlign: 'center' }}>
-            {t('patientsList.loading')}
-          </Text>
+          <LoadingState message={t('patientsList.loading')} />
         ) : isError ? (
           <EmptyState
+            tone="error"
             title={t('patientsList.loadErrorTitle')}
-            message={error instanceof Error ? error.message : t('patientsList.genericServerError')}
+            message={describeLoadError(error)}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => patientsQuery.refetch()}
           />
         ) : !data || data.length === 0 ? (
           <EmptyState

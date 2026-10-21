@@ -24,7 +24,7 @@ export function EmptyState({ title, message, actionLabel, onAction, actionLoadin
       {tone === 'error' ? (
         <Ionicons name="alert-circle-outline" size={iconSize.xl} color={colors.error} style={styles.icon} />
       ) : null}
-      <Text style={[styles.title, { color: colors.ink }]}>{title}</Text>
+      <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{title}</Text>
       {message ? (
         <Text style={[styles.message, { color: colors.inkSecondary }]}>
           {message}

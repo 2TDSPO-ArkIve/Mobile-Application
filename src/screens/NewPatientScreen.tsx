@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, Alert, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { notify } from '../utils/dialog';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
@@ -72,7 +73,7 @@ export function NewPatientScreen() {
           principal: 'S',
         });
       } catch {
-        Alert.alert(t('tutor.linkFailedTitle'), t('tutor.linkFailedMessage'));
+        notify(t('tutor.linkFailedTitle'), t('tutor.linkFailedMessage'), t('common.done'));
       }
     }
 
@@ -111,7 +112,7 @@ export function NewPatientScreen() {
         />
 
         <AppCard>
-          <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
+          <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
             {t('tutor.section')}
           </Text>
           {selectedTutor ? (

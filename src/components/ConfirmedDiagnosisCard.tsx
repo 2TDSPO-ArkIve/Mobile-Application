@@ -26,7 +26,7 @@ export function ConfirmedDiagnosisCard({ diagnosis, conclusao }: Props) {
 
   return (
     <AppCard topBar={colors.accent}>
-      <Text style={[styles.title, { color: colors.ink }]}>{t('confirmedDiagnosis.title')}</Text>
+      <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('confirmedDiagnosis.title')}</Text>
 
       <Text style={[styles.label, { color: colors.inkSecondary }]}>{t('confirmedDiagnosis.diagnosis')}</Text>
       <Text style={[styles.value, { color: colors.ink }]}>{diagnosis.diagnostico}</Text>

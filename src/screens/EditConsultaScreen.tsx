@@ -23,6 +23,9 @@ import type { Modalidade, UpdateConsultaInput } from '../services/consultaServic
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
+import { describeLoadError } from '../utils/errorMessages';
+import { useDiscardGuard } from '../hooks/useDiscardGuard';
 
 const MODALIDADE_VALUES: Modalidade[] = ['PRESENCIAL', 'REMOTA'];
 
@@ -71,6 +74,10 @@ export function EditConsultaScreen() {
   // submit); `formError` is API-only.
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({});
   const [formError, setFormError] = useState('');
+  const markSubmitted = useDiscardGuard(
+    { modalidade, date, time, motivo, endereco, valorConsultaInput },
+    { submitting: updateMutation.isPending, ready: hydrated }
+  );
 
   const touch = (field: Field) => setTouched((prev) => (prev[field] ? prev : { ...prev, [field]: true }));
 
@@ -150,6 +157,7 @@ export function EditConsultaScreen() {
     };
 
     try {
+      markSubmitted();
       await updateMutation.mutateAsync(payload);
       navigation.goBack();
     } catch (err) {
@@ -161,9 +169,7 @@ export function EditConsultaScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('editConsulta.title')} />
-        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-          {t('consultaDetail.loading')}
-        </Text>
+        <LoadingState message={t('consultaDetail.loading')} />
       </View>
     );
   }
@@ -176,9 +182,10 @@ export function EditConsultaScreen() {
           <EmptyState
             tone="error"
             title={t('consultaDetail.loadErrorTitle')}
-            message={error instanceof Error ? error.message : t('consultaDetail.notFound')}
+            message={describeLoadError(error, t('consultaDetail.notFound'))}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetch()}
           />
-          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
         </ScreenContainer>
       </View>
     );
@@ -204,7 +211,7 @@ export function EditConsultaScreen() {
       <AppHeader title={t('editConsulta.title')} />
 
       <ScreenContainer>
-        <Text style={[commonStyles.eyebrow, styles.sectionLabelFirst, { color: colors.accent }]}>
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabelFirst, { color: colors.accent }]}>
           {t('newConsulta.patientSection')}
         </Text>
         <AppCard>
@@ -219,7 +226,7 @@ export function EditConsultaScreen() {
           </Text>
         </AppCard>
 
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
           {t('newConsulta.modalidadeSection')}
         </Text>
         <SegmentedControl
@@ -245,7 +252,7 @@ export function EditConsultaScreen() {
           </>
         ) : null}
 
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
           {t('newConsulta.dateTimeSection')}
         </Text>
         <View style={wide ? styles.dateTimeRow : null}>
@@ -274,7 +281,7 @@ export function EditConsultaScreen() {
           </View>
         </View>
 
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
           {t('newConsulta.reasonSection')}
         </Text>
         <AppInput
@@ -287,7 +294,7 @@ export function EditConsultaScreen() {
           multiline
         />
 
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
           {t('newConsulta.valueSection')}
           <Text style={[styles.optionalSuffix, { color: colors.inkSecondary }]}> · {t('common.optional')}</Text>
         </Text>

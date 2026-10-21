@@ -13,6 +13,7 @@ import { VIA_ADMINISTRACAO_OPTIONS, viaAdministracaoLabel } from '../utils/viaAd
 import { parseMoneyInput, moneyToInputValue } from '../utils/money';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { spacing, fontSize } from '../styles/theme';
+import { useDiscardGuard } from '../hooks/useDiscardGuard';
 
 export interface PrescricaoFormValues {
   medicamento: string;
@@ -95,6 +96,10 @@ export function PrescricaoForm({
     moneyToInputValue(initialValues?.valorMedicamento)
   );
   const [validationError, setValidationError] = useState('');
+  const markSubmitted = useDiscardGuard(
+    { medicamento, dosagem, frequencia, viaAdministracao, dataInicio, dataFim, instrucoes, valorMedicamentoInput },
+    { submitting: isSubmitting }
+  );
 
   const handleSubmit = () => {
     setValidationError('');
@@ -126,6 +131,7 @@ export function PrescricaoForm({
       return;
     }
 
+    markSubmitted();
     onSubmit({
       medicamento: medicamento.trim(),
       dosagem: dosagem.trim(),

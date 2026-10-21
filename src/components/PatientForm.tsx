@@ -11,6 +11,7 @@ import { useEspecies, useRacas } from '../hooks/useLookups';
 import { parseISODate, toISODateString } from '../utils/localeFormat';
 import type { AnimalRequestInput } from '../services/patientService';
 import { spacing, fontSize } from '../styles/theme';
+import { useDiscardGuard } from '../hooks/useDiscardGuard';
 
 export interface PatientFormValues {
   nome: string;
@@ -76,6 +77,7 @@ export function PatientForm({
     initialValues?.dataNascimento ? parseISODate(initialValues.dataNascimento) : null
   );
   const [validationError, setValidationError] = useState('');
+  const markSubmitted = useDiscardGuard({ nome, especieId, racaId, sexo, castrado, dataNascimento }, { submitting });
   const [breedModalOpen, setBreedModalOpen] = useState(false);
 
   const [especieSearch, setEspecieSearch] = useState('');
@@ -136,6 +138,7 @@ export function PatientForm({
       return;
     }
 
+    markSubmitted();
     onSubmit({
       nome: nome.trim(),
       especieId,

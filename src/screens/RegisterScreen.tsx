@@ -368,7 +368,7 @@ export function RegisterScreen() {
     <AuthLayout panelHeight={0.22}>
       {registeredEmail ? (
         <>
-          <Text style={[styles.title, { color: colors.ink }]}>
+          <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>
             {registeredRole === 'VETERINARIO' ? t('register.successTitle') : t('registerResponsavel.successTitle')}
           </Text>
           {registeredRole === 'VETERINARIO' ? (
@@ -389,7 +389,7 @@ export function RegisterScreen() {
         </>
       ) : (
         <>
-          <Text style={[styles.title, { color: colors.ink }]}>{t('register.unifiedTitle')}</Text>
+          <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('register.unifiedTitle')}</Text>
 
           <SegmentedControl
             label={t('register.roleSectionLabel')}
@@ -405,6 +405,8 @@ export function RegisterScreen() {
             <>
               <AppInput
                 label={t('register.nomeLabel')}
+                autoComplete="name"
+                textContentType="name"
                 placeholder={t('register.nomePlaceholder')}
                 value={vetNome}
                 onChangeText={(value) =>
@@ -432,6 +434,8 @@ export function RegisterScreen() {
 
               <AppInput
                 label={t('register.emailLabel')}
+                autoComplete="email"
+                textContentType="emailAddress"
                 placeholder={t('register.emailPlaceholder')}
                 value={vetEmail}
                 onChangeText={(value) =>
@@ -447,6 +451,8 @@ export function RegisterScreen() {
 
               <AppInput
                 label={t('registerResponsavel.senhaLabel')}
+                autoComplete="new-password"
+                textContentType="newPassword"
                 placeholder={t('registerResponsavel.senhaPlaceholder')}
                 value={vetSenha}
                 onChangeText={(value) =>
@@ -467,6 +473,8 @@ export function RegisterScreen() {
 
               <AppInput
                 label={t('registerResponsavel.confirmarSenhaLabel')}
+                autoComplete="new-password"
+                textContentType="newPassword"
                 placeholder={t('registerResponsavel.confirmarSenhaPlaceholder')}
                 value={vetConfirmarSenha}
                 onChangeText={(value) =>
@@ -499,6 +507,8 @@ export function RegisterScreen() {
             <>
               <AppInput
                 label={t('registerResponsavel.nomeLabel')}
+                autoComplete="name"
+                textContentType="name"
                 placeholder={t('registerResponsavel.nomePlaceholder')}
                 value={resNome}
                 onChangeText={(value) =>
@@ -545,6 +555,8 @@ export function RegisterScreen() {
 
               <AppInput
                 label={t('registerResponsavel.emailLabel')}
+                autoComplete="email"
+                textContentType="emailAddress"
                 placeholder={t('registerResponsavel.emailPlaceholder')}
                 value={resEmail}
                 onChangeText={(value) =>
@@ -560,6 +572,8 @@ export function RegisterScreen() {
 
               <AppInput
                 label={t('registerResponsavel.telefoneLabel')}
+                autoComplete="tel"
+                textContentType="telephoneNumber"
                 placeholder={t('registerResponsavel.telefonePlaceholder')}
                 value={telefoneInput}
                 onChangeText={handleTelefoneChange}
@@ -571,6 +585,8 @@ export function RegisterScreen() {
 
               <AppInput
                 label={t('registerResponsavel.senhaLabel')}
+                autoComplete="new-password"
+                textContentType="newPassword"
                 placeholder={t('registerResponsavel.senhaPlaceholder')}
                 value={senha}
                 onChangeText={(value) =>
@@ -585,6 +601,8 @@ export function RegisterScreen() {
 
               <AppInput
                 label={t('registerResponsavel.confirmarSenhaLabel')}
+                autoComplete="new-password"
+                textContentType="newPassword"
                 placeholder={t('registerResponsavel.confirmarSenhaPlaceholder')}
                 value={confirmarSenha}
                 onChangeText={(value) =>

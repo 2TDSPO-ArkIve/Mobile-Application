@@ -9,6 +9,7 @@ import type { FinalizarConsultaRequest, Severidade } from '../services/consultaS
 import { spacing, fontSize, font, radius } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 import { focusRing, isActive, type InteractionState } from '../styles/interaction';
+import { useDiscardGuard } from '../hooks/useDiscardGuard';
 
 /**
  * V19 — `AUSENTE` is now a real, explicit `Severidade` value Java accepts
@@ -49,6 +50,7 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
   const [severidade, setSeveridade] = useState<Severidade | null>(null);
   const [conclusao, setConclusao] = useState('');
   const [validationError, setValidationError] = useState('');
+  const markSubmitted = useDiscardGuard({ diagnostico, severidade, conclusao }, { submitting: isSubmitting });
 
   /**
    * Chunk 4 — a routine visit with no disease found must be finishable
@@ -68,6 +70,7 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
       return;
     }
 
+    markSubmitted();
     onSubmit({
       diagnostico: diagnostico.trim(),
       // `severidade === null` ("not selected") stays `undefined` (Java
@@ -85,7 +88,7 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
       <Text style={[styles.intro, { color: colors.inkSecondary }]}>{t('conclusion.intro')}</Text>
 
       <View style={styles.section}>
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
           {t('conclusion.diagnosisLabel')}
         </Text>
         <AppInput
@@ -115,7 +118,7 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
       </View>
 
       <View style={styles.section}>
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
           {t('conclusion.severityLabel')}
         </Text>
         <SegmentedControl
@@ -127,7 +130,7 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
       </View>
 
       <View style={styles.section}>
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
           {t('conclusion.conclusionLabel')}
         </Text>
         <AppInput

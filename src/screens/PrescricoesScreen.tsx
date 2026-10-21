@@ -19,6 +19,8 @@ import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { commonStyles } from '../styles/common';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, layout } from '../styles/theme';
+import { LoadingState } from '../components/LoadingState';
+import { describeLoadError } from '../utils/errorMessages';
 
 /** Real prescription list — GET /api/prescricoes?consultaId=X via TanStack Query, no mock fallback. */
 export function PrescricoesScreen() {
@@ -30,7 +32,7 @@ export function PrescricoesScreen() {
   const { consultaId } = route.params;
 
   const { data: consulta } = useConsulta(consultaId);
-  const { data, isPending, isError, error } = usePrescricoesByConsulta(consultaId);
+  const { data, isPending, isError, error, refetch } = usePrescricoesByConsulta(consultaId);
   // Independent of the prescription list above — the owner-document section
   // is gated purely on consultation status, never on prescription count (a
   // finalized consultation with zero prescriptions is still a valid PDF).
@@ -63,7 +65,7 @@ export function PrescricoesScreen() {
         }
       />
 
-      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
+      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined} onRefresh={refetch}>
         {consulta ? (
           <>
             <Text style={[styles.context, { color: colors.inkSecondary }]}>
@@ -94,13 +96,14 @@ export function PrescricoesScreen() {
         ) : null}
 
         {isPending ? (
-          <Text style={{ color: colors.inkSecondary, textAlign: 'center' }}>
-            {t('prescricoesList.loading')}
-          </Text>
+          <LoadingState message={t('prescricoesList.loading')} />
         ) : isError ? (
           <EmptyState
+            tone="error"
             title={t('prescricoesList.loadErrorTitle')}
-            message={error instanceof Error ? error.message : t('prescricoesList.genericServerError')}
+            message={describeLoadError(error)}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetch()}
           />
         ) : !data || data.length === 0 ? (
           <EmptyState title={t('prescricoesList.emptyTitle')} message={t('prescricoesList.emptyMessage')} />
@@ -126,7 +129,7 @@ export function PrescricoesScreen() {
 
         {isFinalizada ? (
           <View style={[styles.pdfSection, { borderTopColor: colors.line }]}>
-            <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.xs }]}>
+            <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.xs }]}>
               {t('consultaPdf.sectionTitle')}
             </Text>
             <Text style={[styles.pdfHelper, { color: colors.inkSecondary }]}>

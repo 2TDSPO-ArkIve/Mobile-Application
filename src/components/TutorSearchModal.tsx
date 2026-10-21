@@ -6,6 +6,7 @@ import { useTranslation } from '../i18n/useTranslation';
 import { useSearchResponsaveis } from '../hooks/useTutores';
 import type { ResponsavelLookupDto } from '../services/responsavelService';
 import { spacing, radius, fontSize, font } from '../styles/theme';
+import { LoadingState } from './LoadingState';
 
 const SEARCH_DEBOUNCE_MS = 300;
 const MIN_QUERY_LENGTH = 2;
@@ -53,7 +54,7 @@ export function TutorSearchModal({ visible, onClose, onSelect }: Props) {
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <View style={[styles.header, { borderBottomColor: colors.line }]}>
-          <Text style={[styles.title, { color: colors.ink }]}>{t('tutor.searchModalTitle')}</Text>
+          <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('tutor.searchModalTitle')}</Text>
           <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={t('common.close')}>
             <Text style={{ color: colors.accent, ...font('bold') }}>{t('common.close')}</Text>
           </Pressable>
@@ -65,7 +66,7 @@ export function TutorSearchModal({ visible, onClose, onSelect }: Props) {
           {trimmed.length < MIN_QUERY_LENGTH ? (
             <Text style={{ color: colors.inkSecondary }}>{t('tutor.searchMinLength')}</Text>
           ) : isPending || isFetching ? (
-            <Text style={{ color: colors.inkSecondary }}>{t('tutor.searchLoading')}</Text>
+            <LoadingState message={t('tutor.searchLoading')} />
           ) : data && data.length > 0 ? (
             <ScrollView>
               {data.map((tutor) => (

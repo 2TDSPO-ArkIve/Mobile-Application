@@ -111,7 +111,7 @@ export function SettingsScreen() {
       <AppHeader title={t('settings.title')} />
 
       <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
-        <Text style={[styles.section, { color: colors.ink }]}>{t('settings.appearanceSection')}</Text>
+        <Text accessibilityRole="header" style={[styles.section, { color: colors.ink }]}>{t('settings.appearanceSection')}</Text>
         <SegmentedControl<ThemeMode>
           label={t('settings.theme')}
           options={[
@@ -123,7 +123,7 @@ export function SettingsScreen() {
           onChange={setMode}
         />
 
-        <Text style={[styles.section, { color: colors.ink }]}>{t('settings.notificationsSection')}</Text>
+        <Text accessibilityRole="header" style={[styles.section, { color: colors.ink }]}>{t('settings.notificationsSection')}</Text>
         <View style={rowStyle}>
           <Text style={{ color: colors.ink }}>{t('settings.push')}</Text>
           <Switch
@@ -170,7 +170,7 @@ export function SettingsScreen() {
           {t('settings.emailHelper')}
         </Text>
 
-        <Text style={[styles.section, { color: colors.ink }]}>{t('settings.languageSection')}</Text>
+        <Text accessibilityRole="header" style={[styles.section, { color: colors.ink }]}>{t('settings.languageSection')}</Text>
         <Text style={[styles.fieldLabel, { color: colors.inkSecondary }]}>
           {t('settings.languageHelper')}
         </Text>
@@ -185,7 +185,7 @@ export function SettingsScreen() {
             would be meaningless (and unreachable) for that role. */}
         {isVeterinario ? (
           <>
-            <Text style={[styles.section, { color: colors.ink }]}>{t('settings.aiSection')}</Text>
+            <Text accessibilityRole="header" style={[styles.section, { color: colors.ink }]}>{t('settings.aiSection')}</Text>
             <AppCard style={styles.group}>
               <ListRow
                 icon="sparkles-outline"
@@ -197,7 +197,7 @@ export function SettingsScreen() {
           </>
         ) : null}
 
-        <Text style={[styles.section, { color: colors.ink }]}>{t('settings.infoSection')}</Text>
+        <Text accessibilityRole="header" style={[styles.section, { color: colors.ink }]}>{t('settings.infoSection')}</Text>
         <View style={styles.infoBox}>
           <Text style={{ color: colors.ink, ...font('bold') }}>{t('common.appName')}</Text>
           <Text style={{ color: colors.inkSecondary }}>{t('settings.version')}</Text>

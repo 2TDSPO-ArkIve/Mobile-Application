@@ -13,13 +13,14 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { usePatient } from '../hooks/usePatients';
 import { useAnimalReports } from '../hooks/useAnimalReports';
-import { describeAnimalReportListError } from '../utils/errorMessages';
+import { describeAnimalReportListError, describeLoadError } from '../utils/errorMessages';
 import { formatDateTime } from '../utils/localeFormat';
 import { toDisplayDate } from '../utils/isoDate';
-import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AnimalReportDto } from '../services/animalReportService';
 import { spacing, fontSize, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
+import { ArkiveIdField } from '../components/ArkiveIdField';
 
 const SEARCH_DEBOUNCE_MS = 300;
 /** A report text past this length gets a "Ver mais" toggle instead of always rendering in full — short reports (the common case: "vomitou de madrugada") never show a pointless toggle. */
@@ -144,9 +145,7 @@ export function AnimalReportsScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('animalReports.title')} />
-        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-          {t('animalReports.loadingPatient')}
-        </Text>
+        <LoadingState message={t('animalReports.loadingPatient')} />
       </View>
     );
   }
@@ -157,10 +156,12 @@ export function AnimalReportsScreen() {
         <AppHeader title={t('animalReports.title')} />
         <ScreenContainer>
           <EmptyState
+            tone="error"
             title={t('animalReports.loadErrorTitle')}
-            message={patientError instanceof Error ? patientError.message : t('patientDetail.notFound')}
+            message={describeLoadError(patientError, t('patientDetail.notFound'))}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetchPatient()}
           />
-          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetchPatient()} />
         </ScreenContainer>
       </View>
     );
@@ -169,11 +170,9 @@ export function AnimalReportsScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={patient.nome} />
-      <ScreenContainer>
-        <Text style={[styles.arkiveIdSubtitle, { color: colors.inkSecondary }]} selectable>
-          {patientArkiveIdLine(patient)}
-        </Text>
-        <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
+      <ScreenContainer onRefresh={refetchReports}>
+        <ArkiveIdField arkivePatientId={patient.arkivePatientId} style={styles.arkiveIdField} />
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
           {t('animalReports.title')}
         </Text>
 
@@ -200,15 +199,15 @@ export function AnimalReportsScreen() {
         {reportsIsError ? (
           <>
             <EmptyState
+              tone="error"
               title={t('animalReports.loadErrorTitle')}
               message={describeAnimalReportListError(reportsError)}
+              actionLabel={t('common.tryAgain')}
+              onAction={() => refetchReports()}
             />
-            <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetchReports()} />
           </>
         ) : reportsPending ? (
-          <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.lg }}>
-            {t('animalReports.loading')}
-          </Text>
+          <LoadingState message={t('animalReports.loading')} />
         ) : reports.length === 0 ? (
           <EmptyState
             title={hasSearch ? t('animalReports.emptySearchTitle') : t('animalReports.emptyTitle')}
@@ -244,7 +243,7 @@ export function AnimalReportsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  arkiveIdSubtitle: { fontSize: fontSize.xs, ...commonStyles.arkiveId, textAlign: 'center', marginBottom: spacing.sm },
+  arkiveIdField: { marginTop: 0, marginBottom: spacing.md },
   addButton: { marginBottom: spacing.md },
   resultsCount: { fontSize: fontSize.xs, marginBottom: spacing.sm },
   reportCard: { marginBottom: spacing.sm },

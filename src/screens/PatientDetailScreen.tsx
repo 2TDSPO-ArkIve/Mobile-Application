@@ -20,6 +20,8 @@ import { formatAge } from '../utils/localeFormat';
 import { patientSummaryLine } from '../utils/patientDisplay';
 import { spacing, fontSize, font, layout } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
+import { describeLoadError } from '../utils/errorMessages';
 
 /**
  * Shared read-only patient display, mounted from TWO different navigators —
@@ -69,9 +71,7 @@ export function PatientDetailScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('patientDetail.title')} />
-        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-          {t('patientDetail.loading')}
-        </Text>
+        <LoadingState message={t('patientDetail.loading')} />
       </View>
     );
   }
@@ -82,10 +82,12 @@ export function PatientDetailScreen() {
         <AppHeader title={t('patientDetail.title')} />
         <ScreenContainer>
           <EmptyState
+            tone="error"
             title={t('patientDetail.loadErrorTitle')}
-            message={error instanceof Error ? error.message : t('patientDetail.notFound')}
+            message={describeLoadError(error, t('patientDetail.notFound'))}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetch()}
           />
-          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
         </ScreenContainer>
       </View>
     );
@@ -107,7 +109,7 @@ export function PatientDetailScreen() {
         </View>
 
         <AppCard>
-          <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
+          <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
             {t('patientDetail.dataSection')}
           </Text>
           <View style={styles.fields}>
@@ -155,7 +157,7 @@ export function PatientDetailScreen() {
           />
         ) : null}
 
-        <Text style={[commonStyles.eyebrow, styles.groupLabel, { color: colors.inkSecondary }]}>
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.groupLabel, { color: colors.inkSecondary }]}>
           {t('patientDetail.clinicalGroup')}
         </Text>
         <AppCard style={styles.group}>
@@ -194,7 +196,7 @@ export function PatientDetailScreen() {
         {/* Both VETERINARIO and RESPONSAVEL may share a patient they
             legitimately have access to — confirmed against
             `ClinicalAccessService.exigirCriacaoCompartilhamentoAnimal`. */}
-        <Text style={[commonStyles.eyebrow, styles.groupLabel, { color: colors.inkSecondary }]}>
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.groupLabel, { color: colors.inkSecondary }]}>
           {t('patientDetail.shareGroup')}
         </Text>
         <AppCard style={styles.group}>

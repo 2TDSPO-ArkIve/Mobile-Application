@@ -69,6 +69,8 @@ export function PasswordChangeForm({ submitLabel, submittingLabel, onSuccess, on
     <View>
       <AppInput
         label={t('changePassword.newPasswordLabel')}
+        autoComplete="new-password"
+        textContentType="newPassword"
         placeholder={t('changePassword.newPasswordPlaceholder')}
         value={newPassword}
         onChangeText={setNewPassword}
@@ -79,6 +81,8 @@ export function PasswordChangeForm({ submitLabel, submittingLabel, onSuccess, on
 
       <AppInput
         label={t('changePassword.confirmPasswordLabel')}
+        autoComplete="new-password"
+        textContentType="newPassword"
         placeholder={t('changePassword.confirmPasswordPlaceholder')}
         value={confirmPassword}
         onChangeText={setConfirmPassword}

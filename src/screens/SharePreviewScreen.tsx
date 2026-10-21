@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Alert, Platform, StyleSheet } from 'react-native';
+import { View, Text, Platform, StyleSheet } from 'react-native';
+import { notify } from '../utils/dialog';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
@@ -18,6 +19,7 @@ import { formatDateTime } from '../utils/localeFormat';
 import type { PatientShareStatus } from '../services/shareService';
 import type { TranslationKey } from '../i18n/store';
 import { spacing, fontSize, font, layout } from '../styles/theme';
+import { LoadingState } from '../components/LoadingState';
 
 /**
  * Reused across THREE navigators (unauthenticated `AuthStack`, VETERINARIO
@@ -80,9 +82,9 @@ export function SharePreviewScreen() {
   /**
    * Navigation must NOT depend on an Alert button's `onPress` —
    * `react-native-web`'s `Alert.alert` is a no-op (it never shows anything
-   * and never invokes a button callback). `Alert.alert` is still called here
-   * as fire-and-forget feedback (a real modal on native, nothing on web) —
-   * it neither blocks nor gates the reset below.
+   * and never invokes a button callback). `notify` is called here as
+   * fire-and-forget feedback (Alert on native, the browser dialog on web)
+   * after the reset, so it never gates it.
    *
    * Product decision: after a successful redeem, leave the sharing flow
    * entirely and land on the role's own patient list — NOT on
@@ -123,7 +125,7 @@ export function SharePreviewScreen() {
       } else {
         navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'MeusAnimais' }] }));
       }
-      Alert.alert(t('sharePreview.redeemSuccessTitle'), t('sharePreview.redeemSuccessMessage'));
+      notify(t('sharePreview.redeemSuccessTitle'), t('sharePreview.redeemSuccessMessage'), t('common.done'));
     } catch (err) {
       setRedeemError(describeRedeemShareError(err));
     }
@@ -175,9 +177,7 @@ export function SharePreviewScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('sharePreview.title')} />
-        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-          {t('sharePreview.loading')}
-        </Text>
+        <LoadingState message={t('sharePreview.loading')} />
       </View>
     );
   }

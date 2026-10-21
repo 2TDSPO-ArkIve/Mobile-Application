@@ -23,6 +23,7 @@ import { resolveNotificationDestination } from '../utils/notificationNavigation'
 import { describeNotificationsError } from '../utils/errorMessages';
 import { formatDateTime } from '../utils/localeFormat';
 import { spacing, fontSize, radius, font, iconSize, layout } from '../styles/theme';
+import { LoadingState } from '../components/LoadingState';
 
 /**
  * Chunk 5 — purely visual categorization, never a text substitute: the
@@ -170,7 +171,7 @@ export function NotificationsScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('notifications.title')} />
-      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
+      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined} onRefresh={refetch}>
         {hasUnread ? (
           <AppButton
             title={t('notifications.markAllRead')}
@@ -186,13 +187,16 @@ export function NotificationsScreen() {
         {actionError ? <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{actionError}</Text> : null}
 
         {isPending ? (
-          <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-            {t('notifications.loading')}
-          </Text>
+          <LoadingState message={t('notifications.loading')} />
         ) : isError ? (
           <>
-            <EmptyState title={t('notifications.loadErrorTitle')} message={describeNotificationsError(error)} />
-            <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
+            <EmptyState
+              tone="error"
+              title={t('notifications.loadErrorTitle')}
+              message={describeNotificationsError(error)}
+              actionLabel={t('common.tryAgain')}
+              onAction={() => refetch()}
+            />
           </>
         ) : !data || data.length === 0 ? (
           <EmptyState title={t('notifications.emptyTitle')} message={t('notifications.emptyMessage')} />

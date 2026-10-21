@@ -19,10 +19,11 @@ import { viaAdministracaoLabel } from '../utils/viaAdministracao';
 import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
 import { toDisplayDate } from '../utils/isoDate';
 import { describePatientHistoryError } from '../utils/errorMessages';
-import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AnimalHistoryConsultation, AnimalHistoryPrescription } from '../services/patientHistoryService';
 import { spacing, fontSize, font, layout, radius, iconSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
+import { ArkiveIdField } from '../components/ArkiveIdField';
 
 /**
  * Read-only longitudinal clinical timeline — reused by BOTH VETERINARIO
@@ -188,9 +189,7 @@ export function PatientHistoryScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('patientHistory.title')} />
-        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-          {t('patientHistory.loading')}
-        </Text>
+        <LoadingState message={t('patientHistory.loading')} />
       </View>
     );
   }
@@ -200,8 +199,13 @@ export function PatientHistoryScreen() {
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('patientHistory.title')} />
         <ScreenContainer>
-          <EmptyState title={t('patientHistory.loadErrorTitle')} message={describePatientHistoryError(error)} />
-          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
+          <EmptyState
+            tone="error"
+            title={t('patientHistory.loadErrorTitle')}
+            message={describePatientHistoryError(error)}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetch()}
+          />
         </ScreenContainer>
       </View>
     );
@@ -211,10 +215,8 @@ export function PatientHistoryScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={data.paciente.nome} />
       <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
-        <Text style={[styles.arkiveIdSubtitle, { color: colors.inkSecondary }]} selectable>
-          {patientArkiveIdLine(data.paciente)}
-        </Text>
-        <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
+        <ArkiveIdField arkivePatientId={data.paciente.arkivePatientId} style={styles.arkiveIdField} />
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
           {t('patientHistory.title')}
         </Text>
 
@@ -243,7 +245,7 @@ export function PatientHistoryScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  arkiveIdSubtitle: { fontSize: fontSize.xs, ...commonStyles.arkiveId, textAlign: 'center', marginBottom: spacing.sm },
+  arkiveIdField: { marginTop: 0, marginBottom: spacing.md },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   dateText: { flex: 1, fontSize: fontSize.md, ...font('bold') },
   meta: { marginTop: spacing.sm, gap: spacing.xs },

@@ -3,6 +3,8 @@ import { Pressable, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { NotificationBadge } from './NotificationBadge';
+import { radius } from '../styles/theme';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 const ICON_SIZE = 22;
 const TOUCH_TARGET = 44;
@@ -37,8 +39,13 @@ export function HeaderIconButton({ icon, onPress, accessibilityLabel, disabled, 
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled: !!disabled, busy: !!loading }}
       hitSlop={8}
-      style={({ pressed }) => [styles.btn, pressed && !disabled ? { opacity: 0.6 } : null]}
+      style={(state: InteractionState) => [
+        styles.btn,
+        isActive(state) && !disabled && { backgroundColor: colors.sunken },
+        focusRing(state, colors),
+      ]}
     >
       {loading ? (
         <ActivityIndicator size="small" color={colors.ink} />
@@ -56,5 +63,6 @@ const styles = StyleSheet.create({
     height: TOUCH_TARGET,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: radius.md,
   },
 });
