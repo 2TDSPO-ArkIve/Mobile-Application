@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   NativeSyntheticEvent,
   StyleSheet,
@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { fontSize, radius, spacing } from '../styles/theme';
+import { noWebOutline } from '../styles/interaction';
 
 interface Props {
   value: string;
@@ -23,6 +24,7 @@ export function SearchBar({
   onSubmit,
 }: Props) {
   const colors = useThemeColors();
+  const [focused, setFocused] = useState(false);
 
   const handleSubmit = (
     _event: NativeSyntheticEvent<TextInputSubmitEditingEventData>
@@ -38,12 +40,16 @@ export function SearchBar({
         placeholder={placeholder}
         placeholderTextColor={colors.inkSecondary}
         returnKeyType="search"
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         onSubmitEditing={handleSubmit}
         style={[
           styles.input,
+          noWebOutline,
           {
             backgroundColor: colors.sunken,
-            borderColor: 'transparent',
+            // Same focus border as AppInput, now that the browser outline is gone.
+            borderColor: focused ? colors.ink : 'transparent',
             color: colors.ink,
           },
         ]}

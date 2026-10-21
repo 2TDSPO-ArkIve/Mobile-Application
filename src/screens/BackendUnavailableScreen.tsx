@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { EmptyState } from '../components/EmptyState';
 import { AppButton } from '../components/AppButton';
-import { confirmAction } from '../utils/dialog';
+import { ConfirmSheet } from '../components/ConfirmSheet';
 import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
@@ -35,15 +35,8 @@ export function BackendUnavailableScreen() {
   };
 
   // The way out when the server stays down or the saved credential is stale.
-  const handleLogout = () =>
-    confirmAction({
-      title: t('common.logoutConfirmTitle'),
-      message: t('common.logoutConfirmMessage'),
-      cancelText: t('common.cancel'),
-      confirmText: t('common.logoutConfirmButton'),
-      destructive: true,
-      onConfirm: () => logout(),
-    });
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const handleLogout = () => setConfirmVisible(true);
 
   // A cold start takes tens of seconds; keep knocking so the person doesn't have to.
   useEffect(() => {
@@ -72,6 +65,18 @@ export function BackendUnavailableScreen() {
           />
         </View>
       </ScreenContainer>
+      <ConfirmSheet
+        visible={confirmVisible}
+        title={t('common.logoutConfirmTitle')}
+        message={t('common.logoutConfirmMessage')}
+        confirmText={t('common.logoutConfirmButton')}
+        destructive
+        onConfirm={() => {
+          setConfirmVisible(false);
+          logout();
+        }}
+        onClose={() => setConfirmVisible(false)}
+      />
     </View>
   );
 }

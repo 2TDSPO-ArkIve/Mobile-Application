@@ -28,12 +28,12 @@ export const linking: LinkingOptions<RootStackParamList> = {
     screens: {
       Auth: {
         screens: {
-          Login: { path: 'entrar', stringify: hidden },
+          Login: { path: 'login', stringify: hidden },
           Cadastro: 'cadastro',
           CadastroResponsavel: 'cadastro/responsavel',
           // Paths must be unique across stacks, so the signed-out copies of these screens get their own.
-          ConvitePaciente: 'entrar/convite',
-          EscanearConvite: 'entrar/escanear',
+          ConvitePaciente: 'login/convite',
+          EscanearConvite: 'login/escanear',
         },
       },
       PasswordChange: 'trocar-senha',

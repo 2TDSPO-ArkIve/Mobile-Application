@@ -5,7 +5,7 @@ import { useTranslation } from '../i18n/useTranslation';
 import { spacing, radius, fontSize, iconSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 import { Ionicons } from '@expo/vector-icons';
-import { focusRing, type InteractionState } from '../styles/interaction';
+import { focusRing, noWebOutline, type InteractionState } from '../styles/interaction';
 
 interface Props extends TextInputProps {
   /** React 19 passes `ref` as a plain prop; it lands on the TextInput (focus chaining with "Next"). */
@@ -73,6 +73,7 @@ export function AppInput({
           secureTextEntry={secureTextEntry && !revealed}
           style={[
             styles.input,
+            noWebOutline,
             {
               backgroundColor: colors.sunken,
               borderColor,

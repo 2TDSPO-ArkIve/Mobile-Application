@@ -21,3 +21,6 @@ export function focusRing({ focused }: InteractionState, colors: ColorPalette): 
 export function isActive({ pressed, hovered }: InteractionState) {
   return pressed || !!hovered;
 }
+
+/** Drops the browser's own outline on a focused `<input>`; the field draws its focus as an `ink` border instead. */
+export const noWebOutline = Platform.OS === 'web' ? ({ outlineStyle: 'none' } as unknown as ViewStyle) : null;

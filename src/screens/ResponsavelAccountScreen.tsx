@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -14,7 +14,7 @@ import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import type { ResponsavelAppStackParamList } from '../interfaces/navigation';
 import { layout } from '../styles/theme';
-import { confirmAction } from '../utils/dialog';
+import { ConfirmSheet } from '../components/ConfirmSheet';
 
 /**
  * The RESPONSAVEL counterpart to `ProfileScreen` — deliberately not a shared
@@ -36,15 +36,8 @@ export function ResponsavelAccountScreen() {
     useNavigation<NativeStackNavigationProp<ResponsavelAppStackParamList>>();
 
   // Same confirmation as the mandatory password-change screen's sign-out.
-  const handleLogout = () =>
-    confirmAction({
-      title: t('common.logoutConfirmTitle'),
-      message: t('common.logoutConfirmMessage'),
-      cancelText: t('common.cancel'),
-      confirmText: t('common.logoutConfirmButton'),
-      destructive: true,
-      onConfirm: () => logout(),
-    });
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const handleLogout = () => setConfirmVisible(true);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -92,6 +85,18 @@ export function ResponsavelAccountScreen() {
           style={accountStyles.logout}
         />
       </ScreenContainer>
+      <ConfirmSheet
+        visible={confirmVisible}
+        title={t('common.logoutConfirmTitle')}
+        message={t('common.logoutConfirmMessage')}
+        confirmText={t('common.logoutConfirmButton')}
+        destructive
+        onConfirm={() => {
+          setConfirmVisible(false);
+          logout();
+        }}
+        onClose={() => setConfirmVisible(false)}
+      />
     </View>
   );
 }

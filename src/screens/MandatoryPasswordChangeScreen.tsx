@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { confirmAction } from '../utils/dialog';
+import { ConfirmSheet } from '../components/ConfirmSheet';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { AppButton } from '../components/AppButton';
@@ -25,16 +25,8 @@ export function MandatoryPasswordChangeScreen() {
   const { logout } = useAuth();
   const [submitting, setSubmitting] = useState(false);
 
-  const handleCancel = () => {
-    confirmAction({
-      title: t('changePassword.cancelConfirmTitle'),
-      message: t('changePassword.cancelConfirmMessage'),
-      cancelText: t('common.cancel'),
-      confirmText: t('changePassword.cancelButton'),
-      destructive: true,
-      onConfirm: () => logout(),
-    });
-  };
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const handleCancel = () => setConfirmVisible(true);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -61,6 +53,18 @@ export function MandatoryPasswordChangeScreen() {
           style={styles.logout}
         />
       </ScreenContainer>
+      <ConfirmSheet
+        visible={confirmVisible}
+        title={t('changePassword.cancelConfirmTitle')}
+        message={t('changePassword.cancelConfirmMessage')}
+        confirmText={t('changePassword.cancelButton')}
+        destructive
+        onConfirm={() => {
+          setConfirmVisible(false);
+          logout();
+        }}
+        onClose={() => setConfirmVisible(false)}
+      />
     </View>
   );
 }
