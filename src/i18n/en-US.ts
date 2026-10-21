@@ -976,6 +976,18 @@ export const en = {
     EP: 'In the appointment',
     AP: 'Under veterinary review',
   },
+  responsavelConsultas: {
+    title: 'Visits',
+    inProgressSection: 'In progress',
+    tabScheduled: 'Scheduled',
+    tabFinished: 'Finished',
+    loading: 'Loading visits...',
+    emptyScheduledTitle: 'No scheduled visits',
+    emptyScheduledMessage: 'When the veterinarian schedules a visit for one of your animals, it shows up here.',
+    emptyFinishedTitle: 'No finished visits',
+    emptyFinishedMessage: "Your animals' completed visits show up here.",
+    loadErrorTitle: "Couldn't load visits",
+  },
   consultaStatus: {
     AG: 'Scheduled',
     EP: 'In Progress',

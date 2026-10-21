@@ -54,6 +54,7 @@ export const linking: LinkingOptions<RootStackParamList> = {
           CriarConsulta: { path: 'consultas/nova', stringify: hidden },
           NovoPaciente: 'pacientes/novo',
           MeusAnimais: 'animais',
+          ConsultasResponsavel: 'animais/consultas',
           CadastrarAnimal: 'animais/novo',
           PacienteDetalhe: { path: 'pacientes/:patientId', parse: id },
           EditarPaciente: { path: 'pacientes/:patientId/editar', parse: id },

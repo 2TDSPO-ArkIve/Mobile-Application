@@ -4,6 +4,7 @@ import { TabBar } from './BottomTabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { ResponsavelAppStackParamList } from '../interfaces/navigation';
 import { MeusAnimaisScreen } from '../screens/MeusAnimaisScreen';
+import { ResponsavelConsultasScreen } from '../screens/ResponsavelConsultasScreen';
 import { NewAnimalScreen } from '../screens/NewAnimalScreen';
 import { EditAnimalScreen } from '../screens/EditAnimalScreen';
 import { PatientDetailScreen } from '../screens/PatientDetailScreen';
@@ -28,7 +29,7 @@ import { useTranslation } from '../i18n/useTranslation';
 
 const Stack = createNativeStackNavigator<ResponsavelAppStackParamList>();
 
-type Section = 'MeusAnimais' | 'BuscarPacienteArkive' | 'SolicitacoesAcessoRecebidas' | 'MinhaConta';
+type Section = 'MeusAnimais' | 'ConsultasResponsavel' | 'BuscarPacienteArkive' | 'SolicitacoesAcessoRecebidas' | 'MinhaConta';
 
 /** Sidebar item that stays active on each stacked screen; unlisted routes are their own section. */
 const SECTION: Partial<Record<keyof ResponsavelAppStackParamList, Section>> = {
@@ -76,6 +77,7 @@ function TutorSidebarLayout({
 
   const items: (SidebarItem & { tabLabel: string })[] = [
     { key: 'MeusAnimais', label: t('myAnimals.title'), tabLabel: t('myAnimals.title'), icon: { active: 'paw', inactive: 'paw-outline' }, onPress: go('MeusAnimais') },
+    { key: 'ConsultasResponsavel', label: t('responsavelConsultas.title'), tabLabel: t('nav.consultas'), icon: { active: 'calendar', inactive: 'calendar-outline' }, onPress: go('ConsultasResponsavel') },
     { key: 'BuscarPacienteArkive', label: t('arkiveLookup.title'), tabLabel: t('nav.buscar'), icon: { active: 'search', inactive: 'search-outline' }, onPress: go('BuscarPacienteArkive') },
     { key: 'SolicitacoesAcessoRecebidas', label: t('accessRequestsReceived.title'), tabLabel: t('nav.solicitacoes'), icon: { active: 'person-add', inactive: 'person-add-outline' }, onPress: go('SolicitacoesAcessoRecebidas') },
   ];
@@ -133,6 +135,7 @@ export function ResponsavelAppStack() {
       }}
     >
       <Stack.Screen name="MeusAnimais" component={MeusAnimaisScreen} />
+      <Stack.Screen name="ConsultasResponsavel" component={ResponsavelConsultasScreen} />
       <Stack.Screen name="CadastrarAnimal" component={NewAnimalScreen} />
       <Stack.Screen name="EditarAnimal" component={EditAnimalScreen} />
       <Stack.Screen name="PacienteDetalhe" component={PatientDetailScreen} />

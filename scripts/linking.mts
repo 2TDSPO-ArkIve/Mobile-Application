@@ -32,6 +32,7 @@ check('the preselected animal stays out of the URL', getPathFromState({ routes: 
 const login = nest('Auth', 'Login');
 login[0].state!.routes[0].params = { prefillIdentifier: 'a@b.c' };
 check('the prefilled e-mail stays out of the URL', getPathFromState({ routes: login }, config) === '/login');
+check('the owner visits list is not an animal id', leaf(getStateFromPath('/animais/consultas', config)).name === 'ConsultasResponsavel');
 check('tabs have their own paths', getPathFromState({ routes: nest('App', 'MainTabs', 'Consultas') }, config) === '/consultas');
 
 for (const [label, ok] of cases) console.log(`${ok ? 'ok  ' : 'FAIL'} ${label}`);

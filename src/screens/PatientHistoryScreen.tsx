@@ -13,7 +13,7 @@ import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { usePatientHistory } from '../hooks/usePatients';
 import { usePatientHistoryPdf } from '../hooks/usePatientHistoryPdf';
-import { consultaStatusPresentation } from '../utils/statusPresentation';
+import { consultaStatusPresentation, responsavelStatusLabel } from '../utils/statusPresentation';
 import { useAuth } from '../hooks/useAuth';
 import { severidadeLabel } from '../utils/severidade';
 import { viaAdministracaoLabel } from '../utils/viaAdministracao';
@@ -92,11 +92,9 @@ function ConsultationCard({ consulta }: { consulta: AnimalHistoryConsultation })
   const modalidadeLabel = consulta.modalidade === 'PRESENCIAL' ? t('home.presencial') : t('home.remota');
   const tone = consultaStatusPresentation(consulta.status).tone;
   const { isResponsavel } = useAuth();
-  // The clinic's EP/AP names mean nothing to an owner; they get what is happening instead.
-  const statusLabel =
-    isResponsavel && (consulta.status === 'EP' || consulta.status === 'AP')
-      ? t(`consultaStatusResponsavel.${consulta.status}`)
-      : consulta.statusDescricao;
+  const statusLabel = isResponsavel
+    ? responsavelStatusLabel(consulta.status, consulta.statusDescricao)
+    : consulta.statusDescricao;
 
   const vetLine = [
     consulta.veterinarioNome ? t('patientHistory.veterinarianLabel', { name: consulta.veterinarioNome }) : null,

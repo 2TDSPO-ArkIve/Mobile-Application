@@ -983,6 +983,18 @@ export const pt = {
     EP: 'Em atendimento',
     AP: 'Em avaliação do veterinário',
   },
+  responsavelConsultas: {
+    title: 'Consultas',
+    inProgressSection: 'Em andamento',
+    tabScheduled: 'Agendadas',
+    tabFinished: 'Finalizadas',
+    loading: 'Carregando consultas...',
+    emptyScheduledTitle: 'Nenhuma consulta agendada',
+    emptyScheduledMessage: 'Quando o veterinário agendar uma consulta para um dos seus animais, ela aparece aqui.',
+    emptyFinishedTitle: 'Nenhuma consulta finalizada',
+    emptyFinishedMessage: 'As consultas concluídas dos seus animais aparecem aqui.',
+    loadErrorTitle: 'Não foi possível carregar as consultas',
+  },
   consultaStatus: {
     AG: 'Agendada',
     EP: 'Em Progresso',

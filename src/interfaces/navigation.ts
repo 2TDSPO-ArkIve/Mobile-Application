@@ -50,6 +50,8 @@ export type BottomTabParamList = {
  */
 export type ResponsavelAppStackParamList = {
   MeusAnimais: undefined;
+  /** Visits across every linked animal (`GET /api/consultas`, Java-scoped to this Responsible) — read-only. */
+  ConsultasResponsavel: undefined;
   CadastrarAnimal: undefined;
   EditarAnimal: { patientId: number };
   PacienteDetalhe: { patientId: number };

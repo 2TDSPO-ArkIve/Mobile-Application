@@ -314,6 +314,8 @@ export interface ConsultaListFilters {
   arkivePatientId?: string;
   dataHoraInicio?: string;
   dataHoraFim?: string;
+  /** Spring `sort` param (e.g. `dataHora,asc`); defaults to `id,desc`. Part of the query key like every other filter. */
+  sort?: string;
 }
 
 /**
@@ -331,7 +333,7 @@ export async function listConsultasByStatus(
   params.set('status', status);
   params.set('page', String(page));
   params.set('size', String(LIST_PAGE_SIZE));
-  params.set('sort', 'id,desc');
+  params.set('sort', filters?.sort ?? 'id,desc');
   if (filters?.pacienteNome) params.set('pacienteNome', filters.pacienteNome);
   if (filters?.arkivePatientId) params.set('arkivePatientId', filters.arkivePatientId);
   if (filters?.dataHoraInicio) params.set('dataHoraInicio', filters.dataHoraInicio);
