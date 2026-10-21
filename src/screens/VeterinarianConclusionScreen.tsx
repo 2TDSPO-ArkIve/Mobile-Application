@@ -19,6 +19,7 @@ import { queryKeys } from '../query/queryKeys';
 import type { FinalizarConsultaRequest } from '../services/consultaService';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font, radius, iconSize, layout } from '../styles/theme';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 /**
  * Dedicated finalize-consultation screen (AP -> FI). Reuses
@@ -96,7 +97,11 @@ export function VeterinarianConclusionScreen() {
               onPress={() => setSupportOpen((open) => !open)}
               accessibilityRole="button"
               accessibilityState={{ expanded: supportOpen }}
-              style={[styles.summaryToggle, { backgroundColor: colors.aiTint }]}
+              style={(state: InteractionState) => [
+                styles.summaryToggle,
+                { backgroundColor: colors.aiTint, opacity: isActive(state) ? 0.85 : 1 },
+                focusRing(state, colors),
+              ]}
             >
               <Ionicons name="sparkles-outline" size={iconSize.md} color={colors.ai} />
               <View style={styles.summaryText}>

@@ -216,16 +216,7 @@ export function PatientHistoryScreen() {
       <AppHeader title={data.paciente.nome} />
       <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
         <ArkiveIdField arkivePatientId={data.paciente.arkivePatientId} style={styles.arkiveIdField} />
-        <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
-          {t('patientHistory.title')}
-        </Text>
-
-        {data.consultas.length === 0 ? (
-          <EmptyState title={t('patientHistory.emptyTitle')} message={t('patientHistory.emptyMessage')} />
-        ) : (
-          data.consultas.map((consulta, index) => <ConsultationCard key={index} consulta={consulta} />)
-        )}
-
+        {/* Export sits above the timeline: a long history otherwise hides it at the very end. */}
         {pdf.errorMessage ? (
           <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{pdf.errorMessage}</Text>
         ) : null}
@@ -238,6 +229,16 @@ export function PatientHistoryScreen() {
           disabled={pdf.isPending}
           style={styles.pdfButton}
         />
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
+          {t('patientHistory.title')}
+        </Text>
+
+        {data.consultas.length === 0 ? (
+          <EmptyState title={t('patientHistory.emptyTitle')} message={t('patientHistory.emptyMessage')} />
+        ) : (
+          data.consultas.map((consulta, index) => <ConsultationCard key={index} consulta={consulta} />)
+        )}
+
       </ScreenContainer>
     </View>
   );
@@ -263,5 +264,5 @@ const styles = StyleSheet.create({
   prescriptionName: { flex: 1, fontSize: fontSize.sm, ...font('semibold') },
   money: { fontSize: fontSize.sm, ...font('medium'), fontVariant: ['tabular-nums'] },
   prescriptionDetail: { fontSize: fontSize.xs, marginTop: 2 },
-  pdfButton: { marginTop: spacing.md },
+  pdfButton: { marginTop: 0, marginBottom: spacing.lg },
 });

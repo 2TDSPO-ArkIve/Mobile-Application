@@ -211,7 +211,7 @@ export function EditConsultaScreen() {
       <AppHeader title={t('editConsulta.title')} />
 
       <ScreenContainer>
-        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabelFirst, { color: colors.accent }]}>
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabelFirst, { color: colors.inkSecondary }]}>
           {t('newConsulta.patientSection')}
         </Text>
         <AppCard>
@@ -226,7 +226,7 @@ export function EditConsultaScreen() {
           </Text>
         </AppCard>
 
-        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
           {t('newConsulta.modalidadeSection')}
         </Text>
         <SegmentedControl
@@ -252,7 +252,7 @@ export function EditConsultaScreen() {
           </>
         ) : null}
 
-        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
           {t('newConsulta.dateTimeSection')}
         </Text>
         <View style={wide ? styles.dateTimeRow : null}>
@@ -281,7 +281,7 @@ export function EditConsultaScreen() {
           </View>
         </View>
 
-        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
           {t('newConsulta.reasonSection')}
         </Text>
         <AppInput
@@ -294,7 +294,7 @@ export function EditConsultaScreen() {
           multiline
         />
 
-        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
           {t('newConsulta.valueSection')}
           <Text style={[styles.optionalSuffix, { color: colors.inkSecondary }]}> · {t('common.optional')}</Text>
         </Text>
@@ -308,6 +308,12 @@ export function EditConsultaScreen() {
         />
 
         {formError ? <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{formError}</Text> : null}
+        {touched === ALL_TOUCHED && Object.keys(fieldErrors).length > 0 ? (
+          // After a failed save (touched is then ALL_TOUCHED): the button sits at the end of a long form, so point back up.
+          <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={{ color: colors.error, marginBottom: spacing.sm }}>
+            {t('common.reviewFieldsAbove')}
+          </Text>
+        ) : null}
 
         <AppButton
           title={t('editConsulta.submit')}

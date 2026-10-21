@@ -16,7 +16,7 @@ import { describeAccessRequestListError } from '../utils/errorMessages';
 import { formatDateTime } from '../utils/localeFormat';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AccessRequestDto } from '../services/patientAccessRequestService';
-import { spacing, fontSize, font } from '../styles/theme';
+import { spacing, fontSize, lineHeight, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 import { LoadingState } from '../components/LoadingState';
 
@@ -31,7 +31,7 @@ type RouteParamList = { SolicitacoesAcessoRecebidas: { focusRequestId?: number }
  * server-side), unlike the veterinarian's own view.
  *
  * `focusRequestId` (from a tapped `SOLICITACAO_ACESSO` notification) just
- * highlights the matching row with an accent border — the full, correctly-
+ * highlights the matching row with an ink border — the full, correctly-
  * scoped list is always fetched fresh via the normal list endpoint; there is
  * no separate single-request fetch (Java does have `GET /{id}`, but the list
  * already contains everything this Responsible may act on, so a second call
@@ -56,10 +56,10 @@ function AccessRequestRow({
   const isPending = request.status === 'PENDING';
 
   return (
-    <AppCard style={highlighted ? { borderColor: colors.accent, borderWidth: 2 } : undefined}>
+    <AppCard style={highlighted ? { borderColor: colors.ink, borderWidth: 1 } : undefined}>
       <View style={styles.headerRow}>
         <Text style={[styles.patientName, { color: colors.ink }]} numberOfLines={1}>
-          {request.animalNome ?? '—'}
+          {request.animalNome ?? t('common.notInformed')}
         </Text>
         <StatusBadge label={presentation.label} tone={presentation.tone} />
       </View>
@@ -81,6 +81,16 @@ function AccessRequestRow({
       {resolvedDate && !Number.isNaN(resolvedDate.getTime()) ? (
         <Text style={[styles.field, { color: colors.inkSecondary }]}>
           {t('accessRequestsReceived.resolvedAtLabel', { date: formatDateTime(resolvedDate) })}
+        </Text>
+      ) : null}
+
+      {/* animalNome is always set for this audience (see above); without it the sentence has no subject. */}
+      {isPending && request.animalNome ? (
+        <Text style={[styles.consequence, { color: colors.ink }]}>
+          {t('accessRequestsReceived.approveConsequence', {
+            name: request.veterinarioNome,
+            animal: request.animalNome,
+          })}
         </Text>
       ) : null}
 
@@ -111,18 +121,29 @@ export function AccessRequestsScreen() {
   // Chunk 8 — a tapped SOLICITACAO_ACESSO notification must actually surface
   // the specific request, not just land on the general list: the matching
   // row (if still present — it may have already been decided elsewhere) is
-  // moved to the top, in addition to the existing highlight border, so it's
-  // immediately visible without relying on scroll position. Order among the
-  // remaining rows is otherwise untouched.
-  const orderedData = useMemo(() => {
-    if (!data || focusRequestId == null) return data;
-    const index = data.findIndex((request) => request.id === focusRequestId);
-    if (index <= 0) return data;
-    const copy = data.slice();
-    const [focused] = copy.splice(index, 1);
-    copy.unshift(focused);
-    return copy;
+  // moved to the top of its group, in addition to the existing highlight
+  // border, so it's immediately visible without relying on scroll position.
+  // Requests still waiting for an answer come first, apart from the ones
+  // already answered; order within each group is otherwise untouched.
+  const { pending, answered } = useMemo(() => {
+    const ordered = (data ?? []).slice();
+    const index = focusRequestId == null ? -1 : ordered.findIndex((request) => request.id === focusRequestId);
+    if (index > 0) ordered.unshift(...ordered.splice(index, 1));
+    return {
+      pending: ordered.filter((request) => request.status === 'PENDING'),
+      answered: ordered.filter((request) => request.status !== 'PENDING'),
+    };
   }, [data, focusRequestId]);
+
+  const renderRow = (request: AccessRequestDto) => (
+    <AccessRequestRow
+      key={request.id}
+      request={request}
+      highlighted={focusRequestId === request.id}
+      onApprove={() => setDecisionTarget({ id: request.id, action: 'approve' })}
+      onReject={() => setDecisionTarget({ id: request.id, action: 'reject' })}
+    />
+  );
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -140,21 +161,32 @@ export function AccessRequestsScreen() {
               onAction={() => refetch()}
             />
           </>
-        ) : !orderedData || orderedData.length === 0 ? (
+        ) : pending.length === 0 && answered.length === 0 ? (
           <EmptyState
             title={t('accessRequestsReceived.emptyTitle')}
             message={t('accessRequestsReceived.emptyMessage')}
           />
         ) : (
-          orderedData.map((request) => (
-            <AccessRequestRow
-              key={request.id}
-              request={request}
-              highlighted={focusRequestId === request.id}
-              onApprove={() => setDecisionTarget({ id: request.id, action: 'approve' })}
-              onReject={() => setDecisionTarget({ id: request.id, action: 'reject' })}
-            />
-          ))
+          <>
+            <Text accessibilityRole="header" style={[commonStyles.sectionTitle, styles.firstSection, { color: colors.ink }]}>
+              {t('accessRequestsReceived.pendingSection')}
+            </Text>
+            {pending.length > 0 ? (
+              pending.map(renderRow)
+            ) : (
+              <Text style={[styles.noPending, { color: colors.inkSecondary }]}>
+                {t('accessRequestsReceived.noPending')}
+              </Text>
+            )}
+            {answered.length > 0 ? (
+              <>
+                <Text accessibilityRole="header" style={[commonStyles.sectionTitle, { color: colors.ink }]}>
+                  {t('accessRequestsReceived.answeredSection')}
+                </Text>
+                {answered.map(renderRow)}
+              </>
+            ) : null}
+          </>
         )}
       </ScreenContainer>
 
@@ -177,6 +209,9 @@ const styles = StyleSheet.create({
   patientName: { fontSize: fontSize.md, ...font('bold'), flexShrink: 1 },
   arkiveIdText: { fontSize: fontSize.xs, ...commonStyles.arkiveId, marginTop: 2, marginBottom: spacing.sm },
   field: { fontSize: fontSize.sm, marginTop: spacing.xs, fontVariant: ['tabular-nums'] },
+  consequence: { fontSize: fontSize.sm, lineHeight: fontSize.sm * lineHeight.body, marginTop: spacing.sm },
   actionsRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+  firstSection: { marginTop: 0 },
+  noPending: { fontSize: fontSize.sm, marginBottom: spacing.sm },
   actionButton: { flex: 1 },
 });

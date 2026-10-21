@@ -60,7 +60,10 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
    * and severity stays untouched/optional either way. This is a UI
    * convenience, never a fabricated medical finding.
    */
-  const handleQuickFill = (text: string) => setDiagnostico(text);
+  const handleQuickFill = (text: string) => {
+    setDiagnostico(text);
+    setValidationError('');
+  };
 
   const handleSubmit = () => {
     setValidationError('');
@@ -94,9 +97,14 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
         <AppInput
           placeholder={t('conclusion.diagnosisPlaceholder')}
           value={diagnostico}
-          onChangeText={setDiagnostico}
+          onChangeText={(value) => {
+            setDiagnostico(value);
+            if (value.trim()) setValidationError('');
+          }}
           editable={!isSubmitting}
           multiline
+          accessibilityLabel={t('conclusion.diagnosisLabel')}
+          error={validationError || undefined}
         />
         <View style={styles.quickFillRow}>
           {[t('conclusion.routineOption'), t('conclusion.noDiseaseOption')].map((option) => (
@@ -105,6 +113,7 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
               onPress={() => handleQuickFill(option)}
               disabled={isSubmitting}
               accessibilityRole="button"
+              hitSlop={CHIP_HIT_SLOP}
               style={(state: InteractionState) => [
                 styles.chip,
                 { backgroundColor: isActive(state) ? colors.line : colors.sunken },
@@ -144,8 +153,10 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
         />
       </View>
 
-      {validationError || errorMessage ? (
-        <Text style={[styles.error, { color: colors.error }]}>{validationError || errorMessage}</Text>
+      {errorMessage ? (
+        <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={[styles.error, { color: colors.error }]}>
+          {errorMessage}
+        </Text>
       ) : null}
 
       <AppButton
@@ -158,6 +169,9 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
     </View>
   );
 }
+
+/** Lifts the 36pt shortcut chips to a 44pt target; the wrap gap keeps rows apart. */
+const CHIP_HIT_SLOP = { top: 4, bottom: 4 };
 
 const styles = StyleSheet.create({
   root: { paddingTop: spacing.sm, paddingBottom: spacing.xl },

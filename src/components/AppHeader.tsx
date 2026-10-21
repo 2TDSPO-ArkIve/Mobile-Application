@@ -58,7 +58,11 @@ export function AppHeader({ title, showBack = true, actions }: Props) {
           <View style={styles.iconBtn}>
             <HeaderIconButton
               icon={Platform.OS === 'ios' ? 'chevron-back' : 'arrow-back'}
-              onPress={() => navigation.goBack()}
+              onPress={() => {
+                if (navigation.canGoBack()) navigation.goBack();
+                // A web refresh opens a screen with nothing under it (see navigation/linking.ts).
+                else navigation.reset({ index: 0, routes: [{ name: navigation.getState().routeNames[0] }] });
+              }}
               accessibilityLabel={t('common.back')}
             />
           </View>

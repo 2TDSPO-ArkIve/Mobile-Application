@@ -17,6 +17,7 @@ import type { AppStackParamList } from '../interfaces/navigation';
 import { nameInitials } from '../utils/patientDisplay';
 import { spacing, fontSize, font, radius, layout } from '../styles/theme';
 import { LoadingState } from '../components/LoadingState';
+import { confirmAction } from '../utils/dialog';
 
 /**
  * Real identity, not the old `useAuth().user` compatibility shim (which
@@ -34,6 +35,17 @@ export function ProfileScreen() {
   const wide = useBreakpoint() === 'wide';
   const navigation =
     useNavigation<NativeStackNavigationProp<AppStackParamList>>();
+
+  // Same confirmation as the mandatory password-change screen's sign-out.
+  const handleLogout = () =>
+    confirmAction({
+      title: t('common.logoutConfirmTitle'),
+      message: t('common.logoutConfirmMessage'),
+      cancelText: t('common.cancel'),
+      confirmText: t('common.logoutConfirmButton'),
+      destructive: true,
+      onConfirm: () => logout(),
+    });
 
   const sectionTitle = (title: string) => (
     <Text accessibilityRole="header" style={[styles.sectionTitle, { color: colors.ink }]}>{title}</Text>
@@ -76,31 +88,22 @@ export function ProfileScreen() {
           </AppCard>
         )}
 
-        {/* Chunk 6 — the one discoverable entry point to the veterinarian's
-            own financial dashboard. Deliberately not duplicated on the Home
-            tab (avoids overcrowding it with an unrelated card) and
-            deliberately absent from ResponsavelAppStack entirely — a
-            Responsible user has no Mobile navigation path to this screen. */}
-        {sectionTitle(t('profile.financialSection'))}
+        {/* The same two sections the wide sidebar lists under the main
+            ones, with the same names and icons, so phone and desktop share
+            one map. Not on Home (unrelated to the day's cases) and absent
+            from ResponsavelAppStack, which has no route to either screen. */}
+        {sectionTitle(t('profile.managementSection'))}
         <AppCard style={styles.group}>
           <ListRow
-            icon="cash-outline"
-            title={t('vetCosts.entryPointButton')}
+            icon="bar-chart-outline"
+            title={t('vetCosts.title')}
             onPress={() => navigation.navigate('ValoresVeterinario')}
           />
-        </AppCard>
-
-        {/* Chunk 7 — read-only tracking of the vet's own outgoing access
-            requests. The actual "request access" action lives on
-            ArkiveIdLookupScreen (only surfaced once a lookup is forbidden,
-            since that's the exact moment the feature is relevant); this is
-            just the follow-up visibility into requests already sent. */}
-        {sectionTitle(t('profile.accessSection'))}
-        <AppCard style={styles.group}>
           <ListRow
-            icon="key-outline"
-            title={t('myAccessRequests.entryPointButton')}
-            onPress={() => navigation.navigate('SolicitacoesAcessoEnviadas')}
+            icon="sparkles-outline"
+            iconColor={colors.ai}
+            title={t('aiUsage.title')}
+            onPress={() => navigation.navigate('UsoDaIa')}
           />
         </AppCard>
 
@@ -132,6 +135,16 @@ export function ProfileScreen() {
             title={t('enterShareCode.entryLink')}
             onPress={() => navigation.navigate('InserirCodigoConvite')}
           />
+          {/* Chunk 7 — read-only tracking of the vet's own outgoing access
+              requests. The actual "request access" action lives on
+              ArkiveIdLookupScreen (only surfaced once a lookup is forbidden,
+              since that's the exact moment the feature is relevant); this is
+              just the follow-up visibility into requests already sent. */}
+          <ListRow
+            icon="key-outline"
+            title={t('myAccessRequests.entryPointButton')}
+            onPress={() => navigation.navigate('SolicitacoesAcessoEnviadas')}
+          />
         </AppCard>
 
         {/* Set apart from the groups so it is never tapped by mistake. */}
@@ -139,7 +152,7 @@ export function ProfileScreen() {
           title={t('profile.logoutButton')}
           variant="danger"
           icon="log-out-outline"
-          onPress={logout}
+          onPress={handleLogout}
           style={styles.logout}
         />
       </ScreenContainer>
@@ -162,7 +175,7 @@ const styles = StyleSheet.create({
   name: { fontSize: fontSize.lg, ...font('bold') },
   detail: { fontSize: fontSize.sm, marginTop: 2 },
   facts: { marginTop: spacing.sm },
-  sectionTitle: { fontSize: 16, ...font('semibold'), marginTop: spacing.lg, marginBottom: spacing.sm },
+  sectionTitle: { fontSize: fontSize.lg, ...font('semibold'), marginTop: spacing.lg, marginBottom: spacing.sm },
   group: { padding: 0, overflow: 'hidden' },
   logout: { marginTop: spacing.xl },
 });

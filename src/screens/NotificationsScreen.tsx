@@ -130,14 +130,9 @@ export function NotificationsScreen() {
 
   const handlePress = async (notification: NotificationDto) => {
     setActionError('');
-    if (notification.readAt === null) {
-      try {
-        await markRead.mutateAsync(notification.id);
-      } catch {
-        setActionError(t('notifications.markReadError'));
-        return;
-      }
-    }
+    // Fire and forget: a failed PATCH only leaves the item unread, which the
+    // list shows on return; it must not keep the person from the content.
+    if (notification.readAt === null) markRead.mutate(notification.id);
 
     // Shared with the native push/local-notification tap handler
     // (`PushTapHandler`) — see `resolveNotificationDestination`'s own doc

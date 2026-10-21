@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { AppInput } from './AppInput';
 import { AppButton } from './AppButton';
+import { PasswordChecklist } from './PasswordChecklist';
 import { useTranslation } from '../i18n/useTranslation';
 import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { isPasswordValid } from '../utils/passwordPolicy';
 import { spacing, fontSize } from '../styles/theme';
 
 interface Props {
@@ -41,7 +43,12 @@ export function PasswordChangeForm({ submitLabel, submittingLabel, onSuccess, on
 
     const required = t('changePassword.validationRequired');
     const errors = {
-      newPassword: newPassword ? undefined : required,
+      // Same rules and message as sign-up, so the checklist below never disagrees with the gate.
+      newPassword: !newPassword
+        ? required
+        : !isPasswordValid(newPassword)
+          ? t('registerResponsavel.errorSenhaPolicy')
+          : undefined,
       confirmPassword: !confirmPassword
         ? required
         : newPassword && newPassword !== confirmPassword
@@ -78,6 +85,7 @@ export function PasswordChangeForm({ submitLabel, submittingLabel, onSuccess, on
         editable={!submitting}
         error={fieldErrors.newPassword}
       />
+      <PasswordChecklist password={newPassword} />
 
       <AppInput
         label={t('changePassword.confirmPasswordLabel')}
@@ -91,7 +99,11 @@ export function PasswordChangeForm({ submitLabel, submittingLabel, onSuccess, on
         error={fieldErrors.confirmPassword}
       />
 
-      {error ? <Text style={[styles.error, { color: colors.error }]}>{error}</Text> : null}
+      {error ? (
+        <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={[styles.error, { color: colors.error }]}>
+          {error}
+        </Text>
+      ) : null}
 
       <AppButton
         title={submitting ? submittingLabel : submitLabel}

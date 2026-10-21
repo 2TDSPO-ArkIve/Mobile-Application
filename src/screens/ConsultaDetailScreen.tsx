@@ -34,7 +34,7 @@ import { describeNarrativeSaveError, describeLoadError } from '../utils/errorMes
 import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
 import { t } from '../i18n/store';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize, font, layout } from '../styles/theme';
+import { spacing, fontSize, lineHeight, font, layout } from '../styles/theme';
 import { shadows } from '../styles/shadows';
 import { commonStyles } from '../styles/common';
 import { LoadingState } from '../components/LoadingState';
@@ -79,7 +79,7 @@ export function ConsultaDetailScreen() {
   const clinicalSupport = useConsultaClinicalSupport(consultaId, { enabled: consulta?.status === 'FI' });
 
   /**
-   * Chunk 9 — backs the eye-icon's visibility, never its own narrative/clinical
+   * Chunk 9 — backs the reports icon's visibility, never its own narrative/clinical
    * data: a cheap `page=0&size=1` presence check (see the hook's own doc
    * comment), not the full report history. "Do not mistake an API error for
    * zero reports" — the icon stays visible on `isPending`/`isError` too, and
@@ -185,7 +185,7 @@ export function ConsultaDetailScreen() {
             showReportsAction
               ? [
                   {
-                    icon: 'eye-outline',
+                    icon: 'chatbubbles-outline',
                     onPress: () => navigation.navigate('RelatosAnimal', { patientId: consulta.animalId }),
                     accessibilityLabel: t('consultaDetail.viewReportsAccessibilityLabel'),
                   },
@@ -315,7 +315,7 @@ export function ConsultaDetailScreen() {
   const observationCard = consulta.observacaoResponsavel ? (
     <AppCard>
       <Text style={[styles.label, { color: colors.ink }]}>{t('consultaDetail.responsavelObservationLabel')}</Text>
-      <Text style={[styles.field, { color: colors.ink }]}>{consulta.observacaoResponsavel}</Text>
+      <Text style={[styles.field, styles.prose, { color: colors.ink }]}>{consulta.observacaoResponsavel}</Text>
     </AppCard>
   ) : null;
 
@@ -326,7 +326,7 @@ export function ConsultaDetailScreen() {
       {consulta.transcricao ? (
         <AppCard>
           <Text style={[styles.label, { color: colors.ink }]}>{t('consultaDetail.narrativeLabel')}</Text>
-          <Text style={[styles.field, { color: colors.ink }]}>{consulta.transcricao}</Text>
+          <Text style={[styles.field, styles.prose, { color: colors.ink }]}>{consulta.transcricao}</Text>
         </AppCard>
       ) : null}
 
@@ -353,7 +353,7 @@ export function ConsultaDetailScreen() {
           showReportsAction
             ? [
                 {
-                  icon: 'eye-outline',
+                  icon: 'chatbubbles-outline',
                   onPress: () => navigation.navigate('RelatosAnimal', { patientId: consulta.animalId }),
                   accessibilityLabel: t('consultaDetail.viewReportsAccessibilityLabel'),
                 },
@@ -390,7 +390,7 @@ export function ConsultaDetailScreen() {
             {consulta.observacao ? (
               <AppCard>
                 <Text style={[styles.label, { color: colors.ink }]}>{t('cancelConsulta.reasonSectionLabel')}</Text>
-                <Text style={[styles.field, { color: colors.ink }]}>{consulta.observacao}</Text>
+                <Text style={[styles.field, styles.prose, { color: colors.ink }]}>{consulta.observacao}</Text>
               </AppCard>
             ) : null}
           </>
@@ -412,6 +412,11 @@ export function ConsultaDetailScreen() {
 
         {canDelete ? (
           <AppButton title={t('consultaDetail.deleteConsulta')} variant="danger" onPress={() => setDeleteModalOpen(true)} />
+        ) : null}
+
+        {/* Both end the visit; say how they differ before either modal opens. */}
+        {canCancel && canDelete ? (
+          <Text style={[styles.actionsHelp, { color: colors.inkSecondary }]}>{t('consultaDetail.cancelVsDelete')}</Text>
         ) : null}
       </ScreenContainer>
 
@@ -463,7 +468,9 @@ const styles = StyleSheet.create({
   patientName: { flexShrink: 1, fontSize: fontSize.xl, ...font('bold') },
   label: { fontSize: fontSize.md, ...font('bold') },
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
+  prose: { fontSize: fontSize.md, lineHeight: fontSize.md * lineHeight.body },
   valueBlock: { marginTop: spacing.sm },
+  actionsHelp: { fontSize: fontSize.sm, lineHeight: fontSize.sm * lineHeight.body, marginTop: spacing.xs },
   cancelAction: { marginTop: spacing.lg },
   columns: { flexDirection: 'row', gap: spacing.lg },
   main: { flex: 3 },

@@ -44,26 +44,7 @@ export function PrescricoesScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <AppHeader
-        title={t('prescricoesList.title')}
-        // Chunk 8 correction — creation is only ever valid for a finalized
-        // (FI) consultation (`PrescricaoService.exigirConsultaFinalizada`,
-        // also re-checked by `NewPrescricaoScreen` itself as a second
-        // safeguard). While `consulta` hasn't loaded yet, or its status is
-        // AG/EP/AP/CA, this shortcut must not be offered at all — not even
-        // disabled, since AppHeader's icon actions have no disabled state.
-        actions={
-          isFinalizada
-            ? [
-                {
-                  icon: 'add',
-                  onPress: () => navigation.navigate('NovaPrescricao', { consultaId }),
-                  accessibilityLabel: t('prescricoesList.newAccessibilityLabel'),
-                },
-              ]
-            : []
-        }
-      />
+      <AppHeader title={t('prescricoesList.title')} />
 
       <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined} onRefresh={refetch}>
         {consulta ? (
@@ -77,13 +58,10 @@ export function PrescricoesScreen() {
           </>
         ) : null}
 
-        {/* Chunk 8 — the header "+" icon alone wasn't discoverable enough;
-            this content button is the one visually prominent create action
-            (the header icon remains only as a small secondary shortcut, so
-            there's no competing primary action). Chunk 8 correction — gated
-            on `isFinalizada`, same as the header shortcut above: creation is
-            only ever valid for a finalized (FI) consultation, so this must
-            not be shown while `consulta` is still loading or its status is
+        {/* The one create action (a header "+" duplicated it). Creation is
+            only ever valid for a finalized (FI) consultation
+            (`PrescricaoService.exigirConsultaFinalizada`), so this must not
+            be shown while `consulta` is still loading or its status is
             AG/EP/AP/CA. `NewPrescricaoScreen` itself still re-validates FI
             independently as a second safeguard. */}
         {isFinalizada ? (
@@ -140,6 +118,7 @@ export function PrescricoesScreen() {
             ) : null}
             <AppButton
               title={t('consultaPdf.shareButton')}
+              variant="secondary"
               icon="share-outline"
               onPress={sharePdf}
               loading={pdfPending}

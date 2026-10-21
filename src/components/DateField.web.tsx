@@ -4,6 +4,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { spacing, radius, fontSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 interface Props {
   label: string;
@@ -98,7 +99,7 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
         }}
       />
       {value && onClear ? (
-        <Pressable onPress={onClear} style={styles.clearBtn} accessibilityRole="button">
+        <Pressable onPress={onClear} accessibilityRole="button" style={(state: InteractionState) => [styles.clearBtn, isActive(state) && { backgroundColor: colors.sunken }, focusRing(state, colors)]}>
           <Text style={{ color: colors.inkSecondary, fontSize: fontSize.sm }}>{t('common.clearDate')}</Text>
         </Pressable>
       ) : null}
@@ -109,5 +110,12 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
 
 const styles = StyleSheet.create({
   wrap: { marginBottom: spacing.sm },
-  clearBtn: { alignSelf: 'flex-start', marginTop: spacing.xs },
+  clearBtn: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xs,
+    marginHorizontal: -spacing.xs,
+    borderRadius: radius.sm,
+  },
 });

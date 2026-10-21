@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, Platform, StyleSheet } from 'react-native';
+import { View, Text, Platform, StyleSheet, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
@@ -38,6 +38,9 @@ export function ScanShareQrScreen() {
 }
 
 function CameraScanner() {
+  // Up to 320, never more than 45% of the window, never below the 220 scan frame plus a margin.
+  const { height: windowHeight } = useWindowDimensions();
+  const cameraHeight = Math.max(260, Math.min(320, windowHeight * 0.45));
   const navigation = useNavigation<NativeStackNavigationProp<ScanShareQrNavigationParamList>>();
   const colors = useThemeColors();
   const { t } = useTranslation();
@@ -103,7 +106,7 @@ function CameraScanner() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('scanShareQr.title')} />
-      <View style={styles.cameraWrap}>
+      <View style={[styles.cameraWrap, { height: cameraHeight }]}>
         <CameraView
           style={StyleSheet.absoluteFill}
           facing="back"
@@ -142,10 +145,7 @@ function CameraScanner() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  cameraWrap: {
-    height: 320,
-    overflow: 'hidden',
-  },
+  cameraWrap: { overflow: 'hidden' },
   frameOverlay: {
     ...StyleSheet.absoluteFill,
     alignItems: 'center',

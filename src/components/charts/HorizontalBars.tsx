@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../i18n/useTranslation';
-import { spacing, fontSize, font } from '../../styles/theme';
+import { spacing, radius, fontSize, font } from '../../styles/theme';
+import { focusRing, isActive, type InteractionState } from '../../styles/interaction';
 
 export interface HorizontalBarRow {
   key: string | number;
@@ -72,7 +73,12 @@ export function HorizontalBars({ rows, showRank, showShare, collapseAfter = DEFA
           <Pressable
             key={row.key}
             onPress={row.onPress}
-            style={({ pressed }) => [styles.row, pressed && { opacity: 0.6 }]}
+            style={(state: InteractionState) => [
+              styles.row,
+              styles.pressableRow,
+              isActive(state) && { backgroundColor: colors.sunken },
+              focusRing(state, colors),
+            ]}
             accessibilityRole="button"
             accessibilityLabel={[row.label, valueLabel, share].filter(Boolean).join(', ')}
           >
@@ -89,7 +95,11 @@ export function HorizontalBars({ rows, showRank, showShare, collapseAfter = DEFA
           onPress={() => setExpanded((value) => !value)}
           accessibilityRole="button"
           accessibilityState={{ expanded }}
-          style={styles.toggle}
+          style={(state: InteractionState) => [
+            styles.toggle,
+            isActive(state) && { backgroundColor: colors.sunken },
+            focusRing(state, colors),
+          ]}
         >
           <Text style={[styles.toggleText, { color: colors.ink }]}>
             {expanded
@@ -105,6 +115,8 @@ export function HorizontalBars({ rows, showRank, showShare, collapseAfter = DEFA
 const styles = StyleSheet.create({
   list: { gap: spacing.sm },
   row: { paddingVertical: 2 },
+  // Tappable rows reach the 44pt target; the side padding keeps the pressed fill off the text.
+  pressableRow: { minHeight: 44, justifyContent: 'center', paddingHorizontal: spacing.xs, marginHorizontal: -spacing.xs, borderRadius: radius.sm },
   header: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
   rank: { width: 18, fontSize: fontSize.xs, fontVariant: ['tabular-nums'] },
   label: { fontSize: fontSize.sm, flex: 1 },
@@ -112,6 +124,13 @@ const styles = StyleSheet.create({
   share: { fontSize: fontSize.xs, fontVariant: ['tabular-nums'], minWidth: 40, textAlign: 'right' },
   bar: { height: 4, borderRadius: 2, marginTop: spacing.xs, opacity: BAR_OPACITY },
   barIndented: { marginLeft: 18 + spacing.sm },
-  toggle: { alignSelf: 'flex-start', paddingVertical: spacing.xs },
+  toggle: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xs,
+    marginHorizontal: -spacing.xs,
+    borderRadius: radius.sm,
+  },
   toggleText: { fontSize: fontSize.sm, ...font('semibold') },
 });

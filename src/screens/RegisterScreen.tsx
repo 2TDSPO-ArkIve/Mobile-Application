@@ -18,6 +18,7 @@ import { mapVeterinarioRegistrationError, mapResponsavelRegistrationError } from
 import { useThemeColors } from '../hooks/useThemeColors';
 import type { AuthStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, radius, font } from '../styles/theme';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 type Role = 'VETERINARIO' | 'RESPONSAVEL';
 type TipoDocumento = 'CPF' | 'RG';
@@ -547,7 +548,11 @@ export function RegisterScreen() {
                 error={fieldErrors.documento}
               />
 
-              <Pressable onPress={handleGenerateTestDocument} accessibilityRole="button">
+              <Pressable
+                onPress={handleGenerateTestDocument}
+                accessibilityRole="button"
+                style={(state: InteractionState) => [styles.generateLinkWrap, isActive(state) && { backgroundColor: colors.sunken }, focusRing(state, colors)]}
+              >
                 <Text style={[styles.generateLink, { color: colors.accent }]}>
                   {t('registerResponsavel.generateTestDocument')}
                 </Text>
@@ -658,10 +663,15 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     marginBottom: spacing.md,
   },
-  generateLink: {
-    fontSize: fontSize.sm,
-    ...font('semibold'),
-    marginTop: -spacing.xs,
-    marginBottom: spacing.md,
+  generateLinkWrap: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xs,
+    marginHorizontal: -spacing.xs,
+    marginTop: -spacing.sm,
+    marginBottom: spacing.sm,
+    borderRadius: radius.sm,
   },
+  generateLink: { fontSize: fontSize.sm, ...font('semibold') },
 });

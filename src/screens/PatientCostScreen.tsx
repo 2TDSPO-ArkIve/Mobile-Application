@@ -61,7 +61,7 @@ function ConsultationCostRow({ consulta }: { consulta: PatientCostConsultation }
           {t('patientCosts.consultationValue')}
         </Text>
         <Text style={[styles.amount, { color: colors.ink }]}>
-          {consulta.valorConsulta != null ? formatCurrency(consulta.valorConsulta) : '—'}
+          {consulta.valorConsulta != null ? formatCurrency(consulta.valorConsulta) : t('common.notInformed')}
         </Text>
       </View>
       <View style={styles.rowBetween}>
@@ -69,7 +69,7 @@ function ConsultationCostRow({ consulta }: { consulta: PatientCostConsultation }
           {t('patientCosts.medicationsValue')}
         </Text>
         <Text style={[styles.amount, { color: colors.ink }]}>
-          {consulta.valorMedicamentos != null ? formatCurrency(consulta.valorMedicamentos) : '—'}
+          {consulta.valorMedicamentos != null ? formatCurrency(consulta.valorMedicamentos) : t('common.notInformed')}
         </Text>
       </View>
       <View style={[styles.rowBetween, styles.totalRow, { borderTopColor: colors.line }]}>

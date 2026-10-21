@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
@@ -202,6 +203,20 @@ function NewAccessRequestSection() {
         autoCapitalize="characters"
         autoCorrect={false}
         editable={!createAccessRequest.isPending}
+        // Same field as the ArkIve ID lookup: ID styling and a Paste action.
+        style={commonStyles.arkiveId}
+      />
+      <AppButton
+        title={t('arkiveLookup.paste')}
+        variant="ghost"
+        size="small"
+        icon="clipboard-outline"
+        onPress={async () => {
+          setInput(await Clipboard.getStringAsync());
+          setValidationError('');
+        }}
+        disabled={createAccessRequest.isPending}
+        style={styles.pasteButton}
       />
       {submitError ? <Text style={[styles.field, { color: colors.error }]}>{submitError}</Text> : null}
       <View style={styles.newRequestActions}>
@@ -273,5 +288,6 @@ const styles = StyleSheet.create({
   newRequestSuccess: { textAlign: 'center', marginTop: -spacing.sm, marginBottom: spacing.md },
   newRequestCard: { marginBottom: spacing.md },
   newRequestActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+  pasteButton: { alignSelf: 'flex-start', marginTop: -spacing.xs },
   newRequestActionButton: { flex: 1 },
 });

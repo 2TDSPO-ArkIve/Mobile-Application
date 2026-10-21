@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, Share, Platform, StyleSheet } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
@@ -21,6 +21,7 @@ import { spacing, fontSize, radius, font, layout } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 import { LoadingState } from '../components/LoadingState';
 import { ArkiveIdField } from '../components/ArkiveIdField';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 const INVITATION_TYPES: PatientAccessRole[] = ['VETERINARIO', 'RESPONSAVEL'];
 
@@ -56,7 +57,13 @@ export function CreateShareScreen() {
   const createShare = useCreatePatientShare(patientId);
   const [error, setError] = useState('');
   const [created, setCreated] = useState<PatientShareCreatedDto | null>(null);
-  const [copyFeedback, setCopyFeedback] = useState('');
+  const [copyFeedback, setCopyFeedback] = useState<{ text: string; failed?: boolean } | null>(null);
+  // A confirmation, not a state: it clears after a few seconds so a second copy reads as new.
+  useEffect(() => {
+    if (!copyFeedback) return;
+    const id = setTimeout(() => setCopyFeedback(null), 3000);
+    return () => clearTimeout(id);
+  }, [copyFeedback]);
 
   const handleSelect = async (invitationType: PatientAccessRole) => {
     setError('');
@@ -94,9 +101,10 @@ export function CreateShareScreen() {
       }
       try {
         await Clipboard.setStringAsync(message);
-        setCopyFeedback(t('shareCreate.linkCopiedFeedback'));
+        setCopyFeedback({ text: t('shareCreate.linkCopiedFeedback') });
       } catch {
-        // Nothing actionable left to try — the QR code on screen remains a valid fallback.
+        // The QR code on screen remains a valid fallback; say the copy didn't happen.
+        setCopyFeedback({ text: t('shareCreate.copyFailedFeedback'), failed: true });
       }
       return;
     }
@@ -113,9 +121,10 @@ export function CreateShareScreen() {
     if (!created) return;
     try {
       await Clipboard.setStringAsync(created.rawToken);
-      setCopyFeedback(t('shareCreate.codeCopiedFeedback'));
+      setCopyFeedback({ text: t('shareCreate.codeCopiedFeedback') });
     } catch {
-      // Nothing actionable left to try — the QR code on screen remains a valid fallback.
+      // The QR code on screen remains a valid fallback; say the copy didn't happen.
+      setCopyFeedback({ text: t('shareCreate.copyFailedFeedback'), failed: true });
     }
   };
 
@@ -169,13 +178,16 @@ export function CreateShareScreen() {
               </Text>
             </AppCard>
 
-            <AppButton title={t('shareCreate.copyCodeButton')} variant="secondary" icon="copy-outline" onPress={handleCopyCode} />
-
             <AppButton title={t('shareCreate.shareLinkButton')} icon="share-outline" onPress={handleShareLink} />
 
+            <AppButton title={t('shareCreate.copyCodeButton')} variant="secondary" icon="copy-outline" onPress={handleCopyCode} />
+
             {copyFeedback ? (
-              <Text style={{ color: colors.accent, textAlign: 'center', marginTop: spacing.xs }}>
-                {copyFeedback}
+              <Text
+                accessibilityLiveRegion="polite"
+                style={{ color: copyFeedback.failed ? colors.error : colors.success, textAlign: 'center', marginTop: spacing.xs }}
+              >
+                {copyFeedback.text}
               </Text>
             ) : null}
 
@@ -185,7 +197,7 @@ export function CreateShareScreen() {
           </>
         ) : (
           <>
-            <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.accent, marginBottom: spacing.sm }]}>
+            <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
               {t('shareCreate.question')}
             </Text>
 
@@ -198,9 +210,16 @@ export function CreateShareScreen() {
                 key={invitationType}
                 onPress={() => handleSelect(invitationType)}
                 disabled={createShare.isPending}
-                style={[
+                accessibilityRole="button"
+                accessibilityState={{ disabled: createShare.isPending }}
+                style={(state: InteractionState) => [
                   styles.optionRow,
-                  { backgroundColor: colors.surface, borderColor: colors.line, opacity: createShare.isPending ? 0.6 : 1 },
+                  {
+                    backgroundColor: isActive(state) ? colors.sunken : colors.surface,
+                    borderColor: colors.line,
+                    opacity: createShare.isPending ? 0.6 : 1,
+                  },
+                  focusRing(state, colors),
                 ]}
               >
                 <Text style={{ color: colors.ink, ...font('semibold'), fontSize: fontSize.md }}>

@@ -43,6 +43,7 @@ export function SegmentedControl<T extends string>({ label, options, value, onCh
               onPress={() => onChange(option.value)}
               accessibilityRole="radio"
               accessibilityState={{ checked: selected, disabled }}
+              hitSlop={TRACK_PADDING}
               style={(state: InteractionState) => [
                 styles.segment,
                 selected
@@ -69,11 +70,14 @@ export function SegmentedControl<T extends string>({ label, options, value, onCh
   );
 }
 
+/** Track inset; also the segment's hit slop, so the 38pt segment answers to the full 44pt track. */
+const TRACK_PADDING = 3;
+
 const styles = StyleSheet.create({
   wrap: { marginBottom: spacing.md },
   track: {
     flexDirection: 'row',
-    padding: 3,
+    padding: TRACK_PADDING,
     borderRadius: radius.full,
   },
   segment: {

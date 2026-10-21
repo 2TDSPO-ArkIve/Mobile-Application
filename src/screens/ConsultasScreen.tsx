@@ -224,7 +224,7 @@ export function ConsultasScreen() {
           {consulta.animalNome}
         </Text>
         <Text style={[styles.colId, styles.rowId, { color: colors.inkSecondary }]} numberOfLines={1}>
-          {consulta.animalArkivePatientId ?? '—'}
+          {consulta.animalArkivePatientId ?? t('common.notInformed')}
         </Text>
         <Text style={[styles.colDate, styles.cell, { color: colors.ink }]} numberOfLines={1}>
           {formatDate(dataHora)} {formatTime(dataHora)}

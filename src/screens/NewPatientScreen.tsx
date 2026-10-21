@@ -18,8 +18,9 @@ import { describePatientError } from '../utils/errorMessages';
 import type { AnimalRequestInput } from '../services/patientService';
 import type { ResponsavelLookupDto } from '../services/responsavelService';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize, font, layout } from '../styles/theme';
+import { spacing, radius, fontSize, font, layout } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 /**
  * Reachable both from NewConsultaScreen's patient search (when it comes up
@@ -123,7 +124,11 @@ export function NewPatientScreen() {
               >
                 {t('tutor.selected', { name: selectedTutor.nome })}
               </Text>
-              <Pressable onPress={() => setSelectedTutor(null)} accessibilityRole="button">
+              <Pressable
+                onPress={() => setSelectedTutor(null)}
+                accessibilityRole="button"
+                style={(state: InteractionState) => [styles.clearLink, isActive(state) && { backgroundColor: colors.sunken }, focusRing(state, colors)]}
+              >
                 <Text style={{ color: colors.accent, fontSize: fontSize.sm }}>{t('tutor.clear')}</Text>
               </Pressable>
             </View>
@@ -152,4 +157,5 @@ export function NewPatientScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  clearLink: { minHeight: 44, justifyContent: 'center', paddingHorizontal: spacing.sm, borderRadius: radius.md },
 });

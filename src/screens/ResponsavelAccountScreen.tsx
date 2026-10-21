@@ -14,6 +14,7 @@ import { useTranslation } from '../i18n/useTranslation';
 import type { ResponsavelAppStackParamList } from '../interfaces/navigation';
 import { nameInitials } from '../utils/patientDisplay';
 import { spacing, fontSize, font, radius, layout } from '../styles/theme';
+import { confirmAction } from '../utils/dialog';
 
 /**
  * The RESPONSAVEL counterpart to `ProfileScreen` — deliberately not a shared
@@ -37,6 +38,17 @@ export function ResponsavelAccountScreen() {
   const sectionTitle = (title: string) => (
     <Text accessibilityRole="header" style={[styles.sectionTitle, { color: colors.ink }]}>{title}</Text>
   );
+
+  // Same confirmation as the mandatory password-change screen's sign-out.
+  const handleLogout = () =>
+    confirmAction({
+      title: t('common.logoutConfirmTitle'),
+      message: t('common.logoutConfirmMessage'),
+      cancelText: t('common.cancel'),
+      confirmText: t('common.logoutConfirmButton'),
+      destructive: true,
+      onConfirm: () => logout(),
+    });
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -89,7 +101,7 @@ export function ResponsavelAccountScreen() {
           title={t('account.logoutButton')}
           variant="danger"
           icon="log-out-outline"
-          onPress={logout}
+          onPress={handleLogout}
           style={styles.logout}
         />
       </ScreenContainer>
@@ -112,7 +124,7 @@ const styles = StyleSheet.create({
   name: { fontSize: fontSize.lg, ...font('bold') },
   detail: { fontSize: fontSize.sm, marginTop: 2 },
   facts: { marginTop: spacing.sm },
-  sectionTitle: { fontSize: 16, ...font('semibold'), marginTop: spacing.lg, marginBottom: spacing.sm },
+  sectionTitle: { fontSize: fontSize.lg, ...font('semibold'), marginTop: spacing.lg, marginBottom: spacing.sm },
   group: { padding: 0, overflow: 'hidden' },
   logout: { marginTop: spacing.xl },
 });

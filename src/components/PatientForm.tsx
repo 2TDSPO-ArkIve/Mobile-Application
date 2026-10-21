@@ -76,7 +76,9 @@ export function PatientForm({
   const [dataNascimento, setDataNascimento] = useState<Date | null>(
     initialValues?.dataNascimento ? parseISODate(initialValues.dataNascimento) : null
   );
-  const [validationError, setValidationError] = useState('');
+  // Per field, shown under the field it names; cleared as soon as that field gets a value.
+  const [nameError, setNameError] = useState('');
+  const [speciesError, setSpeciesError] = useState('');
   const markSubmitted = useDiscardGuard({ nome, especieId, racaId, sexo, castrado, dataNascimento }, { submitting });
   const [breedModalOpen, setBreedModalOpen] = useState(false);
 
@@ -114,6 +116,7 @@ export function PatientForm({
   // rejects a raca/especie mismatch outright (`aplicarDados` in AnimalService).
   const handleEspecieChange = (value: string) => {
     const next = Number(value);
+    setSpeciesError('');
     if (next !== especieId) {
       setEspecieId(next);
       setRacaId(null);
@@ -127,16 +130,11 @@ export function PatientForm({
   }, [racas, racaId]);
 
   const handleSubmit = () => {
-    setValidationError('');
-
-    if (!nome.trim()) {
-      setValidationError(t('patientForm.validationNoName'));
-      return;
-    }
-    if (!especieId) {
-      setValidationError(t('patientForm.validationNoSpecies'));
-      return;
-    }
+    // Both checked at once, so every missing field shows at the same time.
+    const missingName = !nome.trim();
+    setNameError(missingName ? t('patientForm.validationNoName') : '');
+    setSpeciesError(!especieId ? t('patientForm.validationNoSpecies') : '');
+    if (missingName || !especieId) return;
 
     markSubmitted();
     onSubmit({
@@ -161,7 +159,11 @@ export function PatientForm({
         label={t('patientForm.nameLabel')}
         placeholder={t('patientForm.namePlaceholder')}
         value={nome}
-        onChangeText={setNome}
+        onChangeText={(value) => {
+          setNome(value);
+          if (value.trim()) setNameError('');
+        }}
+        error={nameError || undefined}
       />
 
       <ChipGroup
@@ -172,6 +174,7 @@ export function PatientForm({
         searchPlaceholder={t('common.search')}
         onSearchChange={setEspecieSearch}
         emptyMessage={especiesLoading ? t('patientForm.loadingSpecies') : t('patientForm.noSpecies')}
+        error={speciesError || undefined}
       />
 
       <ChipGroup
@@ -232,9 +235,13 @@ export function PatientForm({
         onClear={() => setDataNascimento(null)}
       />
 
-      {validationError || errorMessage ? (
-        <Text style={{ color: colors.error, fontSize: fontSize.sm, marginBottom: spacing.sm }}>
-          {validationError || errorMessage}
+      {errorMessage ? (
+        <Text
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          style={{ color: colors.error, fontSize: fontSize.sm, marginBottom: spacing.sm }}
+        >
+          {errorMessage}
         </Text>
       ) : null}
 

@@ -76,7 +76,7 @@ function ConsultationCostRow({ consulta }: { consulta: VeterinarianCostConsultat
       <View style={styles.rowBetween}>
         <Text style={{ color: colors.inkSecondary, fontSize: fontSize.sm }}>{t('vetCosts.consultationValue')}</Text>
         <Text style={[styles.money, { color: colors.ink }]}>
-          {consulta.valorConsulta != null ? formatCurrency(consulta.valorConsulta) : '—'}
+          {consulta.valorConsulta != null ? formatCurrency(consulta.valorConsulta) : t('common.notInformed')}
         </Text>
       </View>
       <View style={styles.rowBetween}>
@@ -196,7 +196,9 @@ export function VeterinarianCostScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('vetCosts.title')} />
-        <LoadingState message={t('vetCosts.loading')} />
+        <ScreenContainer>
+          <LoadingState message={t('vetCosts.loading')} />
+        </ScreenContainer>
       </View>
     );
   }

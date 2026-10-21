@@ -8,12 +8,12 @@ import { useAvaliarInsightIa } from '../hooks/useDiagnosticos';
 import { useRecentAiUsageSample } from '../hooks/useAiUsage';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
-import type { ClinicalSupportResponse } from '../services/consultaService';
+import type { ClinicalSupportResponse, ClinicalSupportTokenUsage } from '../services/consultaService';
 import { parseSourceUrl } from '../utils/sourceUrl';
 import { describeInsightFeedbackError } from '../utils/errorMessages';
 import { severidadeLabel } from '../utils/severidade';
 import { formatNumber } from '../utils/localeFormat';
-import { spacing, fontSize, radius, font, iconSize } from '../styles/theme';
+import { spacing, fontSize, lineHeight, radius, font, iconSize } from '../styles/theme';
 import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 interface Props {
@@ -21,13 +21,12 @@ interface Props {
 }
 
 /**
- * "Consumo da IA ArkIve" — replaces the earlier plain Entrada/Saída/Total
- * layout with a comparison against the veterinarian's own recent analyses.
- * Entrada/saída are no longer shown on this card at all; `total` is the only
- * raw token figure displayed here now (gated on `tokens.total != null`,
- * never on the `tokens` object's mere presence — an analysis could in theory
- * have `entrada`/`saida` recorded but not `total`, and this new design has
- * nothing meaningful to show without a total).
+ * "Consumo da IA ArkIve" — the card's footer, set apart by a hairline so it
+ * reads as data about the analysis, not clinical content. The total is the
+ * headline; entrada/saída follow on one line only when both were recorded
+ * (gated on `tokens.total != null`, never on the `tokens` object's mere
+ * presence — an analysis could in theory have `entrada`/`saida` recorded but
+ * not `total`, and there is nothing meaningful to show without a total).
  *
  * The comparison (bars + sentence) is a SEPARATE, independently-gated layer
  * on top of that: when `useRecentAiUsageSample` finds no comparable recent
@@ -36,7 +35,15 @@ interface Props {
  * benchmark, per the product requirement that missing comparison data must
  * never be manufactured.
  */
-function AiUsageComparisonSection({ consultaId, total }: { consultaId: number; total: number }) {
+function AiUsageComparisonSection({
+  consultaId,
+  total,
+  tokens,
+}: {
+  consultaId: number;
+  total: number;
+  tokens: ClinicalSupportTokenUsage;
+}) {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const sample = useRecentAiUsageSample(consultaId);
@@ -80,19 +87,31 @@ function AiUsageComparisonSection({ consultaId, total }: { consultaId: number; t
   }
 
   return (
-    <View style={styles.tokensSection}>
-      <Text style={[styles.label, { color: colors.inkSecondary }]}>{t('clinicalSupportCard.tokensTitle')}</Text>
-      <Text style={[styles.tokensMainValue, { color: colors.ink }]}>{formatNumber(total)}</Text>
+    <View style={[styles.tokensSection, { borderTopColor: colors.line }]}>
+      <Text accessibilityRole="header" style={[styles.label, styles.tokensLabel, { color: colors.inkSecondary }]}>
+        {t('clinicalSupportCard.tokensTitle')}
+      </Text>
+      <Text style={[styles.tokensMainValue, { color: colors.ink }]}>
+        {t('clinicalSupportCard.tokensTotal', { count: formatNumber(total) })}
+      </Text>
+      {tokens.entrada != null && tokens.saida != null ? (
+        <Text style={[styles.tokensBreakdown, { color: colors.inkSecondary }]}>
+          {t('clinicalSupportCard.tokensBreakdown', {
+            input: formatNumber(tokens.entrada),
+            output: formatNumber(tokens.saida),
+          })}
+        </Text>
+      ) : null}
 
       {hasComparison ? (
         <>
+          {comparisonSentence ? (
+            <Text style={[styles.tokensComparisonText, { color: colors.ink }]}>{comparisonSentence}</Text>
+          ) : null}
           <HorizontalBars rows={rows} />
           <Text style={[styles.tokensSampleCaption, { color: colors.inkSecondary }]}>
             {t('clinicalSupportCard.tokensSampleCaption', { count: sample.sampleSize })}
           </Text>
-          {comparisonSentence ? (
-            <Text style={[styles.tokensComparisonText, { color: colors.ink }]}>{comparisonSentence}</Text>
-          ) : null}
         </>
       ) : null}
     </View>
@@ -174,7 +193,8 @@ export function ClinicalSupportCard({ support }: Props) {
   // without a recorded total. `null`/`undefined` both mean "preserve the
   // existing empty behavior" — the whole section is omitted, never a
   // placeholder/zero.
-  const tokensTotal = support.tokens?.total ?? null;
+  const tokens = support.tokens ?? null;
+  const tokensTotal = tokens?.total ?? null;
 
   return (
     <AppCard style={{ backgroundColor: colors.aiTint }}>
@@ -201,15 +221,6 @@ export function ClinicalSupportCard({ support }: Props) {
 
       <Text style={[styles.label, { color: colors.inkSecondary }]}>{t('clinicalSupportCard.insight')}</Text>
       <Text style={[styles.value, { color: colors.ink }]}>{support.insightClinico}</Text>
-
-      {/* V19 — "Consumo da IA ArkIve": total + comparison against recent
-          analyses. Never fetches/triggers anything beyond read-only GETs
-          already covered elsewhere in this app; omitted entirely when this
-          analysis itself has no recorded total (preserves the prior empty
-          behavior). */}
-      {tokensTotal != null ? (
-        <AiUsageComparisonSection consultaId={support.consultaId} total={tokensTotal} />
-      ) : null}
 
       {referencias.length > 0 ? (
         <SourcesFooter title={t('clinicalSupportCard.ragReferencesTitle')}>
@@ -315,6 +326,15 @@ export function ClinicalSupportCard({ support }: Props) {
           ) : null}
         </View>
       ) : null}
+
+      {/* V19 — "Consumo da IA ArkIve": total + comparison against recent
+          analyses, last so the clinical reading comes first. Never
+          fetches/triggers anything beyond read-only GETs already covered
+          elsewhere in this app; omitted entirely when this analysis itself
+          has no recorded total (preserves the prior empty behavior). */}
+      {tokens && tokensTotal != null ? (
+        <AiUsageComparisonSection consultaId={support.consultaId} total={tokensTotal} tokens={tokens} />
+      ) : null}
     </AppCard>
   );
 }
@@ -330,11 +350,19 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
     marginTop: spacing.sm,
   },
-  value: { fontSize: fontSize.sm, marginTop: 2 },
-  tokensSection: { marginTop: spacing.sm },
-  tokensMainValue: { fontSize: fontSize.lg, ...font('bold'), marginTop: 2, marginBottom: spacing.sm },
+  // Clinical prose (diagnosis, insight, conclusion) reads at body size, not caption size.
+  value: { fontSize: fontSize.md, lineHeight: fontSize.md * lineHeight.body, marginTop: 2 },
+  tokensSection: { marginTop: spacing.md, paddingTop: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth },
+  tokensLabel: { marginTop: 0 },
+  tokensMainValue: { fontSize: fontSize.lg, ...font('bold'), fontVariant: ['tabular-nums'], marginTop: 2 },
+  tokensBreakdown: { fontSize: fontSize.xs, fontVariant: ['tabular-nums'], marginTop: 2 },
   tokensSampleCaption: { fontSize: fontSize.xs, marginTop: spacing.xs },
-  tokensComparisonText: { fontSize: fontSize.sm, marginTop: spacing.xs, lineHeight: 19 },
+  tokensComparisonText: {
+    fontSize: fontSize.sm,
+    lineHeight: fontSize.sm * lineHeight.body,
+    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
+  },
   // Deliberately no card-per-source, no border, no background — a compact
   // vertical list stays visually secondary to the reasoning above it.
   sourcesSection: { marginTop: spacing.sm },

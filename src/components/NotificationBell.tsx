@@ -6,6 +6,7 @@ import { useUnreadNotificationCount } from '../hooks/useNotifications';
 import { useTranslation } from '../i18n/useTranslation';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { radius, spacing } from '../styles/theme';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 interface Props {
   onPress: () => void;
@@ -31,7 +32,12 @@ export function NotificationBell({ onPress }: Props) {
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.btn, { borderColor: colors.line }]}
+      style={(state: InteractionState) => [
+        styles.btn,
+        { borderColor: colors.line },
+        isActive(state) && { backgroundColor: colors.sunken },
+        focusRing(state, colors),
+      ]}
       accessibilityRole="button"
       accessibilityLabel={unread > 0 ? t('notifications.bellLabelUnread', { count: unread }) : t('notifications.bellLabel')}
     >

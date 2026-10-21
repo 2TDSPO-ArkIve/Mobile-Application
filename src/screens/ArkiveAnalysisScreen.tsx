@@ -13,6 +13,7 @@ import { useTranslation } from '../i18n/useTranslation';
 import { useClinicalSupportGeneration } from '../hooks/useClinicalSupportGeneration';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font } from '../styles/theme';
+import { StatusTrail } from '../components/StatusTrail';
 
 // Truthful, time-paced status copy — never claims an action we can't prove
 // (no "consultando N estudos"/"pesquisando artigos"/"validando diagnóstico").
@@ -89,6 +90,8 @@ export function ArkiveAnalysisScreen() {
       <AppHeader title={t('aiAnalysis.title')} />
 
       <ScreenContainer background={phase === 'analyzing' ? colors.aiTint : undefined}>
+        {/* The case is in EP while the analysis runs; the trail keeps that visible between Detail and Insight. */}
+        {phase === 'canceled' ? null : <StatusTrail status="EP" />}
         <View style={styles.center}>
           <VoiceOrb mode="analyzing" />
 

@@ -138,7 +138,7 @@ export function HomeScreen() {
   );
 
   const sectionTitle = (label: string) => (
-    <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionTitle, { color: colors.accent }]}>{label}</Text>
+    <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionTitle, { color: colors.inkSecondary }]}>{label}</Text>
   );
 
   const actions = (

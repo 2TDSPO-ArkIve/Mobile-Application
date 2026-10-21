@@ -12,7 +12,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { useRecentAiUsageSample } from '../hooks/useAiUsage';
-import { formatNumber } from '../utils/localeFormat';
+import { formatDate, formatNumber } from '../utils/localeFormat';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font, iconSize, layout } from '../styles/theme';
 import { LoadingState } from '../components/LoadingState';
@@ -45,7 +45,8 @@ export function AiUsageScreen() {
 
   const rows: HorizontalBarRow[] = sample.entries.map(({ consulta, tokensTotal }) => ({
     key: consulta.id,
-    label: `${consulta.animalNome} · #${consulta.id}`,
+    // Patient and visit date, not the internal consultation id.
+    label: `${consulta.animalNome} · ${formatDate(new Date(consulta.dataHora))}`,
     value: tokensTotal,
     valueLabel: formatNumber(tokensTotal),
     color: colors.ai,
@@ -57,6 +58,7 @@ export function AiUsageScreen() {
       <AppHeader title={t('aiUsage.title')} />
       <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
         <Text style={[styles.intro, { color: colors.inkSecondary }]}>{t('aiUsage.intro')}</Text>
+        <Text style={[styles.intro, { color: colors.inkSecondary }]}>{t('aiUsage.tokenExplainer')}</Text>
 
         {sample.isPending ? (
           <LoadingState message={t('aiUsage.loading')} />
@@ -102,13 +104,13 @@ export function AiUsageScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  intro: { fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.md, lineHeight: 19 },
+  intro: { fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.sm, lineHeight: 19 },
   summaryCard: { marginBottom: spacing.sm },
   summaryIcon: { alignSelf: 'center', marginBottom: spacing.sm },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-around' },
   summaryItem: { alignItems: 'center' },
   summaryLabel: { fontSize: fontSize.xs },
   summaryValue: { fontSize: fontSize.xl, ...font('bold'), fontVariant: ['tabular-nums'], marginTop: spacing.xs },
-  listTitle: { fontSize: 16, ...font('semibold'), marginTop: spacing.lg, marginBottom: spacing.sm },
+  listTitle: { fontSize: fontSize.lg, ...font('semibold'), marginTop: spacing.lg, marginBottom: spacing.sm },
   summaryCaption: { fontSize: fontSize.xs, marginTop: spacing.sm, textAlign: 'center' },
 });

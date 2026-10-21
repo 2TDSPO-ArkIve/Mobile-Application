@@ -28,8 +28,9 @@ import {
 } from '../utils/costDashboard';
 import { formatCurrency } from '../utils/localeFormat';
 import { LIST_PAGE_SIZE } from '../utils/pagination';
-import { spacing, fontSize, font } from '../styles/theme';
+import { spacing, radius, fontSize, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 interface Props<T extends CostRow> {
   rows: T[];
@@ -59,7 +60,10 @@ export function CostDashboard<T extends CostRow>({
   const colors = useThemeColors();
   const { t } = useTranslation();
   const band = useBreakpoint();
-  const [period, setPeriod] = useState<CostPeriod>('30d');
+  // Opens on the shortest period that has any value, so a last visit two months ago doesn't read as "no costs".
+  const [period, setPeriod] = useState<CostPeriod>(
+    () => COST_PERIODS.find((value) => filterByPeriod(rows, value, new Date()).length > 0) ?? '30d'
+  );
   const [visibleCount, setVisibleCount] = useState(LIST_PAGE_SIZE);
   const [noteOpen, setNoteOpen] = useState(false);
 
@@ -130,27 +134,26 @@ export function CostDashboard<T extends CostRow>({
         onChange={handlePeriod}
       />
 
-      {showCharts ? (
-        <View style={styles.note}>
-          <Pressable
-            onPress={() => setNoteOpen((open) => !open)}
-            accessibilityRole="button"
-            accessibilityState={{ expanded: noteOpen }}
-            style={styles.noteToggle}
-          >
-            <Ionicons name="information-circle-outline" size={16} color={colors.inkSecondary} />
-            <Text style={[styles.noteTitle, { color: colors.inkSecondary }]}>
-              {t('costDashboard.howCalculatedTitle')}
-            </Text>
-            <Ionicons name={noteOpen ? 'chevron-up' : 'chevron-down'} size={14} color={colors.inkSecondary} />
-          </Pressable>
-          {noteOpen ? (
-            <Text style={[styles.noteBody, { color: colors.inkSecondary }]}>
-              {t(showComparison ? 'costDashboard.howCalculatedBodyComparison' : 'costDashboard.howCalculatedBody')}
-            </Text>
-          ) : null}
-        </View>
-      ) : null}
+      {/* Shown with or without charts: the Responsible, who isn't from the field, needs it most. */}
+      <View style={styles.note}>
+        <Pressable
+          onPress={() => setNoteOpen((open) => !open)}
+          accessibilityRole="button"
+          accessibilityState={{ expanded: noteOpen }}
+          style={(state: InteractionState) => [styles.noteToggle, isActive(state) && { backgroundColor: colors.sunken }, focusRing(state, colors)]}
+        >
+          <Ionicons name="information-circle-outline" size={16} color={colors.inkSecondary} />
+          <Text style={[styles.noteTitle, { color: colors.inkSecondary }]}>
+            {t('costDashboard.howCalculatedTitle')}
+          </Text>
+          <Ionicons name={noteOpen ? 'chevron-up' : 'chevron-down'} size={14} color={colors.inkSecondary} />
+        </Pressable>
+        {noteOpen ? (
+          <Text style={[styles.noteBody, { color: colors.inkSecondary }]}>
+            {t(showComparison ? 'costDashboard.howCalculatedBodyComparison' : 'costDashboard.howCalculatedBody')}
+          </Text>
+        ) : null}
+      </View>
 
       <View style={styles.kpiGrid}>
         <KpiCard
@@ -277,7 +280,16 @@ export function CostDashboard<T extends CostRow>({
 
 const styles = StyleSheet.create({
   note: { marginBottom: spacing.sm },
-  noteToggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, alignSelf: 'flex-start' },
+  noteToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    paddingHorizontal: spacing.xs,
+    marginHorizontal: -spacing.xs,
+    borderRadius: radius.sm,
+  },
   noteTitle: { fontSize: fontSize.xs, ...font('semibold') },
   noteBody: { fontSize: fontSize.xs, lineHeight: 17, marginTop: spacing.xs, marginLeft: 20 },
   kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.sm },

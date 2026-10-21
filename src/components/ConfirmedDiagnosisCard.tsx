@@ -5,7 +5,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import type { DiagnosticoDto } from '../services/diagnosticoService';
 import { severidadeLabel } from '../utils/severidade';
-import { spacing, fontSize, font } from '../styles/theme';
+import { spacing, fontSize, lineHeight, font } from '../styles/theme';
 
 interface Props {
   diagnosis: DiagnosticoDto;
@@ -55,5 +55,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
     marginTop: spacing.sm,
   },
-  value: { fontSize: fontSize.sm, marginTop: 2 },
+  // Clinical prose (diagnosis, insight, conclusion) reads at body size, not caption size.
+  value: { fontSize: fontSize.md, lineHeight: fontSize.md * lineHeight.body, marginTop: 2 },
 });

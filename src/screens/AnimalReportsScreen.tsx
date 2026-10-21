@@ -17,10 +17,11 @@ import { describeAnimalReportListError, describeLoadError } from '../utils/error
 import { formatDateTime } from '../utils/localeFormat';
 import { toDisplayDate } from '../utils/isoDate';
 import type { AnimalReportDto } from '../services/animalReportService';
-import { spacing, fontSize, font } from '../styles/theme';
+import { spacing, radius, fontSize, lineHeight, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 import { LoadingState } from '../components/LoadingState';
 import { ArkiveIdField } from '../components/ArkiveIdField';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 const SEARCH_DEBOUNCE_MS = 300;
 /** A report text past this length gets a "Ver mais" toggle instead of always rendering in full — short reports (the common case: "vomitou de madrugada") never show a pointless toggle. */
@@ -74,7 +75,12 @@ function ReportCard({ report }: { report: AnimalReportDto }) {
         {report.texto}
       </Text>
       {isLong ? (
-        <Pressable onPress={() => setExpanded((value) => !value)} accessibilityRole="button" style={styles.expandLink}>
+        <Pressable
+          onPress={() => setExpanded((value) => !value)}
+          accessibilityRole="button"
+          accessibilityState={{ expanded }}
+          style={(state: InteractionState) => [styles.expandLink, isActive(state) && { backgroundColor: colors.sunken }, focusRing(state, colors)]}
+        >
           <Text style={{ color: colors.accent, ...font('semibold'), fontSize: fontSize.sm }}>
             {expanded ? t('animalReports.collapseButton') : t('animalReports.expandButton')}
           </Text>
@@ -249,6 +255,13 @@ const styles = StyleSheet.create({
   reportCard: { marginBottom: spacing.sm },
   reportedBy: { fontSize: fontSize.sm, ...font('bold') },
   meta: { fontSize: fontSize.xs, marginTop: 2, fontVariant: ['tabular-nums'] },
-  text: { fontSize: fontSize.sm, marginTop: spacing.sm, lineHeight: 20 },
-  expandLink: { marginTop: spacing.xs, paddingVertical: spacing.xs },
+  text: { fontSize: fontSize.md, marginTop: spacing.sm, lineHeight: fontSize.md * lineHeight.body },
+  expandLink: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xs,
+    marginHorizontal: -spacing.xs,
+    borderRadius: radius.sm,
+  },
 });

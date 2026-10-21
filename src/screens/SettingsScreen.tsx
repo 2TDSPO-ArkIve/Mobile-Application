@@ -1,14 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, Switch, Platform, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
-import { AppCard } from '../components/AppCard';
-import { ListRow } from '../components/ListRow';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
@@ -16,16 +11,6 @@ import { enableNativePush, disableNativePush } from '../utils/pushRegistration';
 import type { Language } from '../i18n/store';
 import type { ThemeMode } from '../types';
 import { spacing, fontSize, font, layout } from '../styles/theme';
-
-/**
- * `SettingsScreen` is shared, unmodified, between BOTH `AppStack`
- * (VETERINARIO) and `ResponsavelAppStack` — this minimal inline nav type
- * (same pattern as `PatientDetailScreen`/`NotificationsScreen`) only ever
- * resolves `UsoDaIa` when actually hosted by `AppStack`, which is also
- * exactly when `isVeterinario` is true below; a RESPONSAVEL session never
- * calls `navigate('UsoDaIa')` since the button itself is gated off for them.
- */
-type SettingsNavigationParamList = { UsoDaIa: undefined };
 
 const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
   { value: 'pt-BR', label: 'Português (Brasil)' },
@@ -43,8 +28,6 @@ export function SettingsScreen() {
   const { mode, preferences, setMode, updatePreferences } = useTheme();
   const colors = useThemeColors();
   const { t, language, setLanguage } = useTranslation();
-  const { isVeterinario } = useAuth();
-  const navigation = useNavigation<NativeStackNavigationProp<SettingsNavigationParamList>>();
   const wide = useBreakpoint() === 'wide';
   const rowStyle = [styles.row, { borderBottomColor: colors.line }];
   const [permissionDenied, setPermissionDenied] = useState(false);
@@ -154,21 +137,9 @@ export function SettingsScreen() {
           </Text>
         ) : null}
 
-        <View style={rowStyle}>
-          <Text style={{ color: colors.ink }}>{t('settings.email')}</Text>
-          <Switch
-            value={preferences.emailEnabled}
-            onValueChange={(value) => updatePreferences({ emailEnabled: value })}
-            trackColor={{ true: colors.accent }}
-          />
-        </View>
-        {/* Honest disclosure — confirmed against the current local Java
-            source that no email-delivery channel exists at all (no
-            MailSender/SMTP anywhere in the backend). This preference is
-            saved locally only and does not yet trigger any notification. */}
-        <Text style={[styles.fieldLabel, { color: colors.inkSecondary }]}>
-          {t('settings.emailHelper')}
-        </Text>
+        {/* No e-mail switch: the backend has no delivery channel (no
+            MailSender/SMTP), so a toggle here would do nothing. Add it back
+            with the channel. */}
 
         <Text accessibilityRole="header" style={[styles.section, { color: colors.ink }]}>{t('settings.languageSection')}</Text>
         <Text style={[styles.fieldLabel, { color: colors.inkSecondary }]}>
@@ -179,23 +150,6 @@ export function SettingsScreen() {
           value={language}
           onChange={setLanguage}
         />
-
-        {/* VETERINARIO-only — RESPONSAVEL has no navigator path to a screen
-            that renders AI clinical support at all, so this entry point
-            would be meaningless (and unreachable) for that role. */}
-        {isVeterinario ? (
-          <>
-            <Text accessibilityRole="header" style={[styles.section, { color: colors.ink }]}>{t('settings.aiSection')}</Text>
-            <AppCard style={styles.group}>
-              <ListRow
-                icon="sparkles-outline"
-                iconColor={colors.ai}
-                title={t('settings.aiUsageButton')}
-                onPress={() => navigation.navigate('UsoDaIa')}
-              />
-            </AppCard>
-          </>
-        ) : null}
 
         <Text accessibilityRole="header" style={[styles.section, { color: colors.ink }]}>{t('settings.infoSection')}</Text>
         <View style={styles.infoBox}>
@@ -210,7 +164,7 @@ export function SettingsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  section: { fontSize: 16, ...font('semibold'), marginTop: spacing.lg, marginBottom: spacing.sm },
+  section: { fontSize: fontSize.lg, ...font('semibold'), marginTop: spacing.lg, marginBottom: spacing.sm },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -219,7 +173,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   fieldLabel: { fontSize: fontSize.sm, marginBottom: spacing.sm },
-  group: { padding: 0, overflow: 'hidden' },
   infoBox: {
     gap: spacing.xs,
     paddingVertical: spacing.sm,

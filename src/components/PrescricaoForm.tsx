@@ -95,41 +95,30 @@ export function PrescricaoForm({
   const [valorMedicamentoInput, setValorMedicamentoInput] = useState(
     moneyToInputValue(initialValues?.valorMedicamento)
   );
-  const [validationError, setValidationError] = useState('');
+  // Per field, shown under the field it names; every missing field shows at once.
+  type Field = 'medicamento' | 'dosagem' | 'dataInicio' | 'dataFim' | 'valor';
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<Field, string>>>({});
+  const clearError = (field: Field) => setFieldErrors((current) => ({ ...current, [field]: undefined }));
   const markSubmitted = useDiscardGuard(
     { medicamento, dosagem, frequencia, viaAdministracao, dataInicio, dataFim, instrucoes, valorMedicamentoInput },
     { submitting: isSubmitting }
   );
 
   const handleSubmit = () => {
-    setValidationError('');
-
-    if (!medicamento.trim()) {
-      setValidationError(t('prescricaoForm.validationNoMedicamento'));
-      return;
-    }
-    if (!dosagem.trim()) {
-      setValidationError(t('prescricaoForm.validationNoDosagem'));
-      return;
-    }
-    if (!dataInicio) {
-      setValidationError(t('prescricaoForm.validationNoDataInicio'));
-      return;
-    }
-
-    const isoInicio = formatIsoDateLocal(dataInicio);
+    const isoInicio = dataInicio ? formatIsoDateLocal(dataInicio) : undefined;
     const isoFim = dataFim ? formatIsoDateLocal(dataFim) : undefined;
-
-    if (isoFim && isoFim < isoInicio) {
-      setValidationError(t('prescricaoForm.validationDataFimBeforeInicio'));
-      return;
-    }
-
     const valorResult = parseMoneyInput(valorMedicamentoInput);
-    if (!valorResult.ok) {
-      setValidationError(valorResult.errorMessage);
-      return;
-    }
+
+    const errors: Partial<Record<Field, string>> = {
+      medicamento: medicamento.trim() ? undefined : t('prescricaoForm.validationNoMedicamento'),
+      dosagem: dosagem.trim() ? undefined : t('prescricaoForm.validationNoDosagem'),
+      dataInicio: isoInicio ? undefined : t('prescricaoForm.validationNoDataInicio'),
+      dataFim:
+        isoInicio && isoFim && isoFim < isoInicio ? t('prescricaoForm.validationDataFimBeforeInicio') : undefined,
+      valor: valorResult.ok ? undefined : valorResult.errorMessage,
+    };
+    setFieldErrors(errors);
+    if (Object.values(errors).some(Boolean) || !isoInicio || !valorResult.ok) return;
 
     markSubmitted();
     onSubmit({
@@ -146,28 +135,41 @@ export function PrescricaoForm({
 
   return (
     <AppCard>
-      <Text style={[styles.context, { color: colors.inkSecondary }]}>
-        {patientName}
-        {consultaLabel ? ` · ${consultaLabel}` : ''}
-      </Text>
-      <Text style={[styles.contextArkiveId, { color: colors.inkSecondary }]} selectable>
-        {patientArkiveIdLine({ arkivePatientId: patientArkiveId ?? null })}
-      </Text>
+      {/* Hidden until the consultation arrives, instead of an empty line and a fallback ID. */}
+      {patientName ? (
+        <>
+          <Text style={[styles.context, { color: colors.inkSecondary }]}>
+            {patientName}
+            {consultaLabel ? ` · ${consultaLabel}` : ''}
+          </Text>
+          <Text style={[styles.contextArkiveId, { color: colors.inkSecondary }]} selectable>
+            {patientArkiveIdLine({ arkivePatientId: patientArkiveId ?? null })}
+          </Text>
+        </>
+      ) : null}
 
       <AppInput
         label={t('prescricaoForm.medicamentoLabel')}
         placeholder={t('prescricaoForm.medicamentoPlaceholder')}
         value={medicamento}
-        onChangeText={setMedicamento}
+        onChangeText={(value) => {
+          setMedicamento(value);
+          clearError('medicamento');
+        }}
         editable={!isSubmitting}
+        error={fieldErrors.medicamento}
       />
 
       <AppInput
         label={t('prescricaoForm.dosagemLabel')}
         placeholder={t('prescricaoForm.dosagemPlaceholder')}
         value={dosagem}
-        onChangeText={setDosagem}
+        onChangeText={(value) => {
+          setDosagem(value);
+          clearError('dosagem');
+        }}
         editable={!isSubmitting}
+        error={fieldErrors.dosagem}
       />
 
       <AppInput
@@ -186,9 +188,26 @@ export function PrescricaoForm({
         disabled={isSubmitting}
       />
 
-      <DateField label={t('prescricaoForm.dataInicioLabel')} value={dataInicio} onChange={setDataInicio} />
+      <DateField
+        label={t('prescricaoForm.dataInicioLabel')}
+        value={dataInicio}
+        onChange={(value) => {
+          setDataInicio(value);
+          setFieldErrors((current) => ({ ...current, dataInicio: undefined, dataFim: undefined }));
+        }}
+        error={fieldErrors.dataInicio}
+      />
 
-      <DateField label={t('prescricaoForm.dataFimLabel')} value={dataFim} onChange={setDataFim} />
+      <DateField
+        label={t('prescricaoForm.dataFimLabel')}
+        value={dataFim}
+        onChange={(value) => {
+          setDataFim(value);
+          clearError('dataFim');
+        }}
+        minimumDate={dataInicio ?? undefined}
+        error={fieldErrors.dataFim}
+      />
 
       <AppInput
         label={t('prescricaoForm.instrucoesLabel')}
@@ -203,13 +222,17 @@ export function PrescricaoForm({
         label={t('prescricaoForm.treatmentCostLabel')}
         helperText={t('prescricaoForm.treatmentCostHelper')}
         value={valorMedicamentoInput}
-        onChangeText={setValorMedicamentoInput}
+        onChangeText={(value) => {
+          setValorMedicamentoInput(value);
+          clearError('valor');
+        }}
         editable={!isSubmitting}
+        error={fieldErrors.valor}
       />
 
-      {validationError || errorMessage ? (
-        <Text style={{ color: colors.error, marginBottom: spacing.sm }}>
-          {validationError || errorMessage}
+      {errorMessage ? (
+        <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={{ color: colors.error, marginBottom: spacing.sm }}>
+          {errorMessage}
         </Text>
       ) : null}
 

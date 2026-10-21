@@ -6,8 +6,10 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { NotificationBell } from './NotificationBell';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useTranslation } from '../i18n/useTranslation';
 import { spacing, fontSize, radius, font, layout } from '../styles/theme';
 import type { AppStackParamList } from '../interfaces/navigation';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 /**
  * White surface with a thin bottom border, matching AppHeader — one coherent
@@ -15,6 +17,7 @@ import type { AppStackParamList } from '../interfaces/navigation';
  */
 export function HomeHeader() {
   const colors = useThemeColors();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const navigation =
     useNavigation<NativeStackNavigationProp<AppStackParamList>>();
@@ -45,9 +48,14 @@ export function HomeHeader() {
 
         <Pressable
           onPress={() => navigation.navigate('Perfil')}
-          style={[styles.iconBtn, { borderColor: colors.line }]}
+          style={(state: InteractionState) => [
+            styles.iconBtn,
+            { borderColor: colors.line },
+            isActive(state) && { backgroundColor: colors.sunken },
+            focusRing(state, colors),
+          ]}
           accessibilityRole="button"
-          accessibilityLabel="Perfil"
+          accessibilityLabel={t('profile.title')}
         >
           <Ionicons name="person-circle-outline" size={26} color={colors.ink} />
         </Pressable>
