@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, Platform, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Platform, Linking, StyleSheet, useWindowDimensions } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
@@ -14,7 +15,8 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { usePendingShare } from '../context/PendingShareContext';
 import { parsePatientShareUrl } from '../utils/shareLink';
-import { spacing } from '../styles/theme';
+import { spacing, iconSize } from '../styles/theme';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 /**
  * QR scanning only (`barcodeTypes: ['qr']`) — never logs scanned content,
@@ -38,6 +40,10 @@ export function ScanShareQrScreen() {
 }
 
 function CameraScanner() {
+  // Up to 320, never more than 45% of the window, never below the 220 scan frame plus a margin.
+  const { height: windowHeight } = useWindowDimensions();
+  const cameraHeight = Math.max(260, Math.min(320, windowHeight * 0.45));
+  const [torch, setTorch] = useState(false);
   const navigation = useNavigation<NativeStackNavigationProp<ScanShareQrNavigationParamList>>();
   const colors = useThemeColors();
   const { t } = useTranslation();
@@ -82,6 +88,18 @@ function CameraScanner() {
     );
   }
 
+  // Typing the code is the way forward when the camera is not an option.
+  const codeEntry =
+    status === 'authenticated' ? (
+      <AppCard style={styles.footerCard}>
+        <ListRow
+          icon="keypad-outline"
+          title={t('enterShareCode.entryLink')}
+          onPress={() => navigation.navigate('InserirCodigoConvite')}
+        />
+      </AppCard>
+    ) : null;
+
   if (!permission.granted) {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -94,7 +112,15 @@ function CameraScanner() {
           </Text>
           {permission.canAskAgain ? (
             <AppButton title={t('scanShareQr.requestPermission')} onPress={requestPermission} />
+          ) : Platform.OS !== 'web' ? (
+            <AppButton
+              title={t('scanShareQr.openSettings')}
+              variant="secondary"
+              icon="settings-outline"
+              onPress={() => Linking.openSettings()}
+            />
           ) : null}
+          {codeEntry}
         </ScreenContainer>
       </View>
     );
@@ -103,16 +129,31 @@ function CameraScanner() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('scanShareQr.title')} />
-      <View style={styles.cameraWrap}>
+      <View style={[styles.cameraWrap, { height: cameraHeight }]}>
         <CameraView
           style={StyleSheet.absoluteFill}
           facing="back"
           barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
           onBarcodeScanned={handleBarcodeScanned}
+          enableTorch={torch}
         />
         <View style={styles.frameOverlay} pointerEvents="none">
           <View style={[styles.frame, { borderColor: colors.onCamera }]} />
         </View>
+        {/* Exam rooms are often dim; the torch lights the code on the other phone or paper. */}
+        <Pressable
+          onPress={() => setTorch((on) => !on)}
+          accessibilityRole="switch"
+          accessibilityState={{ checked: torch }}
+          accessibilityLabel={t('scanShareQr.torchLabel')}
+          style={(state: InteractionState) => [
+            styles.torch,
+            { backgroundColor: colors.scrim, opacity: isActive(state) ? 0.8 : 1 },
+            focusRing(state, colors),
+          ]}
+        >
+          <Ionicons name={torch ? 'flashlight' : 'flashlight-outline'} size={iconSize.md} color={colors.onCamera} />
+        </Pressable>
       </View>
       <ScreenContainer>
         <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginBottom: spacing.sm }}>
@@ -126,15 +167,7 @@ function CameraScanner() {
             <AppButton title={t('scanShareQr.scanAgain')} variant="secondary" onPress={handleScanAgain} />
           </>
         ) : null}
-        {status === 'authenticated' ? (
-          <AppCard style={styles.footerCard}>
-            <ListRow
-              icon="keypad-outline"
-              title={t('enterShareCode.entryLink')}
-              onPress={() => navigation.navigate('InserirCodigoConvite')}
-            />
-          </AppCard>
-        ) : null}
+        {codeEntry}
       </ScreenContainer>
     </View>
   );
@@ -142,10 +175,7 @@ function CameraScanner() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  cameraWrap: {
-    height: 320,
-    overflow: 'hidden',
-  },
+  cameraWrap: { overflow: 'hidden' },
   frameOverlay: {
     ...StyleSheet.absoluteFill,
     alignItems: 'center',
@@ -158,4 +188,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   footerCard: { padding: 0, overflow: 'hidden', marginTop: spacing.md },
+  torch: {
+    position: 'absolute',
+    right: spacing.md,
+    bottom: spacing.md,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

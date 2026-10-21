@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { StyleSheet, Text, type TextInput } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { AppInput } from '../components/AppInput';
@@ -30,6 +30,7 @@ export function LoginScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const passwordRef = useRef<TextInput>(null);
 
   const handleLogin = async () => {
     setError('');
@@ -52,23 +53,35 @@ export function LoginScreen() {
     <AuthLayout panelHeight={0.35}>
       <AppInput
         label={t('auth.loginLabel')}
+        autoComplete="username"
+        textContentType="username"
         placeholder={t('auth.loginPlaceholder')}
         value={identifier}
         onChangeText={setIdentifier}
         autoCapitalize="none"
         autoCorrect={false}
+        returnKeyType="next"
+        submitBehavior="submit"
+        onSubmitEditing={() => passwordRef.current?.focus()}
       />
 
       <AppInput
         label={t('auth.passwordLabel')}
+        autoComplete="current-password"
+        textContentType="password"
         placeholder={t('auth.passwordPlaceholder')}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        ref={passwordRef}
+        returnKeyType="go"
+        onSubmitEditing={handleLogin}
       />
 
       {error ? (
-        <Text style={[styles.error, { color: colors.error }]}>{error}</Text>
+        <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={[styles.error, { color: colors.error }]}>
+          {error}
+        </Text>
       ) : null}
 
       <AppButton title={t('auth.loginButton')} onPress={handleLogin} loading={loading} />

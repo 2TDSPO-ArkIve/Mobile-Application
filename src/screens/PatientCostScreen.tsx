@@ -4,7 +4,6 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { AppCard } from '../components/AppCard';
-import { AppButton } from '../components/AppButton';
 import { EmptyState } from '../components/EmptyState';
 import { StatusBadge } from '../components/StatusBadge';
 import { useThemeColors } from '../hooks/useThemeColors';
@@ -14,12 +13,13 @@ import { useAuth } from '../hooks/useAuth';
 import { consultaStatusPresentation } from '../utils/statusPresentation';
 import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
 import { describePatientCostsError } from '../utils/errorMessages';
-import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { CostDashboard } from '../components/CostDashboard';
 import { sumConsulta, sumMedicamentos } from '../utils/costDashboard';
 import type { PatientCostConsultation } from '../services/patientCostService';
 import { spacing, fontSize, font, radius } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
+import { ArkiveIdField } from '../components/ArkiveIdField';
 
 /**
  * Read-only cost dashboard — "how much has been recorded as spent on this
@@ -61,7 +61,7 @@ function ConsultationCostRow({ consulta }: { consulta: PatientCostConsultation }
           {t('patientCosts.consultationValue')}
         </Text>
         <Text style={[styles.amount, { color: colors.ink }]}>
-          {consulta.valorConsulta != null ? formatCurrency(consulta.valorConsulta) : '—'}
+          {consulta.valorConsulta != null ? formatCurrency(consulta.valorConsulta) : t('common.notInformed')}
         </Text>
       </View>
       <View style={styles.rowBetween}>
@@ -69,7 +69,7 @@ function ConsultationCostRow({ consulta }: { consulta: PatientCostConsultation }
           {t('patientCosts.medicationsValue')}
         </Text>
         <Text style={[styles.amount, { color: colors.ink }]}>
-          {consulta.valorMedicamentos != null ? formatCurrency(consulta.valorMedicamentos) : '—'}
+          {consulta.valorMedicamentos != null ? formatCurrency(consulta.valorMedicamentos) : t('common.notInformed')}
         </Text>
       </View>
       <View style={[styles.rowBetween, styles.totalRow, { borderTopColor: colors.line }]}>
@@ -143,9 +143,7 @@ export function PatientCostScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('patientCosts.title')} />
-        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-          {t('patientCosts.loading')}
-        </Text>
+        <LoadingState message={t('patientCosts.loading')} />
       </View>
     );
   }
@@ -155,8 +153,13 @@ export function PatientCostScreen() {
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('patientCosts.title')} />
         <ScreenContainer>
-          <EmptyState title={t('patientCosts.loadErrorTitle')} message={describePatientCostsError(error)} />
-          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
+          <EmptyState
+            tone="error"
+            title={t('patientCosts.loadErrorTitle')}
+            message={describePatientCostsError(error)}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetch()}
+          />
         </ScreenContainer>
       </View>
     );
@@ -166,10 +169,8 @@ export function PatientCostScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={data.animalNome} />
       <ScreenContainer>
-        <Text style={[styles.arkiveIdSubtitle, { color: colors.inkSecondary }]} selectable>
-          {patientArkiveIdLine(data)}
-        </Text>
-        <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
+        <ArkiveIdField arkivePatientId={data.arkivePatientId} style={styles.arkiveIdField} />
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
           {t('patientCosts.title')}
         </Text>
 
@@ -192,7 +193,7 @@ export function PatientCostScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  arkiveIdSubtitle: { fontSize: fontSize.xs, ...commonStyles.arkiveId, textAlign: 'center', marginBottom: spacing.sm },
+  arkiveIdField: { marginTop: 0, marginBottom: spacing.md },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
   dateText: { fontSize: fontSize.md, ...font('bold'), fontVariant: ['tabular-nums'] },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },

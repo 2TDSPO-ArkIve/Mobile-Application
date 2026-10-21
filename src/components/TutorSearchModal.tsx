@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, Modal, StyleSheet, ScrollView } from 'react-native';
 import { SearchBar } from './SearchBar';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useModalAnimation } from '../hooks/useReducedMotion';
 import { useTranslation } from '../i18n/useTranslation';
 import { useSearchResponsaveis } from '../hooks/useTutores';
 import type { ResponsavelLookupDto } from '../services/responsavelService';
 import { spacing, radius, fontSize, font } from '../styles/theme';
+import { LoadingState } from './LoadingState';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 const SEARCH_DEBOUNCE_MS = 300;
 const MIN_QUERY_LENGTH = 2;
@@ -25,6 +28,7 @@ interface Props {
  */
 export function TutorSearchModal({ visible, onClose, onSelect }: Props) {
   const colors = useThemeColors();
+  const modalAnimation = useModalAnimation();
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [debounced, setDebounced] = useState('');
@@ -50,11 +54,16 @@ export function TutorSearchModal({ visible, onClose, onSelect }: Props) {
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType={modalAnimation} onRequestClose={onClose}>
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <View style={[styles.header, { borderBottomColor: colors.line }]}>
-          <Text style={[styles.title, { color: colors.ink }]}>{t('tutor.searchModalTitle')}</Text>
-          <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={t('common.close')}>
+          <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('tutor.searchModalTitle')}</Text>
+          <Pressable
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.close')}
+            style={(state: InteractionState) => [styles.close, isActive(state) && { backgroundColor: colors.sunken }, focusRing(state, colors)]}
+          >
             <Text style={{ color: colors.accent, ...font('bold') }}>{t('common.close')}</Text>
           </Pressable>
         </View>
@@ -65,14 +74,19 @@ export function TutorSearchModal({ visible, onClose, onSelect }: Props) {
           {trimmed.length < MIN_QUERY_LENGTH ? (
             <Text style={{ color: colors.inkSecondary }}>{t('tutor.searchMinLength')}</Text>
           ) : isPending || isFetching ? (
-            <Text style={{ color: colors.inkSecondary }}>{t('tutor.searchLoading')}</Text>
+            <LoadingState message={t('tutor.searchLoading')} />
           ) : data && data.length > 0 ? (
             <ScrollView>
               {data.map((tutor) => (
                 <Pressable
                   key={tutor.id}
                   onPress={() => handleSelect(tutor)}
-                  style={[styles.row, { backgroundColor: colors.surface, borderColor: colors.line }]}
+                  accessibilityRole="button"
+                  style={(state: InteractionState) => [
+                    styles.row,
+                    { backgroundColor: isActive(state) ? colors.sunken : colors.surface, borderColor: colors.line },
+                    focusRing(state, colors),
+                  ]}
                 >
                   <Text style={{ color: colors.ink, ...font('bold') }}>{tutor.nome}</Text>
                   <Text style={{ color: colors.inkSecondary, fontSize: fontSize.sm }}>{tutor.email}</Text>
@@ -101,6 +115,7 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: fontSize.lg, ...font('bold') },
   body: { flex: 1, padding: spacing.lg },
+  close: { minHeight: 44, justifyContent: 'center', paddingHorizontal: spacing.sm, borderRadius: radius.md },
   row: {
     borderWidth: 1,
     borderRadius: radius.md,

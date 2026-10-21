@@ -18,7 +18,9 @@ import { toDisplayDate } from '../utils/isoDate';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { commonStyles } from '../styles/common';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize, layout } from '../styles/theme';
+import { spacing, fontSize, layout, font } from '../styles/theme';
+import { LoadingState } from '../components/LoadingState';
+import { describeLoadError } from '../utils/errorMessages';
 
 /** Real prescription list — GET /api/prescricoes?consultaId=X via TanStack Query, no mock fallback. */
 export function PrescricoesScreen() {
@@ -30,7 +32,7 @@ export function PrescricoesScreen() {
   const { consultaId } = route.params;
 
   const { data: consulta } = useConsulta(consultaId);
-  const { data, isPending, isError, error } = usePrescricoesByConsulta(consultaId);
+  const { data, isPending, isError, error, refetch } = usePrescricoesByConsulta(consultaId);
   // Independent of the prescription list above — the owner-document section
   // is gated purely on consultation status, never on prescription count (a
   // finalized consultation with zero prescriptions is still a valid PDF).
@@ -42,32 +44,14 @@ export function PrescricoesScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <AppHeader
-        title={t('prescricoesList.title')}
-        // Chunk 8 correction — creation is only ever valid for a finalized
-        // (FI) consultation (`PrescricaoService.exigirConsultaFinalizada`,
-        // also re-checked by `NewPrescricaoScreen` itself as a second
-        // safeguard). While `consulta` hasn't loaded yet, or its status is
-        // AG/EP/AP/CA, this shortcut must not be offered at all — not even
-        // disabled, since AppHeader's icon actions have no disabled state.
-        actions={
-          isFinalizada
-            ? [
-                {
-                  icon: 'add',
-                  onPress: () => navigation.navigate('NovaPrescricao', { consultaId }),
-                  accessibilityLabel: t('prescricoesList.newAccessibilityLabel'),
-                },
-              ]
-            : []
-        }
-      />
+      <AppHeader title={t('prescricoesList.title')} />
 
-      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
+      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined} onRefresh={refetch}>
         {consulta ? (
           <>
             <Text style={[styles.context, { color: colors.inkSecondary }]}>
-              {consulta.animalNome} · {toDisplayDate(consulta.dataHora.slice(0, 10))}
+              <Text style={[styles.contextName, { color: colors.ink }]}>{consulta.animalNome}</Text>
+              {` · ${toDisplayDate(consulta.dataHora.slice(0, 10))}`}
             </Text>
             <Text style={[styles.context, styles.contextArkiveId, { color: colors.inkSecondary }]} selectable>
               {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
@@ -75,13 +59,10 @@ export function PrescricoesScreen() {
           </>
         ) : null}
 
-        {/* Chunk 8 — the header "+" icon alone wasn't discoverable enough;
-            this content button is the one visually prominent create action
-            (the header icon remains only as a small secondary shortcut, so
-            there's no competing primary action). Chunk 8 correction — gated
-            on `isFinalizada`, same as the header shortcut above: creation is
-            only ever valid for a finalized (FI) consultation, so this must
-            not be shown while `consulta` is still loading or its status is
+        {/* The one create action (a header "+" duplicated it). Creation is
+            only ever valid for a finalized (FI) consultation
+            (`PrescricaoService.exigirConsultaFinalizada`), so this must not
+            be shown while `consulta` is still loading or its status is
             AG/EP/AP/CA. `NewPrescricaoScreen` itself still re-validates FI
             independently as a second safeguard. */}
         {isFinalizada ? (
@@ -94,13 +75,14 @@ export function PrescricoesScreen() {
         ) : null}
 
         {isPending ? (
-          <Text style={{ color: colors.inkSecondary, textAlign: 'center' }}>
-            {t('prescricoesList.loading')}
-          </Text>
+          <LoadingState message={t('prescricoesList.loading')} />
         ) : isError ? (
           <EmptyState
+            tone="error"
             title={t('prescricoesList.loadErrorTitle')}
-            message={error instanceof Error ? error.message : t('prescricoesList.genericServerError')}
+            message={describeLoadError(error)}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetch()}
           />
         ) : !data || data.length === 0 ? (
           <EmptyState title={t('prescricoesList.emptyTitle')} message={t('prescricoesList.emptyMessage')} />
@@ -126,7 +108,7 @@ export function PrescricoesScreen() {
 
         {isFinalizada ? (
           <View style={[styles.pdfSection, { borderTopColor: colors.line }]}>
-            <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.xs }]}>
+            <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.xs }]}>
               {t('consultaPdf.sectionTitle')}
             </Text>
             <Text style={[styles.pdfHelper, { color: colors.inkSecondary }]}>
@@ -137,6 +119,7 @@ export function PrescricoesScreen() {
             ) : null}
             <AppButton
               title={t('consultaPdf.shareButton')}
+              variant="secondary"
               icon="share-outline"
               onPress={sharePdf}
               loading={pdfPending}
@@ -151,7 +134,8 @@ export function PrescricoesScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  context: { fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.md },
+  context: { fontSize: fontSize.sm, marginBottom: spacing.md },
+  contextName: { fontSize: fontSize.md, ...font('semibold') },
   contextArkiveId: { fontSize: fontSize.xs, marginTop: -spacing.sm },
   newButton: { marginBottom: spacing.md },
   list: { padding: 0, overflow: 'hidden' },

@@ -13,6 +13,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { fontSize, spacing, font } from '../styles/theme';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 
@@ -74,6 +75,7 @@ export function TabBar({ items, activeKey }: { items: SidebarItem[]; activeKey: 
 
   return (
     <View
+      accessibilityRole="tablist"
       style={[
         styles.bar,
         {
@@ -97,10 +99,14 @@ export function TabBar({ items, activeKey }: { items: SidebarItem[]; activeKey: 
           <Pressable
             key={item.key}
             onPress={item.onPress}
-            accessibilityRole="button"
-            accessibilityState={focused ? { selected: true } : {}}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: focused }}
             accessibilityLabel={item.label}
-            style={styles.item}
+            style={(state: InteractionState) => [
+              styles.item,
+              isActive(state) && { backgroundColor: colors.sunken },
+              focusRing(state, colors),
+            ]}
           >
             <Ionicons name={focused ? item.icon.active : item.icon.inactive} size={ICON_SIZE} color={color} />
             <Text style={[styles.label, { color }]} numberOfLines={1}>

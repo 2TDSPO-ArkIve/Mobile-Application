@@ -8,8 +8,10 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { useClinicalVoiceRecording } from '../hooks/useClinicalVoiceRecording';
 import { patientArkiveIdLine } from '../utils/patientDisplay';
-import { spacing, fontSize, font } from '../styles/theme';
+import { spacing, radius, fontSize, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { useDiscardGuard } from '../hooks/useDiscardGuard';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 /** Appends a transcribed segment after whatever's already in the draft, never replacing it. */
 function appendSegment(existing: string, segment: string): string {
@@ -71,6 +73,7 @@ export function ClinicalIntake({
   const [draft, setDraft] = useState(initialNarrativa);
   const [view, setView] = useState<'orb' | 'editor'>(initialNarrativa.trim() ? 'editor' : 'orb');
   const [analyzeError, setAnalyzeError] = useState('');
+  const markSubmitted = useDiscardGuard(draft, { submitting: analyzing || proceeding });
 
   // The app-wide language IS the voice-dictation locale — one setting, no
   // separate read from Settings needed here anymore (see src/i18n/store.ts).
@@ -103,6 +106,7 @@ export function ClinicalIntake({
       return;
     }
     try {
+      markSubmitted();
       await onAnalyze(draft);
     } catch (err) {
       setAnalyzeError(err instanceof Error ? err.message : t('clinicalIntake.saveFallbackError'));
@@ -115,6 +119,7 @@ export function ClinicalIntake({
   const handleProceedPress = async () => {
     setAnalyzeError('');
     try {
+      markSubmitted();
       await onProceedWithoutAnalysis(draft);
     } catch (err) {
       setAnalyzeError(err instanceof Error ? err.message : t('clinicalIntake.saveFallbackError'));
@@ -165,7 +170,11 @@ export function ClinicalIntake({
             />
 
             {!wide && voiceIdle ? (
-              <Pressable onPress={() => setView('editor')} style={styles.linkWrap} accessibilityRole="button">
+              <Pressable
+                onPress={() => setView('editor')}
+                accessibilityRole="button"
+                style={(state: InteractionState) => [styles.linkWrap, isActive(state) && { backgroundColor: colors.sunken }, focusRing(state, colors)]}
+              >
                 <Text style={{ color: colors.accent, ...font('semibold') }}>{t('clinicalIntake.typeNarrative')}</Text>
               </Pressable>
             ) : null}
@@ -190,7 +199,7 @@ export function ClinicalIntake({
         ) : null}
         {showEditor ? (
           <View style={wide ? styles.editorColumn : null}>
-            <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
+            <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
               {t('clinicalIntake.sectionLabel')}
             </Text>
             <AppInput
@@ -218,7 +227,11 @@ export function ClinicalIntake({
       </View>
 
       {analyzeError ? (
-        <Text style={{ color: colors.error, marginTop: spacing.sm, marginBottom: spacing.sm }}>
+        <Text
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          style={{ color: colors.error, marginTop: spacing.sm, marginBottom: spacing.sm }}
+        >
           {analyzeError}
         </Text>
       ) : null}
@@ -230,7 +243,8 @@ export function ClinicalIntake({
             icon="sparkles"
             onPress={handleAnalyzePress}
             loading={analyzing}
-            disabled={analyzing || proceeding || !draft.trim()}
+            // Enabled on an empty draft so the press explains what is missing instead of a silent dead button.
+            disabled={analyzing || proceeding}
             style={styles.analyzeButton}
           />
           <AppButton
@@ -251,7 +265,14 @@ const styles = StyleSheet.create({
   patientArkiveId: { fontSize: fontSize.xs, marginTop: 2 },
   question: { fontSize: fontSize.xl, ...font('bold'), marginTop: spacing.md, marginBottom: spacing.xs },
   subtitle: { fontSize: fontSize.sm, marginBottom: spacing.md, lineHeight: 20 },
-  linkWrap: { alignSelf: 'center', marginTop: spacing.sm, padding: spacing.sm },
+  linkWrap: {
+    alignSelf: 'center',
+    minHeight: 44,
+    justifyContent: 'center',
+    marginTop: spacing.sm,
+    padding: spacing.sm,
+    borderRadius: radius.md,
+  },
   errorBlock: { marginTop: spacing.md },
   editor: { minHeight: 240, fontSize: fontSize.lg, lineHeight: 26, textAlignVertical: 'top' },
   disclaimer: { fontSize: fontSize.xs, marginTop: spacing.xs, marginBottom: spacing.md },

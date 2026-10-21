@@ -28,3 +28,8 @@ const CONSULTA_STATUS_TONE: Record<ConsultaStatus, StatusTone> = {
 export function consultaStatusPresentation(status: ConsultaStatus): StatusPresentation {
   return { label: t(`consultaStatus.${status}`), tone: CONSULTA_STATUS_TONE[status] };
 }
+
+/** The clinic's EP/AP names mean nothing to an owner; they get what is happening instead. */
+export function responsavelStatusLabel(status: ConsultaStatus, statusDescricao: string): string {
+  return status === 'EP' || status === 'AP' ? t(`consultaStatusResponsavel.${status}`) : statusDescricao;
+}

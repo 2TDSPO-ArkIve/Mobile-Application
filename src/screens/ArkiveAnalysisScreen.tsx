@@ -13,6 +13,7 @@ import { useTranslation } from '../i18n/useTranslation';
 import { useClinicalSupportGeneration } from '../hooks/useClinicalSupportGeneration';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font } from '../styles/theme';
+import { StatusTrail } from '../components/StatusTrail';
 
 // Truthful, time-paced status copy — never claims an action we can't prove
 // (no "consultando N estudos"/"pesquisando artigos"/"validando diagnóstico").
@@ -88,13 +89,15 @@ export function ArkiveAnalysisScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('aiAnalysis.title')} />
 
-      <ScreenContainer background={phase === 'analyzing' ? colors.aiTint : undefined}>
+      <ScreenContainer>
+        {/* The case is in EP while the analysis runs; the trail keeps that visible between Detail and Insight. */}
+        {phase === 'canceled' ? null : <StatusTrail status="EP" />}
         <View style={styles.center}>
           <VoiceOrb mode="analyzing" />
 
           {phase === 'canceled' ? (
             <>
-              <Text style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.canceledTitle')}</Text>
+              <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.canceledTitle')}</Text>
               <Text style={[styles.message, { color: colors.inkSecondary }]}>{t('aiAnalysis.canceledMessage')}</Text>
               <AppButton
                 title={t('aiAnalysis.backToConsultation')}
@@ -104,7 +107,7 @@ export function ArkiveAnalysisScreen() {
             </>
           ) : phase === 'unavailable' ? (
             <>
-              <Text style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.unavailableTitle')}</Text>
+              <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.unavailableTitle')}</Text>
               <Text style={[styles.message, { color: colors.inkSecondary }]}>{t('aiAnalysis.unavailableMessage')}</Text>
               <AppButton
                 title={t('aiAnalysis.backToConsultation')}
@@ -114,7 +117,7 @@ export function ArkiveAnalysisScreen() {
             </>
           ) : phase === 'uncertain' ? (
             <>
-              <Text style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.uncertainTitle')}</Text>
+              <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.uncertainTitle')}</Text>
               <Text style={[styles.message, { color: colors.inkSecondary }]}>{errorMessage}</Text>
 
               <AppButton title={t('aiAnalysis.recheckButton')} onPress={recheck} style={styles.actionButton} />
@@ -133,7 +136,7 @@ export function ArkiveAnalysisScreen() {
             </>
           ) : phase === 'error' ? (
             <>
-              <Text style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.errorTitle')}</Text>
+              <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.errorTitle')}</Text>
               <Text style={[styles.message, { color: colors.error }]}>{errorMessage}</Text>
 
               <AppButton title={t('common.tryAgain')} onPress={generate} style={styles.actionButton} />
@@ -146,7 +149,7 @@ export function ArkiveAnalysisScreen() {
             </>
           ) : (
             <>
-              <Text style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.analyzingTitle')}</Text>
+              <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('aiAnalysis.analyzingTitle')}</Text>
               <Text style={[styles.message, { color: colors.inkSecondary }]}>
                 {t('aiAnalysis.analyzingSubtitle')}
               </Text>

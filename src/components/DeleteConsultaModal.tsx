@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Modal, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppButton } from './AppButton';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useModalAnimation } from '../hooks/useReducedMotion';
 import { useTranslation } from '../i18n/useTranslation';
 import { useDeleteConsulta } from '../hooks/useConsultas';
 import { spacing, fontSize, font } from '../styles/theme';
@@ -21,6 +23,8 @@ interface Props {
  */
 export function DeleteConsultaModal({ visible, consultaId, onClose, onDeleted }: Props) {
   const colors = useThemeColors();
+  const modalAnimation = useModalAnimation();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const deleteMutation = useDeleteConsulta();
   const [error, setError] = useState('');
@@ -43,11 +47,15 @@ export function DeleteConsultaModal({ visible, consultaId, onClose, onDeleted }:
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <View style={[styles.backdrop, { backgroundColor: colors.scrim }]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
-        <View style={[styles.sheet, { backgroundColor: colors.raised }]}>
-          <Text style={[styles.title, { color: colors.ink }]}>{t('consultaDetail.deleteConfirmTitle')}</Text>
+    <Modal visible={visible} transparent animationType={modalAnimation} onRequestClose={handleClose}>
+      {/* A Modal sits outside ScreenContainer, so it handles the iOS keyboard and the home indicator itself. */}
+      <KeyboardAvoidingView
+        style={[styles.backdrop, { backgroundColor: colors.scrim }]}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <Pressable style={StyleSheet.absoluteFill} accessible={false} focusable={false} onPress={handleClose} />
+        <View style={[styles.sheet, { backgroundColor: colors.raised, paddingBottom: spacing.lg + insets.bottom }]}>
+          <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('consultaDetail.deleteConfirmTitle')}</Text>
           <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md }}>
             {t('consultaDetail.deleteConfirmMessage', { id: consultaId })}
           </Text>
@@ -70,7 +78,7 @@ export function DeleteConsultaModal({ visible, consultaId, onClose, onDeleted }:
             disabled={deleteMutation.isPending}
           />
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

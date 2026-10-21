@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Modal, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppInput } from './AppInput';
 import { AppButton } from './AppButton';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useModalAnimation } from '../hooks/useReducedMotion';
 import { useTranslation } from '../i18n/useTranslation';
 import { useCancelConsulta } from '../hooks/useConsultas';
 import { describeCancelError } from '../utils/errorMessages';
@@ -28,6 +30,8 @@ interface Props {
  */
 export function CancelConsultaModal({ visible, consultaId, onClose, onCancelled }: Props) {
   const colors = useThemeColors();
+  const modalAnimation = useModalAnimation();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const cancelMutation = useCancelConsulta(consultaId);
 
@@ -60,11 +64,15 @@ export function CancelConsultaModal({ visible, consultaId, onClose, onCancelled 
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <View style={[styles.backdrop, { backgroundColor: colors.scrim }]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
-        <View style={[styles.sheet, { backgroundColor: colors.raised }]}>
-          <Text style={[styles.title, { color: colors.ink }]}>{t('cancelConsulta.title')}</Text>
+    <Modal visible={visible} transparent animationType={modalAnimation} onRequestClose={handleClose}>
+      {/* A Modal sits outside ScreenContainer, so it handles the iOS keyboard and the home indicator itself. */}
+      <KeyboardAvoidingView
+        style={[styles.backdrop, { backgroundColor: colors.scrim }]}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <Pressable style={StyleSheet.absoluteFill} accessible={false} focusable={false} onPress={handleClose} />
+        <View style={[styles.sheet, { backgroundColor: colors.raised, paddingBottom: spacing.lg + insets.bottom }]}>
+          <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('cancelConsulta.title')}</Text>
           <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md }}>{t('cancelConsulta.message')}</Text>
 
           <AppInput
@@ -96,7 +104,7 @@ export function CancelConsultaModal({ visible, consultaId, onClose, onCancelled 
             disabled={cancelMutation.isPending}
           />
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

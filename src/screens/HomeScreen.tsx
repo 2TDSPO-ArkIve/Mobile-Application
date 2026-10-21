@@ -22,6 +22,7 @@ import type { ConsultaDto } from '../services/consultaService';
 import { spacing, fontSize, font, iconSize, layout } from '../styles/theme';
 import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
 
 function isSameDayAsNow(iso: string): boolean {
   const date = new Date(iso);
@@ -66,7 +67,7 @@ export function HomeScreen() {
   // replaced a Node-era `/appointments` widget whose endpoint no longer
   // exists on the Spring backend and crashed every visit to this screen with
   // an unhandled promise rejection.
-  const { data: consultas, isPending, isError } = useConsultas();
+  const { data: consultas, isPending, isError, refetch } = useConsultas();
 
   const todayConsultas = useMemo(() => {
     if (!consultas) return [];
@@ -111,7 +112,7 @@ export function HomeScreen() {
   const [current, ...otherInProgress] = inProgressConsultas;
 
   /** Compact row: time, patient, status. Rows share one card, split by `line`. */
-  const renderRow = (consulta: ConsultaDto, index: number) => (
+  const renderRow = (showDate: boolean) => (consulta: ConsultaDto, index: number) => (
     <Pressable
       key={consulta.id}
       onPress={() => goToConsulta(consulta.id)}
@@ -129,7 +130,7 @@ export function HomeScreen() {
           {consulta.animalNome}
         </Text>
         <Text style={[styles.rowMeta, { color: colors.inkSecondary }]} numberOfLines={1}>
-          {formatData(consulta.dataHora)} · {modalidade(consulta)}
+          {showDate ? `${formatData(consulta.dataHora)} · ${modalidade(consulta)}` : modalidade(consulta)}
         </Text>
       </View>
       <StatusBadge label={consulta.statusDescricao} tone={consultaStatusPresentation(consulta.status).tone} />
@@ -137,7 +138,7 @@ export function HomeScreen() {
   );
 
   const sectionTitle = (label: string) => (
-    <Text style={[commonStyles.eyebrow, styles.sectionTitle, { color: colors.accent }]}>{label}</Text>
+    <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionTitle, { color: colors.inkSecondary }]}>{label}</Text>
   );
 
   const actions = (
@@ -182,7 +183,7 @@ export function HomeScreen() {
       ) : (
         <EmptyState title={t('home.emptyInProgressTitle')} />
       )}
-      {otherInProgress.length > 0 ? <AppCard style={styles.list}>{otherInProgress.map(renderRow)}</AppCard> : null}
+      {otherInProgress.length > 0 ? <AppCard style={styles.list}>{otherInProgress.map(renderRow(true))}</AppCard> : null}
     </>
   );
 
@@ -190,13 +191,13 @@ export function HomeScreen() {
     <>
       {sectionTitle(t('home.todaySection'))}
       {isPending ? (
-        <Text style={{ color: colors.inkSecondary }}>{t('home.loadingConsultas')}</Text>
+        <LoadingState message={t('home.loadingConsultas')} />
       ) : isError ? (
-        <Text style={{ color: colors.error }}>{t('home.loadError')}</Text>
+        <EmptyState tone="error" title={t('home.loadError')} actionLabel={t('common.tryAgain')} onAction={() => refetch()} />
       ) : todayConsultas.length === 0 ? (
         <EmptyState title={t('home.emptyTodayTitle')} message={t('home.emptyTodayMessage')} />
       ) : (
-        <AppCard style={styles.list}>{todayConsultas.map(renderRow)}</AppCard>
+        <AppCard style={styles.list}>{todayConsultas.map(renderRow(false))}</AppCard>
       )}
     </>
   );
@@ -205,7 +206,10 @@ export function HomeScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <HomeHeader />
 
-      <ScreenContainer style={wide ? { ...styles.content, maxWidth: layout.contentMax } : styles.content}>
+      <ScreenContainer
+        style={wide ? { ...styles.content, maxWidth: layout.contentMax } : styles.content}
+        onRefresh={refetch}
+      >
         <View style={wide ? styles.columns : null}>
           <View style={styles.flex}>
             <Text style={[styles.greeting, { color: colors.ink }]} numberOfLines={2}>

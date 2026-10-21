@@ -5,6 +5,7 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useTranslation } from '../i18n/useTranslation';
 import { spacing, fontSize, font } from '../styles/theme';
+import { focusRing, type InteractionState } from '../styles/interaction';
 
 export type VoiceOrbMode = 'idle' | 'recording' | 'transcribing' | 'analyzing';
 
@@ -109,7 +110,8 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
     return () => loop.stop();
   }, [mode, reducedMotion, breathe]);
 
-  const orbColor = mode === 'recording' ? colors.accent : colors.ink;
+  // `ai` while the analysis runs: that wait is the AI's, not the dictation's.
+  const orbColor = mode === 'recording' ? colors.accent : mode === 'analyzing' ? colors.ai : colors.ink;
 
   const centerScale = Animated.add(
     breathe.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] }),
@@ -146,7 +148,11 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
         disabled={!interactive}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
-        style={[styles.orbArea, { width: RING_OUTER, height: RING_OUTER }]}
+        style={(state: InteractionState) => [
+          styles.orbArea,
+          { width: RING_OUTER, height: RING_OUTER, borderRadius: RING_OUTER / 2 },
+          focusRing(state, colors),
+        ]}
       >
         {mode !== 'idle' && !reducedMotion ? (
           <>
@@ -177,8 +183,8 @@ export function VoiceOrb({ mode, durationSeconds = 0, meteringLevel = 0, onPress
 
       {label ? (
         <View style={styles.labelRow}>
-          {mode === 'recording' ? <View style={[styles.recDot, { backgroundColor: colors.error }]} /> : null}
-          <Text style={[styles.label, { color: mode === 'recording' ? colors.error : colors.inkSecondary }]}>
+          {mode === 'recording' ? <View style={[styles.recDot, { backgroundColor: colors.accent }]} /> : null}
+          <Text style={[styles.label, { color: mode === 'recording' ? colors.accent : colors.inkSecondary }]}>
             {label}
           </Text>
         </View>

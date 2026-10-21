@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
@@ -10,11 +10,12 @@ import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { useConsulta } from '../hooks/useConsultas';
 import { useCreatePrescricao } from '../hooks/usePrescricoes';
-import { describePrescricaoError } from '../utils/errorMessages';
+import { describeLoadError, describePrescricaoError } from '../utils/errorMessages';
 import { toDisplayDate } from '../utils/isoDate';
 import type { PrescricaoRequestInput } from '../services/prescricaoService';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, layout } from '../styles/theme';
+import { layout } from '../styles/theme';
+import { LoadingState } from '../components/LoadingState';
 
 /**
  * Prescriptions only make sense for a finalized consultation
@@ -32,7 +33,7 @@ export function NewPrescricaoScreen() {
   const wide = useBreakpoint() === 'wide';
   const { consultaId } = route.params;
 
-  const { data: consulta, isPending } = useConsulta(consultaId);
+  const { data: consulta, isPending, isError, error, refetch } = useConsulta(consultaId);
   const createMutation = useCreatePrescricao(consultaId, consulta?.animalId);
 
   const handleSubmit = async (input: Omit<PrescricaoRequestInput, 'consultaId'>) => {
@@ -48,9 +49,27 @@ export function NewPrescricaoScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <AppHeader title={t('prescricaoForm.newTitle')} />
-        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-          {t('prescricaoForm.loadingConsulta')}
-        </Text>
+        <ScreenContainer>
+          <LoadingState message={t('prescricaoForm.loadingConsulta')} />
+        </ScreenContainer>
+      </View>
+    );
+  }
+
+  // A failed fetch is not "this consultation can't take prescriptions"; say so and offer a retry.
+  if (isError) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <AppHeader title={t('prescricaoForm.newTitle')} />
+        <ScreenContainer>
+          <EmptyState
+            tone="error"
+            title={t('prescricoesList.loadErrorTitle')}
+            message={describeLoadError(error)}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetch()}
+          />
+        </ScreenContainer>
       </View>
     );
   }

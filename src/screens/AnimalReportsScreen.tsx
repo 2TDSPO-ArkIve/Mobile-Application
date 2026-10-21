@@ -13,17 +13,22 @@ import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { usePatient } from '../hooks/usePatients';
 import { useAnimalReports } from '../hooks/useAnimalReports';
-import { describeAnimalReportListError } from '../utils/errorMessages';
+import { describeAnimalReportListError, describeLoadError } from '../utils/errorMessages';
 import { formatDateTime } from '../utils/localeFormat';
 import { toDisplayDate } from '../utils/isoDate';
-import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AnimalReportDto } from '../services/animalReportService';
-import { spacing, fontSize, font } from '../styles/theme';
+import { spacing, radius, fontSize, lineHeight, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
+import { LoadMoreButton } from '../components/LoadMoreButton';
+import { ArkiveIdField } from '../components/ArkiveIdField';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 const SEARCH_DEBOUNCE_MS = 300;
 /** A report text past this length gets a "Ver mais" toggle instead of always rendering in full — short reports (the common case: "vomitou de madrugada") never show a pointless toggle. */
 const EXPAND_THRESHOLD = 180;
+/** Collapsed reports show this many lines; a dictated report breaks lines early (blank lines between segments). */
+const COLLAPSED_LINES = 4;
 
 /**
  * Reused by BOTH `AppStack` (VETERINARIO, read-only) and
@@ -47,7 +52,8 @@ function ReportCard({ report }: { report: AnimalReportDto }) {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
-  const isLong = report.texto.length > EXPAND_THRESHOLD;
+  const isLong =
+    report.texto.length > EXPAND_THRESHOLD || report.texto.split('\n').length > COLLAPSED_LINES;
   const createdAt = new Date(report.dataCriacao);
   const hasValidCreatedAt = !Number.isNaN(createdAt.getTime());
 
@@ -69,11 +75,16 @@ function ReportCard({ report }: { report: AnimalReportDto }) {
           {t('animalReports.occurredAtLabel', { date: toDisplayDate(report.dataOcorrencia) })}
         </Text>
       ) : null}
-      <Text style={[styles.text, { color: colors.ink }]} numberOfLines={expanded ? undefined : 4}>
+      <Text style={[styles.text, { color: colors.ink }]} numberOfLines={expanded ? undefined : COLLAPSED_LINES}>
         {report.texto}
       </Text>
       {isLong ? (
-        <Pressable onPress={() => setExpanded((value) => !value)} accessibilityRole="button" style={styles.expandLink}>
+        <Pressable
+          onPress={() => setExpanded((value) => !value)}
+          accessibilityRole="button"
+          accessibilityState={{ expanded }}
+          style={(state: InteractionState) => [styles.expandLink, isActive(state) && { backgroundColor: colors.sunken }, focusRing(state, colors)]}
+        >
           <Text style={{ color: colors.accent, ...font('semibold'), fontSize: fontSize.sm }}>
             {expanded ? t('animalReports.collapseButton') : t('animalReports.expandButton')}
           </Text>
@@ -93,7 +104,6 @@ export function AnimalReportsScreen() {
 
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [loadMoreError, setLoadMoreError] = useState('');
 
   // Chunk 9 — resets pagination implicitly: `debouncedSearch` is part of
   // `useAnimalReports`' query key, so a changed search term is an entirely
@@ -112,29 +122,18 @@ export function AnimalReportsScreen() {
     refetch: refetchPatient,
   } = usePatient(patientId);
 
+  const reportsQuery = useAnimalReports(patientId, debouncedSearch);
   const {
     data,
     isPending: reportsPending,
     isError: reportsIsError,
     error: reportsError,
     refetch: refetchReports,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useAnimalReports(patientId, debouncedSearch);
+  } = reportsQuery;
 
   const reports = data?.pages.flatMap((page) => page.content) ?? [];
   const totalElements = data?.pages[0]?.totalElements ?? 0;
   const hasSearch = debouncedSearch.length > 0;
-
-  const handleLoadMore = async () => {
-    setLoadMoreError('');
-    try {
-      await fetchNextPage();
-    } catch {
-      setLoadMoreError(t('animalReports.loadMoreError'));
-    }
-  };
 
   const handleAddReport = () => {
     navigation.navigate('NovoRelatoAnimal', { patientId });
@@ -144,9 +143,7 @@ export function AnimalReportsScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('animalReports.title')} />
-        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-          {t('animalReports.loadingPatient')}
-        </Text>
+        <LoadingState message={t('animalReports.loadingPatient')} />
       </View>
     );
   }
@@ -157,10 +154,12 @@ export function AnimalReportsScreen() {
         <AppHeader title={t('animalReports.title')} />
         <ScreenContainer>
           <EmptyState
+            tone="error"
             title={t('animalReports.loadErrorTitle')}
-            message={patientError instanceof Error ? patientError.message : t('patientDetail.notFound')}
+            message={describeLoadError(patientError, t('patientDetail.notFound'))}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetchPatient()}
           />
-          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetchPatient()} />
         </ScreenContainer>
       </View>
     );
@@ -169,11 +168,9 @@ export function AnimalReportsScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={patient.nome} />
-      <ScreenContainer>
-        <Text style={[styles.arkiveIdSubtitle, { color: colors.inkSecondary }]} selectable>
-          {patientArkiveIdLine(patient)}
-        </Text>
-        <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
+      <ScreenContainer onRefresh={refetchReports}>
+        <ArkiveIdField arkivePatientId={patient.arkivePatientId} style={styles.arkiveIdField} />
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
           {t('animalReports.title')}
         </Text>
 
@@ -200,15 +197,15 @@ export function AnimalReportsScreen() {
         {reportsIsError ? (
           <>
             <EmptyState
+              tone="error"
               title={t('animalReports.loadErrorTitle')}
               message={describeAnimalReportListError(reportsError)}
+              actionLabel={t('common.tryAgain')}
+              onAction={() => refetchReports()}
             />
-            <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetchReports()} />
           </>
         ) : reportsPending ? (
-          <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.lg }}>
-            {t('animalReports.loading')}
-          </Text>
+          <LoadingState message={t('animalReports.loading')} />
         ) : reports.length === 0 ? (
           <EmptyState
             title={hasSearch ? t('animalReports.emptySearchTitle') : t('animalReports.emptyTitle')}
@@ -217,24 +214,15 @@ export function AnimalReportsScreen() {
         ) : (
           <>
             <Text style={[styles.resultsCount, { color: colors.inkSecondary }]}>
-              {t('animalReports.resultsCount', { count: totalElements })}
+              {totalElements === 1
+                ? t('animalReports.resultsCountOne')
+                : t('animalReports.resultsCount', { count: totalElements })}
             </Text>
             {reports.map((report) => (
               <ReportCard key={report.id} report={report} />
             ))}
 
-            {loadMoreError ? (
-              <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{loadMoreError}</Text>
-            ) : null}
-            {hasNextPage ? (
-              <AppButton
-                title={isFetchingNextPage ? t('animalReports.loadingMore') : t('animalReports.loadMoreButton')}
-                variant="secondary"
-                onPress={handleLoadMore}
-                loading={isFetchingNextPage}
-                disabled={isFetchingNextPage}
-              />
-            ) : null}
+            <LoadMoreButton query={reportsQuery} />
           </>
         )}
       </ScreenContainer>
@@ -244,12 +232,19 @@ export function AnimalReportsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  arkiveIdSubtitle: { fontSize: fontSize.xs, ...commonStyles.arkiveId, textAlign: 'center', marginBottom: spacing.sm },
+  arkiveIdField: { marginTop: 0, marginBottom: spacing.md },
   addButton: { marginBottom: spacing.md },
   resultsCount: { fontSize: fontSize.xs, marginBottom: spacing.sm },
   reportCard: { marginBottom: spacing.sm },
   reportedBy: { fontSize: fontSize.sm, ...font('bold') },
   meta: { fontSize: fontSize.xs, marginTop: 2, fontVariant: ['tabular-nums'] },
-  text: { fontSize: fontSize.sm, marginTop: spacing.sm, lineHeight: 20 },
-  expandLink: { marginTop: spacing.xs, paddingVertical: spacing.xs },
+  text: { fontSize: fontSize.md, marginTop: spacing.sm, lineHeight: fontSize.md * lineHeight.body },
+  expandLink: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xs,
+    marginHorizontal: -spacing.xs,
+    borderRadius: radius.sm,
+  },
 });

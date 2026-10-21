@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
@@ -78,7 +79,19 @@ export function EnterShareCodeScreen() {
           style={commonStyles.arkiveId}
         />
 
-        <AppButton title={t('enterShareCode.continueButton')} onPress={handleContinue} style={styles.continueButton} />
+        {/* The code is a long token nobody types; same Paste + submit pair as the ArkIve ID lookup. */}
+        <View style={styles.actions}>
+          <AppButton
+            title={t('arkiveLookup.paste')}
+            variant="secondary"
+            icon="clipboard-outline"
+            onPress={async () => {
+              setCode(await Clipboard.getStringAsync());
+              setError('');
+            }}
+          />
+          <AppButton title={t('enterShareCode.continueButton')} onPress={handleContinue} style={styles.continueButton} />
+        </View>
       </ScreenContainer>
     </View>
   );
@@ -86,5 +99,6 @@ export function EnterShareCodeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  continueButton: { marginTop: spacing.md },
+  actions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+  continueButton: { flex: 1 },
 });

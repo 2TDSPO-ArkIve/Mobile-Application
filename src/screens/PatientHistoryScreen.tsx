@@ -13,16 +13,18 @@ import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { usePatientHistory } from '../hooks/usePatients';
 import { usePatientHistoryPdf } from '../hooks/usePatientHistoryPdf';
-import { consultaStatusPresentation } from '../utils/statusPresentation';
+import { consultaStatusPresentation, responsavelStatusLabel } from '../utils/statusPresentation';
+import { useAuth } from '../hooks/useAuth';
 import { severidadeLabel } from '../utils/severidade';
 import { viaAdministracaoLabel } from '../utils/viaAdministracao';
 import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
 import { toDisplayDate } from '../utils/isoDate';
 import { describePatientHistoryError } from '../utils/errorMessages';
-import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AnimalHistoryConsultation, AnimalHistoryPrescription } from '../services/patientHistoryService';
 import { spacing, fontSize, font, layout, radius, iconSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
+import { ArkiveIdField } from '../components/ArkiveIdField';
 
 /**
  * Read-only longitudinal clinical timeline — reused by BOTH VETERINARIO
@@ -89,6 +91,10 @@ function ConsultationCard({ consulta }: { consulta: AnimalHistoryConsultation })
   const hasValidDate = !Number.isNaN(date.getTime());
   const modalidadeLabel = consulta.modalidade === 'PRESENCIAL' ? t('home.presencial') : t('home.remota');
   const tone = consultaStatusPresentation(consulta.status).tone;
+  const { isResponsavel } = useAuth();
+  const statusLabel = isResponsavel
+    ? responsavelStatusLabel(consulta.status, consulta.statusDescricao)
+    : consulta.statusDescricao;
 
   const vetLine = [
     consulta.veterinarioNome ? t('patientHistory.veterinarianLabel', { name: consulta.veterinarioNome }) : null,
@@ -121,7 +127,7 @@ function ConsultationCard({ consulta }: { consulta: AnimalHistoryConsultation })
         <Text style={[styles.dateText, { color: colors.ink }]} numberOfLines={1}>
           {hasValidDate ? `${formatDate(date)} · ${formatTime(date)}` : ''}
         </Text>
-        <StatusBadge label={consulta.statusDescricao} tone={tone} />
+        <StatusBadge label={statusLabel} tone={tone} />
       </View>
 
       <View style={styles.meta}>
@@ -188,9 +194,7 @@ export function PatientHistoryScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('patientHistory.title')} />
-        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-          {t('patientHistory.loading')}
-        </Text>
+        <LoadingState message={t('patientHistory.loading')} />
       </View>
     );
   }
@@ -200,8 +204,13 @@ export function PatientHistoryScreen() {
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('patientHistory.title')} />
         <ScreenContainer>
-          <EmptyState title={t('patientHistory.loadErrorTitle')} message={describePatientHistoryError(error)} />
-          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
+          <EmptyState
+            tone="error"
+            title={t('patientHistory.loadErrorTitle')}
+            message={describePatientHistoryError(error)}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetch()}
+          />
         </ScreenContainer>
       </View>
     );
@@ -211,19 +220,8 @@ export function PatientHistoryScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={data.paciente.nome} />
       <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
-        <Text style={[styles.arkiveIdSubtitle, { color: colors.inkSecondary }]} selectable>
-          {patientArkiveIdLine(data.paciente)}
-        </Text>
-        <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
-          {t('patientHistory.title')}
-        </Text>
-
-        {data.consultas.length === 0 ? (
-          <EmptyState title={t('patientHistory.emptyTitle')} message={t('patientHistory.emptyMessage')} />
-        ) : (
-          data.consultas.map((consulta, index) => <ConsultationCard key={index} consulta={consulta} />)
-        )}
-
+        <ArkiveIdField arkivePatientId={data.paciente.arkivePatientId} style={styles.arkiveIdField} />
+        {/* Export sits above the timeline: a long history otherwise hides it at the very end. */}
         {pdf.errorMessage ? (
           <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{pdf.errorMessage}</Text>
         ) : null}
@@ -236,6 +234,16 @@ export function PatientHistoryScreen() {
           disabled={pdf.isPending}
           style={styles.pdfButton}
         />
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
+          {t('patientHistory.title')}
+        </Text>
+
+        {data.consultas.length === 0 ? (
+          <EmptyState title={t('patientHistory.emptyTitle')} message={t('patientHistory.emptyMessage')} />
+        ) : (
+          data.consultas.map((consulta, index) => <ConsultationCard key={index} consulta={consulta} />)
+        )}
+
       </ScreenContainer>
     </View>
   );
@@ -243,7 +251,7 @@ export function PatientHistoryScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  arkiveIdSubtitle: { fontSize: fontSize.xs, ...commonStyles.arkiveId, textAlign: 'center', marginBottom: spacing.sm },
+  arkiveIdField: { marginTop: 0, marginBottom: spacing.md },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   dateText: { flex: 1, fontSize: fontSize.md, ...font('bold') },
   meta: { marginTop: spacing.sm, gap: spacing.xs },
@@ -261,5 +269,5 @@ const styles = StyleSheet.create({
   prescriptionName: { flex: 1, fontSize: fontSize.sm, ...font('semibold') },
   money: { fontSize: fontSize.sm, ...font('medium'), fontVariant: ['tabular-nums'] },
   prescriptionDetail: { fontSize: fontSize.xs, marginTop: 2 },
-  pdfButton: { marginTop: spacing.md },
+  pdfButton: { marginTop: 0, marginBottom: spacing.lg },
 });

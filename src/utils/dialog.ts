@@ -24,10 +24,10 @@ export function confirmAction(options: {
   ]);
 }
 
-export function notify(title: string, message: string, buttonText: string, onDismiss: () => void): void {
+export function notify(title: string, message: string, buttonText: string, onDismiss?: () => void): void {
   if (Platform.OS === 'web') {
     window.alert(`${title}\n\n${message}`);
-    onDismiss();
+    onDismiss?.();
     return;
   }
   Alert.alert(title, message, [{ text: buttonText, onPress: onDismiss }]);

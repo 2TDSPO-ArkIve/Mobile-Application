@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { confirmAction } from '../utils/dialog';
+import { ConfirmSheet } from '../components/ConfirmSheet';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { AppButton } from '../components/AppButton';
@@ -25,16 +25,8 @@ export function MandatoryPasswordChangeScreen() {
   const { logout } = useAuth();
   const [submitting, setSubmitting] = useState(false);
 
-  const handleCancel = () => {
-    confirmAction({
-      title: t('changePassword.cancelConfirmTitle'),
-      message: t('changePassword.cancelConfirmMessage'),
-      cancelText: t('common.cancel'),
-      confirmText: t('changePassword.cancelButton'),
-      destructive: true,
-      onConfirm: () => logout(),
-    });
-  };
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const handleCancel = () => setConfirmVisible(true);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -54,11 +46,25 @@ export function MandatoryPasswordChangeScreen() {
 
         <AppButton
           title={t('changePassword.cancelButton')}
-          variant="ghost"
+          variant="danger"
+          icon="log-out-outline"
           onPress={handleCancel}
           disabled={submitting}
+          style={styles.logout}
         />
       </ScreenContainer>
+      <ConfirmSheet
+        visible={confirmVisible}
+        title={t('changePassword.cancelConfirmTitle')}
+        message={t('changePassword.cancelConfirmMessage')}
+        confirmText={t('changePassword.cancelButton')}
+        destructive
+        onConfirm={() => {
+          setConfirmVisible(false);
+          logout();
+        }}
+        onClose={() => setConfirmVisible(false)}
+      />
     </View>
   );
 }
@@ -66,4 +72,6 @@ export function MandatoryPasswordChangeScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   subtitle: { fontSize: fontSize.md, lineHeight: 22, marginBottom: spacing.lg },
+  // Same sign-out button as Perfil and Minha conta, set apart from the form.
+  logout: { marginTop: spacing.xl },
 });

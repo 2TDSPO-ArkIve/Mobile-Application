@@ -29,6 +29,10 @@ export interface AiUsageSample {
   /** `null` only when `sampleSize === 0` — never `0` by coincidence vs. "no data" (a genuine average of 0 IS a real, valid number and would be returned as `0`, not `null`). */
   averageTokens: number | null;
   isPending: boolean;
+  /** A candidate list failed: the sample is unknown, never "no usage". */
+  isError: boolean;
+  error: unknown;
+  refetch: () => void;
 }
 
 /**
@@ -108,5 +112,11 @@ export function useRecentAiUsageSample(excludeConsultaId?: number): AiUsageSampl
     totalTokens,
     averageTokens: entries.length > 0 ? totalTokens / entries.length : null,
     isPending: apList.isPending || fiList.isPending || supportQueries.some((query) => query.isPending),
+    isError: apList.isError || fiList.isError,
+    error: apList.error ?? fiList.error,
+    refetch: () => {
+      apList.refetch();
+      fiList.refetch();
+    },
   };
 }

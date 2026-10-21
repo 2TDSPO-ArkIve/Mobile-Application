@@ -14,9 +14,10 @@ import { useCreateAnimalReport } from '../hooks/useAnimalReports';
 import { useClinicalVoiceRecording } from '../hooks/useClinicalVoiceRecording';
 import { startOfToday } from '../utils/consultaScheduling';
 import { describeAnimalReportCreateError } from '../utils/errorMessages';
-import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { spacing, fontSize, font } from '../styles/theme';
-import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
+import { useDiscardGuard } from '../hooks/useDiscardGuard';
+import { ArkiveIdField } from '../components/ArkiveIdField';
 
 const MAX_TEXTO_LENGTH = 2000;
 
@@ -73,6 +74,7 @@ export function NewAnimalReportScreen() {
   const [originadoDeTranscricao, setOriginadoDeTranscricao] = useState(false);
   const [showVoice, setShowVoice] = useState(false);
   const [validationError, setValidationError] = useState('');
+  const markSubmitted = useDiscardGuard({ texto, dataOcorrencia }, { submitting: createMutation.isPending });
 
   const voice = useClinicalVoiceRecording((transcript) => {
     setTexto((current) => appendSegment(current, transcript));
@@ -84,6 +86,8 @@ export function NewAnimalReportScreen() {
 
   const handleTextChange = (value: string) => {
     setTexto(value);
+    // Clearing the draft drops the dictated content too, so the provenance goes with it.
+    if (!value.trim()) setOriginadoDeTranscricao(false);
     if (validationError) setValidationError('');
   };
 
@@ -100,6 +104,7 @@ export function NewAnimalReportScreen() {
       return;
     }
     try {
+      markSubmitted();
       await createMutation.mutateAsync({
         texto: trimmed,
         dataOcorrencia: dataOcorrencia ? formatIsoDateLocal(dataOcorrencia) : undefined,
@@ -117,15 +122,11 @@ export function NewAnimalReportScreen() {
       <AppHeader title={t('animalReports.newTitle')} />
       <ScreenContainer>
         {patientPending ? (
-          <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md }}>
-            {t('animalReports.loadingPatient')}
-          </Text>
+          <LoadingState message={t('animalReports.loadingPatient')} />
         ) : patient ? (
           <>
             <Text style={[styles.patientName, { color: colors.ink }]}>{patient.nome}</Text>
-            <Text style={[styles.patientArkiveId, { color: colors.inkSecondary }]} selectable>
-              {patientArkiveIdLine(patient)}
-            </Text>
+            <ArkiveIdField arkivePatientId={patient.arkivePatientId} style={styles.patientArkiveId} />
           </>
         ) : null}
 
@@ -228,7 +229,7 @@ export function NewAnimalReportScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   patientName: { fontSize: fontSize.md, ...font('bold'), textAlign: 'center' },
-  patientArkiveId: { fontSize: fontSize.xs, ...commonStyles.arkiveId, textAlign: 'center', marginBottom: spacing.md },
+  patientArkiveId: { marginBottom: spacing.md },
   textarea: { minHeight: 140, textAlignVertical: 'top', paddingTop: spacing.sm },
   charCount: { fontSize: fontSize.xs, fontVariant: ['tabular-nums'], textAlign: 'right', marginTop: -spacing.sm, marginBottom: spacing.md },
   occurrenceHelper: { fontSize: fontSize.xs, marginTop: -spacing.xs, marginBottom: spacing.md },

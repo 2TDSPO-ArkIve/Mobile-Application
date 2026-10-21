@@ -8,7 +8,10 @@ import { useTranslation } from '../i18n/useTranslation';
 import { useAnimalObservation, useUpdateAnimalObservation } from '../hooks/usePatients';
 import { describeAnimalObservationError } from '../utils/errorMessages';
 import { commonStyles } from '../styles/common';
-import { spacing, fontSize } from '../styles/theme';
+import { spacing, radius, fontSize } from '../styles/theme';
+import { LoadingState } from './LoadingState';
+import { useLeaveGuard } from '../hooks/useDiscardGuard';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 /**
  * RESPONSAVEL-only. Backed by `GET`/`PATCH /api/animais/{id}/observacao-responsavel`
@@ -32,6 +35,8 @@ export function AnimalObservationCard({ animalId }: { animalId: number }) {
   const [dirty, setDirty] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [savedJustNow, setSavedJustNow] = useState(false);
+  // An unsaved note asks before the screen closes; saving clears `dirty`.
+  useLeaveGuard(dirty);
 
   // Only overwrite the draft from freshly-fetched data when the user hasn't
   // started editing — avoids clobbering an in-progress edit if this query
@@ -69,13 +74,13 @@ export function AnimalObservationCard({ animalId }: { animalId: number }) {
 
   return (
     <AppCard>
-      <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.xs }]}>
+      <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.xs }]}>
         {t('animalObservation.sectionTitle')}
       </Text>
       <Text style={[styles.helper, { color: colors.inkSecondary }]}>{t('animalObservation.sectionHelp')}</Text>
 
       {observationQuery.isPending ? (
-        <Text style={{ color: colors.inkSecondary }}>{t('animalObservation.loading')}</Text>
+        <LoadingState message={t('animalObservation.loading')} />
       ) : observationQuery.isError ? (
         <Text style={{ color: colors.error, fontSize: fontSize.sm }}>
           {describeAnimalObservationError(observationQuery.error, false)}
@@ -109,7 +114,12 @@ export function AnimalObservationCard({ animalId }: { animalId: number }) {
               size="small"
             />
             {draft.trim() ? (
-              <Pressable onPress={handleClear} disabled={isBusy} accessibilityRole="button" style={styles.clearLink}>
+              <Pressable
+                onPress={handleClear}
+                disabled={isBusy}
+                accessibilityRole="button"
+                style={(state: InteractionState) => [styles.clearLink, isActive(state) && { backgroundColor: colors.sunken }, focusRing(state, colors)]}
+              >
                 <Text style={{ color: colors.inkSecondary, fontSize: fontSize.sm }}>
                   {t('animalObservation.clearButton')}
                 </Text>
@@ -126,5 +136,5 @@ const styles = StyleSheet.create({
   helper: { fontSize: fontSize.sm, marginBottom: spacing.sm, lineHeight: 19 },
   textarea: { minHeight: 90, textAlignVertical: 'top', paddingTop: spacing.sm },
   actionsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  clearLink: { paddingVertical: spacing.xs },
+  clearLink: { minHeight: 44, justifyContent: 'center', paddingHorizontal: spacing.sm, borderRadius: radius.md },
 });

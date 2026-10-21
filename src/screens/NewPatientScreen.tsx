@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, Alert, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { notify } from '../utils/dialog';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
@@ -17,8 +18,9 @@ import { describePatientError } from '../utils/errorMessages';
 import type { AnimalRequestInput } from '../services/patientService';
 import type { ResponsavelLookupDto } from '../services/responsavelService';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize, font, layout } from '../styles/theme';
+import { spacing, radius, fontSize, font, layout } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 /**
  * Reachable both from NewConsultaScreen's patient search (when it comes up
@@ -72,7 +74,7 @@ export function NewPatientScreen() {
           principal: 'S',
         });
       } catch {
-        Alert.alert(t('tutor.linkFailedTitle'), t('tutor.linkFailedMessage'));
+        notify(t('tutor.linkFailedTitle'), t('tutor.linkFailedMessage'), t('common.done'));
       }
     }
 
@@ -108,36 +110,40 @@ export function NewPatientScreen() {
           submitting={createMutation.isPending || linkTutorMutation.isPending}
           submitLabel={t('patientForm.createSubmit')}
           errorMessage={error}
-        />
-
-        <AppCard>
-          <Text style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
-            {t('tutor.section')}
-          </Text>
-          {selectedTutor ? (
-            <View style={commonStyles.rowBetween}>
-              <Text
-                style={{ color: colors.ink, ...font('bold'), flexShrink: 1, marginRight: spacing.sm }}
-                numberOfLines={2}
-              >
-                {t('tutor.selected', { name: selectedTutor.nome })}
-              </Text>
-              <Pressable onPress={() => setSelectedTutor(null)} accessibilityRole="button">
-                <Text style={{ color: colors.accent, fontSize: fontSize.sm }}>{t('tutor.clear')}</Text>
-              </Pressable>
-            </View>
-          ) : (
-            <>
-              <Text style={{ color: colors.inkSecondary, marginBottom: spacing.sm }}>{t('tutor.none')}</Text>
-              <AppButton
-                title={t('tutor.searchButton')}
-                variant="secondary"
-                icon="search-outline"
-                onPress={() => setTutorModalOpen(true)}
-              />
-            </>
-          )}
-        </AppCard>
+        >
+          <AppCard>
+            <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
+              {t('tutor.section')}
+            </Text>
+            {selectedTutor ? (
+              <View style={commonStyles.rowBetween}>
+                <Text
+                  style={{ color: colors.ink, ...font('bold'), flexShrink: 1, marginRight: spacing.sm }}
+                  numberOfLines={2}
+                >
+                  {t('tutor.selected', { name: selectedTutor.nome })}
+                </Text>
+                <Pressable
+                  onPress={() => setSelectedTutor(null)}
+                  accessibilityRole="button"
+                  style={(state: InteractionState) => [styles.clearLink, isActive(state) && { backgroundColor: colors.sunken }, focusRing(state, colors)]}
+                >
+                  <Text style={{ color: colors.accent, fontSize: fontSize.sm }}>{t('tutor.clear')}</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <>
+                <Text style={{ color: colors.inkSecondary, marginBottom: spacing.sm }}>{t('tutor.none')}</Text>
+                <AppButton
+                  title={t('tutor.searchButton')}
+                  variant="secondary"
+                  icon="search-outline"
+                  onPress={() => setTutorModalOpen(true)}
+                />
+              </>
+            )}
+          </AppCard>
+        </PatientForm>
       </ScreenContainer>
 
       <TutorSearchModal
@@ -151,4 +157,5 @@ export function NewPatientScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  clearLink: { minHeight: 44, justifyContent: 'center', paddingHorizontal: spacing.sm, borderRadius: radius.md },
 });

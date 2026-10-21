@@ -11,3 +11,8 @@ export function useReducedMotion(): boolean {
   }, []);
   return reduced;
 }
+
+/** `Modal` entrance: a fade instead of the slide-up while reduce motion is on. */
+export function useModalAnimation(): 'fade' | 'slide' {
+  return useReducedMotion() ? 'fade' : 'slide';
+}

@@ -9,6 +9,7 @@ import type { FinalizarConsultaRequest, Severidade } from '../services/consultaS
 import { spacing, fontSize, font, radius } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 import { focusRing, isActive, type InteractionState } from '../styles/interaction';
+import { useDiscardGuard } from '../hooks/useDiscardGuard';
 
 /**
  * V19 — `AUSENTE` is now a real, explicit `Severidade` value Java accepts
@@ -49,6 +50,7 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
   const [severidade, setSeveridade] = useState<Severidade | null>(null);
   const [conclusao, setConclusao] = useState('');
   const [validationError, setValidationError] = useState('');
+  const markSubmitted = useDiscardGuard({ diagnostico, severidade, conclusao }, { submitting: isSubmitting });
 
   /**
    * Chunk 4 — a routine visit with no disease found must be finishable
@@ -58,7 +60,10 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
    * and severity stays untouched/optional either way. This is a UI
    * convenience, never a fabricated medical finding.
    */
-  const handleQuickFill = (text: string) => setDiagnostico(text);
+  const handleQuickFill = (text: string) => {
+    setDiagnostico(text);
+    setValidationError('');
+  };
 
   const handleSubmit = () => {
     setValidationError('');
@@ -68,6 +73,7 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
       return;
     }
 
+    markSubmitted();
     onSubmit({
       diagnostico: diagnostico.trim(),
       // `severidade === null` ("not selected") stays `undefined` (Java
@@ -82,18 +88,25 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
 
   return (
     <View style={styles.root}>
+      <View style={[styles.authorBar, { backgroundColor: colors.accent }]} />
+      <Text accessibilityRole="header" style={[styles.formTitle, { color: colors.ink }]}>{t('conclusion.formTitle')}</Text>
       <Text style={[styles.intro, { color: colors.inkSecondary }]}>{t('conclusion.intro')}</Text>
 
       <View style={styles.section}>
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
           {t('conclusion.diagnosisLabel')}
         </Text>
         <AppInput
           placeholder={t('conclusion.diagnosisPlaceholder')}
           value={diagnostico}
-          onChangeText={setDiagnostico}
+          onChangeText={(value) => {
+            setDiagnostico(value);
+            if (value.trim()) setValidationError('');
+          }}
           editable={!isSubmitting}
           multiline
+          accessibilityLabel={t('conclusion.diagnosisLabel')}
+          error={validationError || undefined}
         />
         <View style={styles.quickFillRow}>
           {[t('conclusion.routineOption'), t('conclusion.noDiseaseOption')].map((option) => (
@@ -102,6 +115,7 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
               onPress={() => handleQuickFill(option)}
               disabled={isSubmitting}
               accessibilityRole="button"
+              hitSlop={CHIP_HIT_SLOP}
               style={(state: InteractionState) => [
                 styles.chip,
                 { backgroundColor: isActive(state) ? colors.line : colors.sunken },
@@ -115,7 +129,7 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
       </View>
 
       <View style={styles.section}>
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
           {t('conclusion.severityLabel')}
         </Text>
         <SegmentedControl
@@ -127,7 +141,7 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
       </View>
 
       <View style={styles.section}>
-        <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
+        <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
           {t('conclusion.conclusionLabel')}
         </Text>
         <AppInput
@@ -141,8 +155,10 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
         />
       </View>
 
-      {validationError || errorMessage ? (
-        <Text style={[styles.error, { color: colors.error }]}>{validationError || errorMessage}</Text>
+      {errorMessage ? (
+        <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={[styles.error, { color: colors.error }]}>
+          {errorMessage}
+        </Text>
       ) : null}
 
       <AppButton
@@ -156,9 +172,14 @@ export function VeterinarianConclusionForm({ onSubmit, isSubmitting, errorMessag
   );
 }
 
+/** Lifts the 36pt shortcut chips to a 44pt target; the wrap gap keeps rows apart. */
+const CHIP_HIT_SLOP = { top: 4, bottom: 4 };
+
 const styles = StyleSheet.create({
   root: { paddingTop: spacing.sm, paddingBottom: spacing.xl },
-  intro: { fontSize: fontSize.md, textAlign: 'center', marginBottom: spacing.xl, lineHeight: 22 },
+  authorBar: { width: 32, height: 4, borderRadius: radius.full, marginBottom: spacing.sm },
+  formTitle: { fontSize: fontSize.lg, ...font('bold'), marginBottom: spacing.xs },
+  intro: { fontSize: fontSize.md, marginBottom: spacing.xl, lineHeight: 22 },
   // Larger gap BETWEEN sections, tighter spacing within one (the eyebrow
   // label sits close to its own field via commonStyles.eyebrow + a small
   // marginBottom, not the section's own rhythm).

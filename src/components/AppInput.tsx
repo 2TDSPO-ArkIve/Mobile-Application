@@ -1,24 +1,43 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, TextInputProps } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { AccessibilityInfo, Platform, View, Text, TextInput, Pressable, StyleSheet, TextInputProps } from 'react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
 import { spacing, radius, fontSize, iconSize } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 import { Ionicons } from '@expo/vector-icons';
-import { focusRing, type InteractionState } from '../styles/interaction';
+import { focusRing, noWebOutline, type InteractionState } from '../styles/interaction';
 
 interface Props extends TextInputProps {
+  /** React 19 passes `ref` as a plain prop; it lands on the TextInput (focus chaining with "Next"). */
+  ref?: React.Ref<TextInput>;
   /** Omit when a heading elsewhere already labels this field — avoids a redundant/duplicate label. */
   label?: string;
   error?: string;
   helperText?: string;
 }
 
-export function AppInput({ label, error, helperText, style, onFocus, onBlur, editable, secureTextEntry, ...props }: Props) {
+export function AppInput({
+  label,
+  error,
+  helperText,
+  style,
+  onFocus,
+  onBlur,
+  editable,
+  secureTextEntry,
+  accessibilityLabel,
+  accessibilityHint,
+  ...props
+}: Props) {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const [focused, setFocused] = useState(false);
   const [revealed, setRevealed] = useState(false);
+
+  // Android and web read the error row's live region; iOS has none, so it is announced here.
+  useEffect(() => {
+    if (Platform.OS === 'ios' && error) AccessibilityInfo.announceForAccessibility(error);
+  }, [error]);
 
   // Typed via TextInputProps itself (not a named FocusEvent/BlurEvent import)
   // so this keeps compiling regardless of how RN names that type internally.
@@ -47,9 +66,14 @@ export function AppInput({ label, error, helperText, style, onFocus, onBlur, edi
           onFocus={handleFocus}
           onBlur={handleBlur}
           editable={editable}
+          // The visible label is a sibling Text, so the field carries it
+          // itself; the error (or helper) is read when the field is focused.
+          accessibilityLabel={accessibilityLabel ?? label}
+          accessibilityHint={error ?? accessibilityHint ?? helperText}
           secureTextEntry={secureTextEntry && !revealed}
           style={[
             styles.input,
+            noWebOutline,
             {
               backgroundColor: colors.sunken,
               borderColor,
@@ -73,7 +97,7 @@ export function AppInput({ label, error, helperText, style, onFocus, onBlur, edi
         ) : null}
       </View>
       {error ? (
-        <View style={styles.errorRow}>
+        <View style={styles.errorRow} accessibilityLiveRegion="polite" accessibilityRole="alert">
           <Ionicons name="alert-circle" size={14} color={colors.error} style={styles.errorIcon} />
           <Text style={[commonStyles.errorText, styles.errorText, { color: colors.error }]}>{error}</Text>
         </View>

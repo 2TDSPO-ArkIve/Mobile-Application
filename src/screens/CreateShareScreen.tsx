@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, Share, Platform, StyleSheet } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
@@ -15,11 +15,13 @@ import { usePatient } from '../hooks/usePatients';
 import { useCreatePatientShare } from '../hooks/useShares';
 import { describeCreateShareError } from '../utils/errorMessages';
 import { formatDateTime } from '../utils/localeFormat';
-import { patientArkiveIdLine } from '../utils/patientDisplay';
 import { buildPatientShareUrl } from '../utils/shareLink';
 import type { PatientAccessRole, PatientShareCreatedDto } from '../services/shareService';
 import { spacing, fontSize, radius, font, layout } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
+import { ArkiveIdField } from '../components/ArkiveIdField';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 const INVITATION_TYPES: PatientAccessRole[] = ['VETERINARIO', 'RESPONSAVEL'];
 
@@ -51,11 +53,17 @@ export function CreateShareScreen() {
   const { patientId } = route.params;
   const containerStyle = useBreakpoint() === 'wide' ? { maxWidth: layout.formMax } : undefined;
 
-  const { data: patient, isPending, isError } = usePatient(patientId);
+  const { data: patient, isPending, isError, refetch } = usePatient(patientId);
   const createShare = useCreatePatientShare(patientId);
   const [error, setError] = useState('');
   const [created, setCreated] = useState<PatientShareCreatedDto | null>(null);
-  const [copyFeedback, setCopyFeedback] = useState('');
+  const [copyFeedback, setCopyFeedback] = useState<{ text: string; failed?: boolean } | null>(null);
+  // A confirmation, not a state: it clears after a few seconds so a second copy reads as new.
+  useEffect(() => {
+    if (!copyFeedback) return;
+    const id = setTimeout(() => setCopyFeedback(null), 3000);
+    return () => clearTimeout(id);
+  }, [copyFeedback]);
 
   const handleSelect = async (invitationType: PatientAccessRole) => {
     setError('');
@@ -93,9 +101,10 @@ export function CreateShareScreen() {
       }
       try {
         await Clipboard.setStringAsync(message);
-        setCopyFeedback(t('shareCreate.linkCopiedFeedback'));
+        setCopyFeedback({ text: t('shareCreate.linkCopiedFeedback') });
       } catch {
-        // Nothing actionable left to try — the QR code on screen remains a valid fallback.
+        // The QR code on screen remains a valid fallback; say the copy didn't happen.
+        setCopyFeedback({ text: t('shareCreate.copyFailedFeedback'), failed: true });
       }
       return;
     }
@@ -112,9 +121,10 @@ export function CreateShareScreen() {
     if (!created) return;
     try {
       await Clipboard.setStringAsync(created.rawToken);
-      setCopyFeedback(t('shareCreate.codeCopiedFeedback'));
+      setCopyFeedback({ text: t('shareCreate.codeCopiedFeedback') });
     } catch {
-      // Nothing actionable left to try — the QR code on screen remains a valid fallback.
+      // The QR code on screen remains a valid fallback; say the copy didn't happen.
+      setCopyFeedback({ text: t('shareCreate.copyFailedFeedback'), failed: true });
     }
   };
 
@@ -122,9 +132,7 @@ export function CreateShareScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('shareCreate.genericTitle')} />
-        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-          {t('shareCreate.loadingPatient')}
-        </Text>
+        <LoadingState message={t('shareCreate.loadingPatient')} />
       </View>
     );
   }
@@ -134,7 +142,13 @@ export function CreateShareScreen() {
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('shareCreate.genericTitle')} />
         <ScreenContainer style={containerStyle}>
-          <EmptyState title={t('shareCreate.loadErrorTitle')} message={t('shareCreate.loadErrorMessage')} />
+          <EmptyState
+            tone="error"
+            title={t('shareCreate.loadErrorTitle')}
+            message={t('shareCreate.loadErrorMessage')}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetch()}
+          />
         </ScreenContainer>
       </View>
     );
@@ -144,9 +158,7 @@ export function CreateShareScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('shareCreate.title', { name: patient.nome })} />
       <ScreenContainer style={containerStyle}>
-        <Text style={[styles.arkiveIdSubtitle, { color: colors.inkSecondary }]} selectable>
-          {patientArkiveIdLine(patient)}
-        </Text>
+        <ArkiveIdField arkivePatientId={patient.arkivePatientId} style={styles.arkiveIdField} />
 
         {created ? (
           <>
@@ -166,13 +178,16 @@ export function CreateShareScreen() {
               </Text>
             </AppCard>
 
-            <AppButton title={t('shareCreate.copyCodeButton')} variant="secondary" icon="copy-outline" onPress={handleCopyCode} />
-
             <AppButton title={t('shareCreate.shareLinkButton')} icon="share-outline" onPress={handleShareLink} />
 
+            <AppButton title={t('shareCreate.copyCodeButton')} variant="secondary" icon="copy-outline" onPress={handleCopyCode} />
+
             {copyFeedback ? (
-              <Text style={{ color: colors.accent, textAlign: 'center', marginTop: spacing.xs }}>
-                {copyFeedback}
+              <Text
+                accessibilityLiveRegion="polite"
+                style={{ color: copyFeedback.failed ? colors.error : colors.success, textAlign: 'center', marginTop: spacing.xs }}
+              >
+                {copyFeedback.text}
               </Text>
             ) : null}
 
@@ -182,7 +197,7 @@ export function CreateShareScreen() {
           </>
         ) : (
           <>
-            <Text style={[commonStyles.eyebrow, { color: colors.accent, marginBottom: spacing.sm }]}>
+            <Text accessibilityRole="header" style={[commonStyles.eyebrow, { color: colors.inkSecondary, marginBottom: spacing.sm }]}>
               {t('shareCreate.question')}
             </Text>
 
@@ -195,15 +210,28 @@ export function CreateShareScreen() {
                 key={invitationType}
                 onPress={() => handleSelect(invitationType)}
                 disabled={createShare.isPending}
-                style={[
+                accessibilityRole="button"
+                accessibilityState={{ disabled: createShare.isPending }}
+                style={(state: InteractionState) => [
                   styles.optionRow,
-                  { backgroundColor: colors.surface, borderColor: colors.line, opacity: createShare.isPending ? 0.6 : 1 },
+                  {
+                    backgroundColor: isActive(state) ? colors.sunken : colors.surface,
+                    borderColor: colors.line,
+                    opacity: createShare.isPending ? 0.6 : 1,
+                  },
+                  focusRing(state, colors),
                 ]}
               >
                 <Text style={{ color: colors.ink, ...font('semibold'), fontSize: fontSize.md }}>
                   {invitationType === 'VETERINARIO'
                     ? t('shareInvitationType.VETERINARIO')
                     : t('shareInvitationType.RESPONSAVEL')}
+                </Text>
+                {/* What the recipient gets, said before the invite exists. */}
+                <Text style={[styles.optionHint, { color: colors.inkSecondary }]}>
+                  {invitationType === 'VETERINARIO'
+                    ? t('shareCreate.veterinarioHint')
+                    : t('shareCreate.responsavelHint')}
                 </Text>
               </Pressable>
             ))}
@@ -222,15 +250,17 @@ export function CreateShareScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  arkiveIdSubtitle: { fontSize: fontSize.xs, ...commonStyles.arkiveId, textAlign: 'center', marginBottom: spacing.sm },
+  arkiveIdField: { marginTop: 0, marginBottom: spacing.md },
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
   detailsCard: { marginTop: spacing.md, alignItems: 'center' },
   optionRow: {
     minHeight: 56,
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     borderRadius: radius.md,
-    borderWidth: 1.5,
+    borderWidth: 1,
     marginBottom: spacing.sm,
   },
+  optionHint: { fontSize: fontSize.sm, marginTop: 2 },
 });

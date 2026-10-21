@@ -11,6 +11,7 @@ import { useEspecies, useRacas } from '../hooks/useLookups';
 import { parseISODate, toISODateString } from '../utils/localeFormat';
 import type { AnimalRequestInput } from '../services/patientService';
 import { spacing, fontSize } from '../styles/theme';
+import { useDiscardGuard } from '../hooks/useDiscardGuard';
 
 export interface PatientFormValues {
   nome: string;
@@ -38,6 +39,8 @@ interface Props {
    * confused by a rejected request.
    */
   allowBreedCreation?: boolean;
+  /** Extra sections that belong to the same save (e.g. the Responsável link), drawn above the submit button. */
+  children?: React.ReactNode;
 }
 
 /**
@@ -53,6 +56,7 @@ export function PatientForm({
   submitLabel,
   errorMessage,
   allowBreedCreation = true,
+  children,
 }: Props) {
   const colors = useThemeColors();
   const { t } = useTranslation();
@@ -75,7 +79,10 @@ export function PatientForm({
   const [dataNascimento, setDataNascimento] = useState<Date | null>(
     initialValues?.dataNascimento ? parseISODate(initialValues.dataNascimento) : null
   );
-  const [validationError, setValidationError] = useState('');
+  // Per field, shown under the field it names; cleared as soon as that field gets a value.
+  const [nameError, setNameError] = useState('');
+  const [speciesError, setSpeciesError] = useState('');
+  const markSubmitted = useDiscardGuard({ nome, especieId, racaId, sexo, castrado, dataNascimento }, { submitting });
   const [breedModalOpen, setBreedModalOpen] = useState(false);
 
   const [especieSearch, setEspecieSearch] = useState('');
@@ -112,6 +119,7 @@ export function PatientForm({
   // rejects a raca/especie mismatch outright (`aplicarDados` in AnimalService).
   const handleEspecieChange = (value: string) => {
     const next = Number(value);
+    setSpeciesError('');
     if (next !== especieId) {
       setEspecieId(next);
       setRacaId(null);
@@ -125,17 +133,13 @@ export function PatientForm({
   }, [racas, racaId]);
 
   const handleSubmit = () => {
-    setValidationError('');
+    // Both checked at once, so every missing field shows at the same time.
+    const missingName = !nome.trim();
+    setNameError(missingName ? t('patientForm.validationNoName') : '');
+    setSpeciesError(!especieId ? t('patientForm.validationNoSpecies') : '');
+    if (missingName || !especieId) return;
 
-    if (!nome.trim()) {
-      setValidationError(t('patientForm.validationNoName'));
-      return;
-    }
-    if (!especieId) {
-      setValidationError(t('patientForm.validationNoSpecies'));
-      return;
-    }
-
+    markSubmitted();
     onSubmit({
       nome: nome.trim(),
       especieId,
@@ -158,7 +162,11 @@ export function PatientForm({
         label={t('patientForm.nameLabel')}
         placeholder={t('patientForm.namePlaceholder')}
         value={nome}
-        onChangeText={setNome}
+        onChangeText={(value) => {
+          setNome(value);
+          if (value.trim()) setNameError('');
+        }}
+        error={nameError || undefined}
       />
 
       <ChipGroup
@@ -169,6 +177,7 @@ export function PatientForm({
         searchPlaceholder={t('common.search')}
         onSearchChange={setEspecieSearch}
         emptyMessage={especiesLoading ? t('patientForm.loadingSpecies') : t('patientForm.noSpecies')}
+        error={speciesError || undefined}
       />
 
       <ChipGroup
@@ -229,9 +238,15 @@ export function PatientForm({
         onClear={() => setDataNascimento(null)}
       />
 
-      {validationError || errorMessage ? (
-        <Text style={{ color: colors.error, fontSize: fontSize.sm, marginBottom: spacing.sm }}>
-          {validationError || errorMessage}
+      {children}
+
+      {errorMessage ? (
+        <Text
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          style={{ color: colors.error, fontSize: fontSize.sm, marginBottom: spacing.sm }}
+        >
+          {errorMessage}
         </Text>
       ) : null}
 

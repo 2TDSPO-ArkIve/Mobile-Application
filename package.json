@@ -7,7 +7,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "contrast": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/contrast.mts"
+    "contrast": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/contrast.mts",
+    "linking": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/linking.mts"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",

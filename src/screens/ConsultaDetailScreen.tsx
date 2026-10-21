@@ -18,7 +18,6 @@ import { CancelConsultaModal } from '../components/CancelConsultaModal';
 import { DeleteConsultaModal } from '../components/DeleteConsultaModal';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../i18n/useTranslation';
 import {
   useConsulta,
@@ -30,13 +29,13 @@ import { useConsultaDiagnosticos } from '../hooks/useDiagnosticos';
 import { useAnimalReportsPresence } from '../hooks/useAnimalReports';
 import { findConfirmedDiagnosis } from '../services/diagnosticoService';
 import { consultaStatusPresentation } from '../utils/statusPresentation';
-import { describeNarrativeSaveError } from '../utils/errorMessages';
+import { describeNarrativeSaveError, describeLoadError } from '../utils/errorMessages';
 import { formatDate, formatTime, formatCurrency } from '../utils/localeFormat';
 import { t } from '../i18n/store';
 import type { AppStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize, font, layout } from '../styles/theme';
-import { shadows } from '../styles/shadows';
+import { spacing, fontSize, lineHeight, font, layout } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
 
 function formatContextLine(dataHora: string, modalidade: string): string {
   const date = new Date(dataHora);
@@ -62,7 +61,6 @@ export function ConsultaDetailScreen() {
   const route = useRoute<RouteProp<AppStackParamList, 'ConsultaDetalhe'>>();
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const colors = useThemeColors();
-  const { scheme } = useTheme();
   const insets = useSafeAreaInsets();
   const wide = useBreakpoint() === 'wide';
   const { t } = useTranslation();
@@ -78,7 +76,7 @@ export function ConsultaDetailScreen() {
   const clinicalSupport = useConsultaClinicalSupport(consultaId, { enabled: consulta?.status === 'FI' });
 
   /**
-   * Chunk 9 — backs the eye-icon's visibility, never its own narrative/clinical
+   * Chunk 9 — backs the reports icon's visibility, never its own narrative/clinical
    * data: a cheap `page=0&size=1` presence check (see the hook's own doc
    * comment), not the full report history. "Do not mistake an API error for
    * zero reports" — the icon stays visible on `isPending`/`isError` too, and
@@ -151,9 +149,7 @@ export function ConsultaDetailScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <AppHeader title={t('consultaDetail.genericTitle')} />
-        <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-          {t('consultaDetail.loading')}
-        </Text>
+        <LoadingState message={t('consultaDetail.loading')} />
       </View>
     );
   }
@@ -166,9 +162,10 @@ export function ConsultaDetailScreen() {
           <EmptyState
             tone="error"
             title={t('consultaDetail.loadErrorTitle')}
-            message={error instanceof Error ? error.message : t('consultaDetail.notFound')}
+            message={describeLoadError(error, t('consultaDetail.notFound'))}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetch()}
           />
-          <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
         </ScreenContainer>
       </View>
     );
@@ -185,7 +182,7 @@ export function ConsultaDetailScreen() {
             showReportsAction
               ? [
                   {
-                    icon: 'eye-outline',
+                    icon: 'chatbubbles-outline',
                     onPress: () => navigation.navigate('RelatosAnimal', { patientId: consulta.animalId }),
                     accessibilityLabel: t('consultaDetail.viewReportsAccessibilityLabel'),
                   },
@@ -247,10 +244,8 @@ export function ConsultaDetailScreen() {
   const isFinalizada = consulta.status === 'FI';
   const isCancelada = consulta.status === 'CA';
 
-  // The one primary action of each status lives in the fixed footer.
-  const footerAction = canStart ? (
-    <AppButton title={t('consultaDetail.startConsulta')} onPress={handleStart} loading={startMutation.isPending} />
-  ) : isFinalizada ? (
+  // FI's one action stays reachable in a fixed footer below the long clinical record.
+  const footerAction = isFinalizada ? (
     <AppButton
       title={t('consultaDetail.prescricoesButton')}
       onPress={() => navigation.navigate('Prescricoes', { consultaId: consulta.id })}
@@ -315,7 +310,7 @@ export function ConsultaDetailScreen() {
   const observationCard = consulta.observacaoResponsavel ? (
     <AppCard>
       <Text style={[styles.label, { color: colors.ink }]}>{t('consultaDetail.responsavelObservationLabel')}</Text>
-      <Text style={[styles.field, { color: colors.ink }]}>{consulta.observacaoResponsavel}</Text>
+      <Text style={[styles.field, styles.prose, { color: colors.ink }]}>{consulta.observacaoResponsavel}</Text>
     </AppCard>
   ) : null;
 
@@ -326,16 +321,14 @@ export function ConsultaDetailScreen() {
       {consulta.transcricao ? (
         <AppCard>
           <Text style={[styles.label, { color: colors.ink }]}>{t('consultaDetail.narrativeLabel')}</Text>
-          <Text style={[styles.field, { color: colors.ink }]}>{consulta.transcricao}</Text>
+          <Text style={[styles.field, styles.prose, { color: colors.ink }]}>{consulta.transcricao}</Text>
         </AppCard>
       ) : null}
 
       {clinicalSupport.data ? <ClinicalSupportCard support={clinicalSupport.data} /> : null}
 
       {diagnosticos.isPending ? (
-        <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md }}>
-          {t('consultaDetail.loadingConclusion')}
-        </Text>
+        <LoadingState message={t('consultaDetail.loadingConclusion')} />
       ) : confirmedDiagnosis ? (
         <ConfirmedDiagnosisCard diagnosis={confirmedDiagnosis} conclusao={consulta.observacao} />
       ) : null}
@@ -355,7 +348,7 @@ export function ConsultaDetailScreen() {
           showReportsAction
             ? [
                 {
-                  icon: 'eye-outline',
+                  icon: 'chatbubbles-outline',
                   onPress: () => navigation.navigate('RelatosAnimal', { patientId: consulta.animalId }),
                   accessibilityLabel: t('consultaDetail.viewReportsAccessibilityLabel'),
                 },
@@ -392,13 +385,19 @@ export function ConsultaDetailScreen() {
             {consulta.observacao ? (
               <AppCard>
                 <Text style={[styles.label, { color: colors.ink }]}>{t('cancelConsulta.reasonSectionLabel')}</Text>
-                <Text style={[styles.field, { color: colors.ink }]}>{consulta.observacao}</Text>
+                <Text style={[styles.field, styles.prose, { color: colors.ink }]}>{consulta.observacao}</Text>
               </AppCard>
             ) : null}
           </>
         ) : null}
 
         {wide && isFinalizada ? null : closedNote}
+
+        {actionError ? <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{actionError}</Text> : null}
+
+        {canStart ? (
+          <AppButton title={t('consultaDetail.startConsulta')} onPress={handleStart} loading={startMutation.isPending} />
+        ) : null}
 
         {canEdit ? (
           <AppButton
@@ -415,22 +414,16 @@ export function ConsultaDetailScreen() {
         {canDelete ? (
           <AppButton title={t('consultaDetail.deleteConsulta')} variant="danger" onPress={() => setDeleteModalOpen(true)} />
         ) : null}
+
+        {/* Both end the visit; say how they differ before either modal opens. */}
+        {canCancel && canDelete ? (
+          <Text style={[styles.actionsHelp, { color: colors.inkSecondary }]}>{t('consultaDetail.cancelVsDelete')}</Text>
+        ) : null}
       </ScreenContainer>
 
       {footerAction ? (
-        <View
-          style={[
-            styles.footer,
-            { backgroundColor: colors.raised, paddingBottom: insets.bottom + spacing.sm },
-            scheme === 'dark' ? { borderTopWidth: 1, borderTopColor: colors.line } : shadows.md,
-          ]}
-        >
-          <View style={styles.footerInner}>
-            {actionError ? (
-              <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{actionError}</Text>
-            ) : null}
-            {footerAction}
-          </View>
+        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
+          <View style={styles.footerInner}>{footerAction}</View>
         </View>
       ) : null}
 
@@ -465,7 +458,9 @@ const styles = StyleSheet.create({
   patientName: { flexShrink: 1, fontSize: fontSize.xl, ...font('bold') },
   label: { fontSize: fontSize.md, ...font('bold') },
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
+  prose: { fontSize: fontSize.md, lineHeight: fontSize.md * lineHeight.body },
   valueBlock: { marginTop: spacing.sm },
+  actionsHelp: { fontSize: fontSize.sm, lineHeight: fontSize.sm * lineHeight.body, marginTop: spacing.xs },
   cancelAction: { marginTop: spacing.lg },
   columns: { flexDirection: 'row', gap: spacing.lg },
   main: { flex: 3 },

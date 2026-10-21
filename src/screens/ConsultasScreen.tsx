@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Platform, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,6 +25,8 @@ import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font, iconSize, layout } from '../styles/theme';
 import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
+import { describeLoadError } from '../utils/errorMessages';
 
 const FILTER_DEBOUNCE_MS = 300;
 
@@ -156,7 +158,7 @@ export function ConsultasScreen() {
   const isPending = groups.some((group) => group.query.isPending);
   const failed = groups.find((group) => group.query.isError)?.query;
   const isRefetching = groups.some((group) => group.query.isRefetching);
-  const refetch = () => groups.forEach((group) => group.query.refetch());
+  const refetch = () => Promise.all(groups.map((group) => group.query.refetch()));
   const visibleGroups = groups
     .map((group) => ({ ...group, consultas: group.query.data?.pages.flatMap((page) => page.content) ?? [] }))
     .filter((group) => group.consultas.length > 0);
@@ -222,7 +224,7 @@ export function ConsultasScreen() {
           {consulta.animalNome}
         </Text>
         <Text style={[styles.colId, styles.rowId, { color: colors.inkSecondary }]} numberOfLines={1}>
-          {consulta.animalArkivePatientId ?? '—'}
+          {consulta.animalArkivePatientId ?? t('common.notInformed')}
         </Text>
         <Text style={[styles.colDate, styles.cell, { color: colors.ink }]} numberOfLines={1}>
           {formatDate(dataHora)} {formatTime(dataHora)}
@@ -302,20 +304,22 @@ export function ConsultasScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <HomeHeader />
 
-      <ScreenContainer style={wide ? { maxWidth: layout.contentMax } : undefined}>
+      <ScreenContainer style={wide ? { maxWidth: layout.contentMax } : undefined} onRefresh={refetch}>
         <View style={styles.titleRow}>
           <Text style={[styles.pageTitle, { color: colors.ink }]} numberOfLines={1}>
             {t('consultasList.title')}
           </Text>
           <View style={styles.actionsRow}>
             {wide ? null : (
-              <HeaderIconButton
+              <AppButton
+                title={t('consultasList.filtersButton')}
+                variant={filtersOpen || hasActiveFilters ? 'secondary' : 'ghost'}
+                size="small"
                 icon={filtersOpen || hasActiveFilters ? 'filter' : 'filter-outline'}
                 onPress={() => setFiltersOpen((current) => !current)}
-                accessibilityLabel={t('consultasList.filtersAccessibilityLabel')}
               />
             )}
-            {!isPending && !failed ? (
+            {Platform.OS === 'web' && !isPending && !failed ? (
               <HeaderIconButton
                 icon="refresh"
                 onPress={refetch}
@@ -350,14 +354,14 @@ export function ConsultasScreen() {
         ) : null}
 
         {isPending ? (
-          <Text style={{ color: colors.inkSecondary, textAlign: 'center' }}>
-            {t('consultasList.loading')}
-          </Text>
+          <LoadingState message={t('consultasList.loading')} />
         ) : failed ? (
           <EmptyState
             tone="error"
             title={t('consultasList.loadErrorTitle')}
-            message={failed.error instanceof Error ? failed.error.message : t('consultasList.genericServerError')}
+            message={describeLoadError(failed.error)}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => failed.refetch()}
           />
         ) : visibleGroups.length > 0 ? (
           visibleGroups.map((group) => (

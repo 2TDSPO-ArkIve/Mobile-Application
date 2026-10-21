@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
@@ -7,13 +7,14 @@ import { ScreenContainer } from '../components/ScreenContainer';
 import { AppCard } from '../components/AppCard';
 import { AppButton } from '../components/AppButton';
 import { ListRow } from '../components/ListRow';
+import { AccountIdentityCard, AccountSectionTitle, accountStyles } from '../components/AccountIdentity';
 import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import type { ResponsavelAppStackParamList } from '../interfaces/navigation';
-import { nameInitials } from '../utils/patientDisplay';
-import { spacing, fontSize, font, radius, layout } from '../styles/theme';
+import { layout } from '../styles/theme';
+import { ConfirmSheet } from '../components/ConfirmSheet';
 
 /**
  * The RESPONSAVEL counterpart to `ProfileScreen` — deliberately not a shared
@@ -34,28 +35,19 @@ export function ResponsavelAccountScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<ResponsavelAppStackParamList>>();
 
-  const sectionTitle = (title: string) => (
-    <Text style={[styles.sectionTitle, { color: colors.ink }]}>{title}</Text>
-  );
+  // Same confirmation as the mandatory password-change screen's sign-out.
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const handleLogout = () => setConfirmVisible(true);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('account.title')} />
 
       <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
-        <AppCard style={styles.identity}>
-          <View style={[styles.initials, { backgroundColor: colors.accentTint }]}>
-            <Text style={[styles.initialsText, { color: colors.accent }]}>{nameInitials(identity?.nome ?? '')}</Text>
-          </View>
-          <View style={styles.identityText}>
-            <Text style={[styles.name, { color: colors.ink }]}>{identity?.nome}</Text>
-            <Text style={[styles.detail, { color: colors.inkSecondary }]}>{t('account.roleLabel')}</Text>
-            <Text style={[styles.detail, styles.facts, { color: colors.inkSecondary }]}>{identity?.login}</Text>
-          </View>
-        </AppCard>
+        <AccountIdentityCard name={identity?.nome ?? ''} role={t('account.roleLabel')} details={[identity?.login]} />
 
-        {sectionTitle(t('account.securitySection'))}
-        <AppCard style={styles.group}>
+        <AccountSectionTitle title={t('account.securitySection')} />
+        <AppCard style={accountStyles.group}>
           <ListRow
             icon="lock-closed-outline"
             title={t('account.changePasswordButton')}
@@ -70,8 +62,8 @@ export function ResponsavelAccountScreen() {
 
         {/* Chunk 8 — moved out of Segurança (sharing an animal's access isn't
             an account-security action). */}
-        {sectionTitle(t('account.sharingSection'))}
-        <AppCard style={styles.group}>
+        <AccountSectionTitle title={t('account.sharingSection')} />
+        <AppCard style={accountStyles.group}>
           <ListRow
             icon="qr-code-outline"
             title={t('scanShareQr.entryLink')}
@@ -89,30 +81,26 @@ export function ResponsavelAccountScreen() {
           title={t('account.logoutButton')}
           variant="danger"
           icon="log-out-outline"
-          onPress={logout}
-          style={styles.logout}
+          onPress={handleLogout}
+          style={accountStyles.logout}
         />
       </ScreenContainer>
+      <ConfirmSheet
+        visible={confirmVisible}
+        title={t('common.logoutConfirmTitle')}
+        message={t('common.logoutConfirmMessage')}
+        confirmText={t('common.logoutConfirmButton')}
+        destructive
+        onConfirm={() => {
+          setConfirmVisible(false);
+          logout();
+        }}
+        onClose={() => setConfirmVisible(false)}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  identity: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
-  initials: {
-    width: 56,
-    height: 56,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  initialsText: { fontSize: fontSize.lg, ...font('semibold') },
-  identityText: { flex: 1, minWidth: 0 },
-  name: { fontSize: fontSize.lg, ...font('bold') },
-  detail: { fontSize: fontSize.sm, marginTop: 2 },
-  facts: { marginTop: spacing.sm },
-  sectionTitle: { fontSize: 16, ...font('semibold'), marginTop: spacing.lg, marginBottom: spacing.sm },
-  group: { padding: 0, overflow: 'hidden' },
-  logout: { marginTop: spacing.xl },
 });

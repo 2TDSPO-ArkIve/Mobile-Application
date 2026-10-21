@@ -3,6 +3,25 @@ import { RecordingFileError } from '../services/transcricaoService';
 import { InvalidPdfError } from '../services/consultaPdfService';
 import { t } from '../i18n/store';
 
+/** Any failed screen load: never the raw HTTP/API detail. `notFound` covers a 404 the screen can name. */
+export function describeLoadError(error: unknown, notFound?: string): string {
+  if (isNetworkError(error)) {
+    return t('errors.loadNetwork');
+  }
+  if (error instanceof ApiError) {
+    if (error.status === 404 && notFound) {
+      return notFound;
+    }
+    if (error.status === 403) {
+      return t('errors.loadForbidden');
+    }
+    if (error.status >= 500) {
+      return t('errors.loadUnavailable');
+    }
+  }
+  return t('errors.loadGeneric');
+}
+
 /** Translates a save-narrative failure into veterinarian-facing language — never the raw HTTP/API detail. */
 export function describeNarrativeSaveError(error: unknown): string {
   if (isNetworkError(error)) {

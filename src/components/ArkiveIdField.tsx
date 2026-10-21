@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useThemeColors } from '../hooks/useThemeColors';
@@ -10,7 +10,7 @@ import { focusRing, isActive, type InteractionState } from '../styles/interactio
 import { commonStyles } from '../styles/common';
 
 /** ArkIve ID in its own `sunken` field with a 44 px copy button. */
-export function ArkiveIdField({ arkivePatientId }: { arkivePatientId: string | null }) {
+export function ArkiveIdField({ arkivePatientId, style }: { arkivePatientId: string | null; style?: ViewStyle }) {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
@@ -23,7 +23,7 @@ export function ArkiveIdField({ arkivePatientId }: { arkivePatientId: string | n
   };
 
   return (
-    <View style={[styles.field, { backgroundColor: colors.sunken }]}>
+    <View style={[styles.field, { backgroundColor: colors.sunken }, style]}>
       <Text style={[styles.value, { color: colors.inkSecondary }]} selectable>
         {patientArkiveIdLine({ arkivePatientId })}
       </Text>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
@@ -24,6 +25,7 @@ import type { AccessRequestDto } from '../services/patientAccessRequestService';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, layout } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
 
 /** Java's own 30s polling cadence precedent (notification/unread-count) — compensates for a confirmed gap: the requesting veterinarian is never sent a notification when a Responsible approves/rejects their request, so this screen refetches on its own while open. */
 const POLL_MS = 30_000;
@@ -53,7 +55,7 @@ const POLL_MS = 30_000;
  * (access was revoked after this list was fetched) or 404 is shown as an
  * honest inline error, never silently retried as a POST would be.
  */
-function AccessRequestRow({ request }: { request: AccessRequestDto }) {
+function AccessRequestRow({ request, highlighted }: { request: AccessRequestDto; highlighted: boolean }) {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
@@ -82,9 +84,9 @@ function AccessRequestRow({ request }: { request: AccessRequestDto }) {
   };
 
   return (
-    <AppCard>
+    <AppCard style={highlighted ? { borderColor: colors.ink, borderWidth: 1 } : undefined}>
       <View style={styles.headerRow}>
-        <Text style={[styles.arkiveIdText, { color: colors.ink }]} selectable numberOfLines={1}>
+        <Text style={[styles.arkiveIdText, { color: colors.ink }]} selectable>
           {patientArkiveIdLine({ arkivePatientId: request.arkivePatientId })}
         </Text>
         <StatusBadge label={presentation.label} tone={presentation.tone} />
@@ -137,7 +139,7 @@ function AccessRequestRow({ request }: { request: AccessRequestDto }) {
  * and submission only happens on an explicit tap. No preliminary GET is ever
  * made; the 403-shortcut on `ArkiveIdLookupScreen` remains available too.
  */
-function NewAccessRequestSection() {
+function NewAccessRequestSection({ onCreated }: { onCreated: (id: number) => void }) {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const createAccessRequest = useCreateAccessRequest();
@@ -156,7 +158,8 @@ function NewAccessRequestSection() {
       return;
     }
     try {
-      await createAccessRequest.mutateAsync(normalized);
+      const created = await createAccessRequest.mutateAsync(normalized);
+      onCreated(created.id);
       setSuccess(true);
       setInput('');
       setOpen(false);
@@ -171,14 +174,11 @@ function NewAccessRequestSection() {
         <AppButton
           title={t('myAccessRequests.newRequestButton')}
           icon="add"
-          onPress={() => {
-            setSuccess(false);
-            setOpen(true);
-          }}
+          onPress={() => setOpen(true)}
           style={styles.newRequestToggle}
         />
         {success ? (
-          <Text style={[styles.field, styles.newRequestSuccess, { color: colors.success }]}>
+          <Text accessibilityLiveRegion="polite" style={[styles.field, styles.newRequestSuccess, { color: colors.success }]}>
             {t('myAccessRequests.newRequestSuccess')}
           </Text>
         ) : null}
@@ -201,6 +201,20 @@ function NewAccessRequestSection() {
         autoCapitalize="characters"
         autoCorrect={false}
         editable={!createAccessRequest.isPending}
+        // Same field as the ArkIve ID lookup: ID styling and a Paste action.
+        style={commonStyles.arkiveId}
+      />
+      <AppButton
+        title={t('arkiveLookup.paste')}
+        variant="ghost"
+        size="small"
+        icon="clipboard-outline"
+        onPress={async () => {
+          setInput(await Clipboard.getStringAsync());
+          setValidationError('');
+        }}
+        disabled={createAccessRequest.isPending}
+        style={styles.pasteButton}
       />
       {submitError ? <Text style={[styles.field, { color: colors.error }]}>{submitError}</Text> : null}
       <View style={styles.newRequestActions}>
@@ -233,26 +247,32 @@ export function MyAccessRequestsScreen() {
   const { t } = useTranslation();
   const { data, isPending, isError, error, refetch } = useMyAccessRequests(undefined, { refetchInterval: POLL_MS });
   const wide = useBreakpoint() === 'wide';
+  const [createdId, setCreatedId] = useState<number | null>(null);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('myAccessRequests.title')} />
-      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
-        <NewAccessRequestSection />
+      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined} onRefresh={refetch}>
+        <NewAccessRequestSection onCreated={setCreatedId} />
 
         {isPending ? (
-          <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-            {t('myAccessRequests.loading')}
-          </Text>
+          <LoadingState message={t('myAccessRequests.loading')} />
         ) : isError ? (
           <>
-            <EmptyState title={t('myAccessRequests.loadErrorTitle')} message={describeAccessRequestListError(error)} />
-            <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
+            <EmptyState
+              tone="error"
+              title={t('myAccessRequests.loadErrorTitle')}
+              message={describeAccessRequestListError(error)}
+              actionLabel={t('common.tryAgain')}
+              onAction={() => refetch()}
+            />
           </>
         ) : !data || data.length === 0 ? (
           <EmptyState title={t('myAccessRequests.emptyTitle')} message={t('myAccessRequests.emptyMessage')} />
         ) : (
-          data.map((request) => <AccessRequestRow key={request.id} request={request} />)
+          data.map((request) => (
+            <AccessRequestRow key={request.id} request={request} highlighted={request.id === createdId} />
+          ))
         )}
       </ScreenContainer>
     </View>
@@ -261,7 +281,7 @@ export function MyAccessRequestsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm, gap: spacing.sm },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.sm, gap: spacing.sm },
   arkiveIdText: { fontSize: fontSize.sm, ...commonStyles.arkiveId, flexShrink: 1 },
   field: { fontSize: fontSize.sm, marginTop: spacing.xs },
   openButton: { marginTop: spacing.sm },
@@ -269,5 +289,6 @@ const styles = StyleSheet.create({
   newRequestSuccess: { textAlign: 'center', marginTop: -spacing.sm, marginBottom: spacing.md },
   newRequestCard: { marginBottom: spacing.md },
   newRequestActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+  pasteButton: { alignSelf: 'flex-start', marginTop: -spacing.xs },
   newRequestActionButton: { flex: 1 },
 });

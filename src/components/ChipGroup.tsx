@@ -135,7 +135,7 @@ export function ChipGroup({
         ) : null}
 
         {visibleOptions.length === 0 && emptyMessage ? (
-          <Text style={[styles.scroll, { color: colors.inkSecondary, fontSize: fontSize.sm }]}>{emptyMessage}</Text>
+          <Text style={[styles.empty, { color: colors.inkSecondary, fontSize: fontSize.sm }]}>{emptyMessage}</Text>
         ) : (
           <ScrollView
             ref={scrollRef}
@@ -156,6 +156,7 @@ export function ChipGroup({
                     onPress={() => onChange(option.value)}
                     accessibilityRole="radio"
                     accessibilityState={{ checked: selected, disabled }}
+                    hitSlop={CHIP_HIT_SLOP}
                     style={(state: InteractionState) => [
                       styles.chip,
                       {
@@ -175,10 +176,18 @@ export function ChipGroup({
           </ScrollView>
         )}
       </View>
-      {error ? <Text style={[commonStyles.errorText, { color: colors.error }]}>{error}</Text> : null}
+      {error ? <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={[commonStyles.errorText, { color: colors.error }]}>{error}</Text> : null}
     </View>
   );
 }
+
+/**
+ * Lifts the 36pt chip to a 44pt target; sideways the row gap already separates
+ * chips. The row pads the same amount (and the scroll pulls it back) so the slop
+ * stays inside the ScrollView, which would otherwise clip it on Android.
+ */
+const CHIP_SLOP = 4;
+const CHIP_HIT_SLOP = { top: CHIP_SLOP, bottom: CHIP_SLOP };
 
 const styles = StyleSheet.create({
   wrap: { marginBottom: spacing.md },
@@ -188,13 +197,14 @@ const styles = StyleSheet.create({
   // content — without it, a row-flex ScrollView has no bounded width to
   // scroll within. Harmless when there's no leadingAction: it's still the
   // row's only flex child, so it simply fills the full width as before.
-  scroll: { flex: 1 },
+  scroll: { flex: 1, marginVertical: -CHIP_SLOP },
+  empty: { flex: 1 },
   // `HeaderIconButton` already reserves a full 44px touch target with the
   // icon centered inside it — a negative margin pulls the chip row in
   // closer instead of stacking that generous touch padding on top of the
   // row's own `gap`, which read as an oversized empty gutter.
   leadingBtn: { marginRight: -spacing.xs },
-  row: { flexDirection: 'row', gap: spacing.sm },
+  row: { flexDirection: 'row', gap: spacing.sm, paddingVertical: CHIP_SLOP },
   chip: {
     minHeight: 36,
     justifyContent: 'center',

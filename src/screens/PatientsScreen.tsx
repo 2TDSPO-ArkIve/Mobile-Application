@@ -16,6 +16,8 @@ import { useMyPatients } from '../hooks/usePatients';
 import { patientSummaryLine, patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font, radius, layout } from '../styles/theme';
+import { LoadingState } from '../components/LoadingState';
+import { describeLoadError } from '../utils/errorMessages';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -59,7 +61,7 @@ export function PatientsScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <HomeHeader />
 
-      <ScreenContainer style={wide ? { maxWidth: layout.contentMax } : undefined}>
+      <ScreenContainer style={wide ? { maxWidth: layout.contentMax } : undefined} onRefresh={patientsQuery.refetch}>
         <Text style={[styles.pageTitle, { color: colors.ink }]} numberOfLines={1}>
           {t('patientsList.title')}
         </Text>
@@ -78,20 +80,21 @@ export function PatientsScreen() {
           />
           <AppButton
             title={t('patientsList.lookupByArkiveId')}
-            variant="secondary"
+            variant="ghost"
+            icon="search-outline"
             onPress={() => navigation.navigate('BuscarPacienteArkive')}
-            style={styles.action}
           />
         </View>
 
         {isPending ? (
-          <Text style={{ color: colors.inkSecondary, textAlign: 'center' }}>
-            {t('patientsList.loading')}
-          </Text>
+          <LoadingState message={t('patientsList.loading')} />
         ) : isError ? (
           <EmptyState
+            tone="error"
             title={t('patientsList.loadErrorTitle')}
-            message={error instanceof Error ? error.message : t('patientsList.genericServerError')}
+            message={describeLoadError(error)}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => patientsQuery.refetch()}
           />
         ) : !data || data.length === 0 ? (
           <EmptyState
@@ -138,8 +141,8 @@ export function PatientsScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   pageTitle: { fontSize: fontSize.xl, ...font('bold'), marginBottom: spacing.md },
-  actionsRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
-  action: { flex: 1 },
+  actionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.md },
+  action: { flexGrow: 1 },
   cardRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   initial: { width: 44, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
   initialText: { fontSize: fontSize.lg, ...font('bold') },

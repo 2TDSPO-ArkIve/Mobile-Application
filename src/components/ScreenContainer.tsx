@@ -1,5 +1,5 @@
-import React from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, View, StyleSheet, ViewStyle } from 'react-native';
+import React, { useState } from 'react';
+import { KeyboardAvoidingView, Platform, RefreshControl, ScrollView, View, StyleSheet, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { commonStyles } from '../styles/common';
@@ -9,8 +9,8 @@ interface Props {
   scroll?: boolean;
   style?: ViewStyle;
   edges?: ('top' | 'bottom' | 'left' | 'right')[];
-  /** Overrides the screen background (e.g. `aiTint` while the AI works). */
-  background?: string;
+  /** Enables pull-to-refresh; the spinner shows only for a pull, never for background refetches. */
+  onRefresh?: () => Promise<unknown>;
 }
 
 export function ScreenContainer({
@@ -18,9 +18,19 @@ export function ScreenContainer({
   scroll = true,
   style,
   edges = ['bottom'],
-  background,
+  onRefresh,
 }: Props) {
   const colors = useThemeColors();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await onRefresh?.();
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const content = scroll ? (
     <ScrollView
@@ -33,6 +43,17 @@ export function ScreenContainer({
       // height/offset calculation.
       automaticallyAdjustKeyboardInsets
       contentInsetAdjustmentBehavior="automatic"
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.inkSecondary}
+            colors={[colors.accent]}
+            progressBackgroundColor={colors.surface}
+          />
+        ) : undefined
+      }
     >
       {children}
     </ScrollView>
@@ -57,10 +78,7 @@ export function ScreenContainer({
     );
 
   return (
-    <SafeAreaView
-      style={[styles.safe, { backgroundColor: background ?? colors.background }]}
-      edges={edges}
-    >
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={edges}>
       {body}
     </SafeAreaView>
   );

@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Platform, Modal } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useModalAnimation } from '../hooks/useReducedMotion';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../i18n/useTranslation';
 import { spacing, radius, fontSize, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
 import { CalendarGlyph } from './CalendarGlyph';
 import { formatDate } from '../utils/localeFormat';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 interface Props {
   label: string;
@@ -42,6 +44,7 @@ interface Props {
  */
 export function DateField({ label, value, onChange, error, minimumDate, maximumDate, onClear }: Props) {
   const colors = useThemeColors();
+  const modalAnimation = useModalAnimation();
   const { scheme } = useTheme();
   const { t, language } = useTranslation();
   const [iosOpen, setIosOpen] = useState(false);
@@ -72,9 +75,16 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
       <Text style={[commonStyles.label, { color: colors.ink }]}>{label}</Text>
       <Pressable
         onPress={openPicker}
-        style={[
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityHint={error}
+        style={(state: InteractionState) => [
           styles.field,
-          { backgroundColor: colors.sunken, borderColor: error ? colors.error : 'transparent' },
+          {
+            backgroundColor: isActive(state) ? colors.line : colors.sunken,
+            borderColor: error ? colors.error : 'transparent',
+          },
+          focusRing(state, colors),
         ]}
       >
         <Text style={{ color: value ? colors.ink : colors.inkSecondary, fontSize: fontSize.md }}>
@@ -83,22 +93,22 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
         <CalendarGlyph color={colors.ink} />
       </Pressable>
       {value && onClear ? (
-        <Pressable onPress={onClear} style={styles.clearBtn} accessibilityRole="button">
+        <Pressable onPress={onClear} accessibilityRole="button" style={(state: InteractionState) => [styles.clearBtn, isActive(state) && { backgroundColor: colors.sunken }, focusRing(state, colors)]}>
           <Text style={{ color: colors.inkSecondary, fontSize: fontSize.sm }}>{t('common.clearDate')}</Text>
         </Pressable>
       ) : null}
       {error ? <Text style={[commonStyles.errorText, { color: colors.error }]}>{error}</Text> : null}
 
       {Platform.OS === 'ios' ? (
-        <Modal visible={iosOpen} transparent animationType="slide" onRequestClose={() => setIosOpen(false)}>
+        <Modal visible={iosOpen} transparent animationType={modalAnimation} onRequestClose={() => setIosOpen(false)}>
           <View style={[styles.modalRoot, { backgroundColor: colors.scrim }]}>
-            <Pressable style={StyleSheet.absoluteFill} onPress={() => setIosOpen(false)} />
+            <Pressable style={StyleSheet.absoluteFill} accessible={false} focusable={false} onPress={() => setIosOpen(false)} />
             <View style={[styles.sheet, { backgroundColor: colors.raised }]}>
               <View style={[styles.sheetHeader, { borderBottomColor: colors.line }]}>
-                <Pressable onPress={() => setIosOpen(false)}>
+                <Pressable onPress={() => setIosOpen(false)} accessibilityRole="button" style={styles.sheetAction}>
                   <Text style={{ color: colors.inkSecondary, fontSize: fontSize.sm }}>{t('date.pickerCancel')}</Text>
                 </Pressable>
-                <Pressable onPress={confirm}>
+                <Pressable onPress={confirm} accessibilityRole="button" style={styles.sheetAction}>
                   <Text style={{ color: colors.ink, ...font('bold'), fontSize: fontSize.sm }}>
                     {t('date.pickerDone')}
                   </Text>
@@ -126,7 +136,14 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
 
 const styles = StyleSheet.create({
   wrap: { marginBottom: spacing.sm },
-  clearBtn: { alignSelf: 'flex-start', marginTop: spacing.xs },
+  clearBtn: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xs,
+    marginHorizontal: -spacing.xs,
+    borderRadius: radius.sm,
+  },
   field: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -150,7 +167,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xs,
     borderBottomWidth: 1,
   },
+  sheetAction: { minHeight: 44, justifyContent: 'center', paddingHorizontal: spacing.xs },
 });

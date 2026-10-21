@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { AppInput } from '../components/AppInput';
@@ -17,7 +18,8 @@ import { isPasswordValid } from '../utils/passwordPolicy';
 import { mapVeterinarioRegistrationError, mapResponsavelRegistrationError } from '../utils/errorMessages';
 import { useThemeColors } from '../hooks/useThemeColors';
 import type { AuthStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize, radius, font } from '../styles/theme';
+import { spacing, fontSize, radius, font, iconSize } from '../styles/theme';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 type Role = 'VETERINARIO' | 'RESPONSAVEL';
 type TipoDocumento = 'CPF' | 'RG';
@@ -368,7 +370,7 @@ export function RegisterScreen() {
     <AuthLayout panelHeight={0.22}>
       {registeredEmail ? (
         <>
-          <Text style={[styles.title, { color: colors.ink }]}>
+          <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>
             {registeredRole === 'VETERINARIO' ? t('register.successTitle') : t('registerResponsavel.successTitle')}
           </Text>
           {registeredRole === 'VETERINARIO' ? (
@@ -389,7 +391,7 @@ export function RegisterScreen() {
         </>
       ) : (
         <>
-          <Text style={[styles.title, { color: colors.ink }]}>{t('register.unifiedTitle')}</Text>
+          <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('register.unifiedTitle')}</Text>
 
           <SegmentedControl
             label={t('register.roleSectionLabel')}
@@ -405,6 +407,8 @@ export function RegisterScreen() {
             <>
               <AppInput
                 label={t('register.nomeLabel')}
+                autoComplete="name"
+                textContentType="name"
                 placeholder={t('register.nomePlaceholder')}
                 value={vetNome}
                 onChangeText={(value) =>
@@ -432,6 +436,8 @@ export function RegisterScreen() {
 
               <AppInput
                 label={t('register.emailLabel')}
+                autoComplete="email"
+                textContentType="emailAddress"
                 placeholder={t('register.emailPlaceholder')}
                 value={vetEmail}
                 onChangeText={(value) =>
@@ -447,6 +453,8 @@ export function RegisterScreen() {
 
               <AppInput
                 label={t('registerResponsavel.senhaLabel')}
+                autoComplete="new-password"
+                textContentType="newPassword"
                 placeholder={t('registerResponsavel.senhaPlaceholder')}
                 value={vetSenha}
                 onChangeText={(value) =>
@@ -467,6 +475,8 @@ export function RegisterScreen() {
 
               <AppInput
                 label={t('registerResponsavel.confirmarSenhaLabel')}
+                autoComplete="new-password"
+                textContentType="newPassword"
                 placeholder={t('registerResponsavel.confirmarSenhaPlaceholder')}
                 value={vetConfirmarSenha}
                 onChangeText={(value) =>
@@ -499,6 +509,8 @@ export function RegisterScreen() {
             <>
               <AppInput
                 label={t('registerResponsavel.nomeLabel')}
+                autoComplete="name"
+                textContentType="name"
                 placeholder={t('registerResponsavel.nomePlaceholder')}
                 value={resNome}
                 onChangeText={(value) =>
@@ -510,9 +522,13 @@ export function RegisterScreen() {
                 error={fieldErrors.nome}
               />
 
-              <Text style={[styles.academicWarning, { color: colors.error, borderColor: colors.error }]}>
-                {t('registerResponsavel.academicWarning')}
-              </Text>
+              {/* Information, not a validation failure: neutral surface, no status color. */}
+              <View style={[styles.academicWarning, { backgroundColor: colors.sunken }]}>
+                <Ionicons name="information-circle-outline" size={iconSize.sm} color={colors.inkSecondary} />
+                <Text style={[styles.academicWarningText, { color: colors.inkSecondary }]}>
+                  {t('registerResponsavel.academicWarning')}
+                </Text>
+              </View>
 
               <SegmentedControl
                 label={t('registerResponsavel.tipoDocumentoLabel')}
@@ -537,7 +553,11 @@ export function RegisterScreen() {
                 error={fieldErrors.documento}
               />
 
-              <Pressable onPress={handleGenerateTestDocument} accessibilityRole="button">
+              <Pressable
+                onPress={handleGenerateTestDocument}
+                accessibilityRole="button"
+                style={(state: InteractionState) => [styles.generateLinkWrap, isActive(state) && { backgroundColor: colors.sunken }, focusRing(state, colors)]}
+              >
                 <Text style={[styles.generateLink, { color: colors.accent }]}>
                   {t('registerResponsavel.generateTestDocument')}
                 </Text>
@@ -545,6 +565,8 @@ export function RegisterScreen() {
 
               <AppInput
                 label={t('registerResponsavel.emailLabel')}
+                autoComplete="email"
+                textContentType="emailAddress"
                 placeholder={t('registerResponsavel.emailPlaceholder')}
                 value={resEmail}
                 onChangeText={(value) =>
@@ -560,6 +582,8 @@ export function RegisterScreen() {
 
               <AppInput
                 label={t('registerResponsavel.telefoneLabel')}
+                autoComplete="tel"
+                textContentType="telephoneNumber"
                 placeholder={t('registerResponsavel.telefonePlaceholder')}
                 value={telefoneInput}
                 onChangeText={handleTelefoneChange}
@@ -571,6 +595,8 @@ export function RegisterScreen() {
 
               <AppInput
                 label={t('registerResponsavel.senhaLabel')}
+                autoComplete="new-password"
+                textContentType="newPassword"
                 placeholder={t('registerResponsavel.senhaPlaceholder')}
                 value={senha}
                 onChangeText={(value) =>
@@ -585,6 +611,8 @@ export function RegisterScreen() {
 
               <AppInput
                 label={t('registerResponsavel.confirmarSenhaLabel')}
+                autoComplete="new-password"
+                textContentType="newPassword"
                 placeholder={t('registerResponsavel.confirmarSenhaPlaceholder')}
                 value={confirmarSenha}
                 onChangeText={(value) =>
@@ -628,22 +656,28 @@ export function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: fontSize.lg, ...font('bold'), marginBottom: spacing.sm, textAlign: 'center' },
+  title: { fontSize: fontSize.xxl, ...font('bold'), marginBottom: spacing.sm, textAlign: 'center' },
   message: { fontSize: fontSize.md, textAlign: 'center', marginBottom: spacing.lg, lineHeight: 22 },
   error: { fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.sm },
   backLink: { marginTop: spacing.sm },
   academicWarning: {
-    fontSize: fontSize.xs,
-    lineHeight: 17,
-    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
     borderRadius: radius.sm,
     padding: spacing.sm,
     marginBottom: spacing.md,
   },
-  generateLink: {
-    fontSize: fontSize.sm,
-    ...font('semibold'),
-    marginTop: -spacing.xs,
-    marginBottom: spacing.md,
+  academicWarningText: { flex: 1, fontSize: fontSize.sm, lineHeight: 19 },
+  generateLinkWrap: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xs,
+    marginHorizontal: -spacing.xs,
+    marginTop: -spacing.sm,
+    marginBottom: spacing.sm,
+    borderRadius: radius.sm,
   },
+  generateLink: { fontSize: fontSize.sm, ...font('semibold') },
 });

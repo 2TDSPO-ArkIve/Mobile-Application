@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, StyleSheet, type TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Clipboard from 'expo-clipboard';
@@ -58,6 +58,7 @@ export function ArkiveIdLookupScreen() {
   const createAccessRequest = useCreateAccessRequest();
 
   const [input, setInput] = useState('');
+  const inputRef = useRef<TextInput>(null);
   const [validationError, setValidationError] = useState('');
   const [outcome, setOutcome] = useState<LookupOutcome>(null);
   const [otherErrorMessage, setOtherErrorMessage] = useState('');
@@ -101,6 +102,8 @@ export function ArkiveIdLookupScreen() {
         setOutcome('forbidden');
       } else if (err instanceof ApiError && err.status === 404) {
         setOutcome('not-found');
+        // Back in the field with the ID selected, ready to fix or replace.
+        inputRef.current?.focus();
       } else {
         setOutcome('other');
         setOtherErrorMessage(describeArkiveLookupOtherError(err));
@@ -150,6 +153,8 @@ export function ArkiveIdLookupScreen() {
             multiline
             submitBehavior="submit"
             onSubmitEditing={handleSubmit}
+            ref={inputRef}
+            selectTextOnFocus
             style={commonStyles.arkiveId}
           />
           <View style={styles.actions}>
@@ -220,8 +225,13 @@ export function ArkiveIdLookupScreen() {
 
         {outcome === 'other' ? (
           <>
-            <EmptyState title={t('arkiveLookup.errorTitle')} message={otherErrorMessage} />
-            <AppButton title={t('common.tryAgain')} variant="secondary" onPress={handleSubmit} />
+            <EmptyState
+              tone="error"
+              title={t('arkiveLookup.errorTitle')}
+              message={otherErrorMessage}
+              actionLabel={t('common.tryAgain')}
+              onAction={handleSubmit}
+            />
           </>
         ) : null}
       </ScreenContainer>

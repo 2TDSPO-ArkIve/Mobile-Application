@@ -20,6 +20,9 @@ import { patientArkiveIdLine } from '../utils/patientDisplay';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font, radius } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
+import { StatusTrail } from '../components/StatusTrail';
 
 const STEP_KEYS = ['aiInsight.rotating1', 'aiInsight.rotating2', 'aiInsight.rotating3'] as const;
 
@@ -66,10 +69,8 @@ export function ArkiveInsightScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('aiInsight.title')} />
 
-      <ScreenContainer
-        style={isWaiting ? styles.waitingContent : undefined}
-        background={isWaiting ? colors.aiTint : undefined}
-      >
+      <ScreenContainer style={isWaiting ? styles.waitingContent : undefined}>
+        {consulta && consulta.status !== 'CA' ? <StatusTrail status={consulta.status} /> : null}
         {isWaiting ? (
           <View style={styles.heroWrap}>
             {consulta ? (
@@ -77,7 +78,7 @@ export function ArkiveInsightScreen() {
                 <Text style={[styles.patientNameSmall, { color: colors.inkSecondary }]} numberOfLines={1}>
                   {consulta.animalNome}
                 </Text>
-                <Text style={[styles.patientArkiveIdSmall, { color: colors.inkSecondary }]} numberOfLines={1} selectable>
+                <Text style={[styles.patientArkiveIdSmall, { color: colors.inkSecondary }]} selectable>
                   {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
                 </Text>
               </>
@@ -101,7 +102,12 @@ export function ArkiveInsightScreen() {
             </View>
 
             {consulta?.transcricao ? (
-              <Pressable onPress={() => setShowNarrative((current) => !current)} style={styles.collapseHeaderCentered}>
+              <Pressable
+                onPress={() => setShowNarrative((current) => !current)}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: showNarrative }}
+                style={(state: InteractionState) => [styles.collapseHeaderCentered, isActive(state) && { backgroundColor: colors.sunken }, focusRing(state, colors)]}
+              >
                 <Text style={{ color: colors.ink, ...font('semibold') }}>{t('aiInsight.narrativeToggle')}</Text>
                 <Ionicons name={showNarrative ? 'chevron-up' : 'chevron-down'} size={18} color={colors.ink} />
               </Pressable>
@@ -123,13 +129,13 @@ export function ArkiveInsightScreen() {
         ) : (
           <>
             {consultaPending ? (
-              <Text style={{ color: colors.inkSecondary }}>{t('consultaDetail.loading')}</Text>
+              <LoadingState message={t('consultaDetail.loading')} />
             ) : consulta ? (
               <>
                 <Text style={[styles.patientName, { color: colors.ink }]} numberOfLines={1}>
                   {consulta.animalNome}
                 </Text>
-                <Text style={[styles.patientArkiveId, { color: colors.inkSecondary }]} numberOfLines={1} selectable>
+                <Text style={[styles.patientArkiveId, { color: colors.inkSecondary }]} selectable>
                   {patientArkiveIdLine({ arkivePatientId: consulta.animalArkivePatientId })}
                 </Text>
               </>
@@ -148,7 +154,12 @@ export function ArkiveInsightScreen() {
             )}
 
             {consulta?.transcricao ? (
-              <Pressable onPress={() => setShowNarrative((current) => !current)} style={styles.collapseHeader}>
+              <Pressable
+                onPress={() => setShowNarrative((current) => !current)}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: showNarrative }}
+                style={(state: InteractionState) => [styles.collapseHeader, isActive(state) && { backgroundColor: colors.sunken }, focusRing(state, colors)]}
+              >
                 <Text style={{ color: colors.accent, ...font('semibold') }}>{t('aiInsight.narrativeToggle')}</Text>
                 <Ionicons name={showNarrative ? 'chevron-up' : 'chevron-down'} size={18} color={colors.accent} />
               </Pressable>
@@ -225,7 +236,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
+    minHeight: 44,
     paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.md,
     marginTop: spacing.xl,
   },
   narrativeCardCentered: { width: '100%', marginTop: spacing.sm },
@@ -233,7 +247,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    minHeight: 44,
     paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    marginHorizontal: -spacing.sm,
+    borderRadius: radius.md,
     marginTop: spacing.sm,
   },
   conclusionButton: { marginTop: spacing.lg },

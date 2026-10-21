@@ -1,15 +1,19 @@
 import React from 'react';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { Image, Platform, View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../hooks/useAuth';
 import { lightColors } from '../styles/colors';
+import { spacing } from '../styles/theme';
+import { useTranslation } from '../i18n/useTranslation';
+import { LoadingState } from '../components/LoadingState';
 import { AuthStack } from './AuthStack';
 import { AppStack } from './AppStack';
 import { ResponsavelAppStack } from './ResponsavelAppStack';
 import { BackendUnavailableScreen } from '../screens/BackendUnavailableScreen';
 import { MandatoryPasswordChangeScreen } from '../screens/MandatoryPasswordChangeScreen';
 import { navigationRef } from './navigationRef';
+import { linking } from './linking';
 import type { RootStackParamList } from '../interfaces/navigation';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -32,6 +36,7 @@ function AuthenticatedAppRouter() {
 
 export function RootNavigator() {
   const { status } = useAuth();
+  const { t } = useTranslation();
 
   if (status === 'initializing') {
     // Whether this resolves to Login (forced light) or the authenticated
@@ -43,7 +48,17 @@ export function RootNavigator() {
     // behavior rather than a visible glitch.
     return (
       <View style={[styles.loading, { backgroundColor: lightColors.background }]}>
-        <ActivityIndicator size="large" color={lightColors.ink} />
+        {/* Same ratio wrapper as AuthLayout: a bare Image with aspectRatio renders at the PNG's own height on web. */}
+        <View style={styles.logoWrap}>
+          <Image
+            source={require('../assets/branding/definitive.png')}
+            style={styles.logo}
+            resizeMode="contain"
+            tintColor={lightColors.ink}
+            accessibilityIgnoresInvertColors
+          />
+        </View>
+        <LoadingState message={t('auth.restoringSession')} colors={lightColors} />
       </View>
     );
   }
@@ -67,7 +82,7 @@ export function RootNavigator() {
     // simply keeps the correct static "ArkIve" already set in
     // `web/index.html` (a single app-wide title, not per-screen). No-op on
     // native (`useDocumentTitle` is a documented noop off web).
-    <NavigationContainer ref={navigationRef} key={status} documentTitle={{ enabled: false }}>
+    <NavigationContainer ref={navigationRef} key={status} linking={{ ...linking, enabled: Platform.OS === 'web' }} documentTitle={{ enabled: false }}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {status === 'authenticated' ? (
           <Stack.Screen name="App" component={AuthenticatedAppRouter} />
@@ -82,5 +97,7 @@ export function RootNavigator() {
 }
 
 const styles = StyleSheet.create({
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
+  logoWrap: { height: 96, aspectRatio: 1356 / 1160 },
+  logo: { width: '100%', height: '100%' },
 });

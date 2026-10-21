@@ -23,6 +23,7 @@ import { resolveNotificationDestination } from '../utils/notificationNavigation'
 import { describeNotificationsError } from '../utils/errorMessages';
 import { formatDateTime } from '../utils/localeFormat';
 import { spacing, fontSize, radius, font, iconSize, layout } from '../styles/theme';
+import { LoadingState } from '../components/LoadingState';
 
 /**
  * Chunk 5 — purely visual categorization, never a text substitute: the
@@ -78,7 +79,7 @@ function NotificationItem({
   return (
     <AppCard
       onPress={() => onPress(notification)}
-      style={isUnread ? { backgroundColor: colors.accentTint, borderColor: colors.line } : undefined}
+      style={isUnread ? { backgroundColor: colors.accentTint } : undefined}
     >
       <View style={styles.headerRow}>
         <View style={styles.titleRow}>
@@ -129,14 +130,9 @@ export function NotificationsScreen() {
 
   const handlePress = async (notification: NotificationDto) => {
     setActionError('');
-    if (notification.readAt === null) {
-      try {
-        await markRead.mutateAsync(notification.id);
-      } catch {
-        setActionError(t('notifications.markReadError'));
-        return;
-      }
-    }
+    // Fire and forget: a failed PATCH only leaves the item unread, which the
+    // list shows on return; it must not keep the person from the content.
+    if (notification.readAt === null) markRead.mutate(notification.id);
 
     // Shared with the native push/local-notification tap handler
     // (`PushTapHandler`) — see `resolveNotificationDestination`'s own doc
@@ -170,7 +166,7 @@ export function NotificationsScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <AppHeader title={t('notifications.title')} />
-      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined}>
+      <ScreenContainer style={wide ? { maxWidth: layout.formMax } : undefined} onRefresh={refetch}>
         {hasUnread ? (
           <AppButton
             title={t('notifications.markAllRead')}
@@ -186,13 +182,16 @@ export function NotificationsScreen() {
         {actionError ? <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{actionError}</Text> : null}
 
         {isPending ? (
-          <Text style={{ color: colors.inkSecondary, textAlign: 'center', marginTop: spacing.xl }}>
-            {t('notifications.loading')}
-          </Text>
+          <LoadingState message={t('notifications.loading')} />
         ) : isError ? (
           <>
-            <EmptyState title={t('notifications.loadErrorTitle')} message={describeNotificationsError(error)} />
-            <AppButton title={t('common.tryAgain')} variant="secondary" onPress={() => refetch()} />
+            <EmptyState
+              tone="error"
+              title={t('notifications.loadErrorTitle')}
+              message={describeNotificationsError(error)}
+              actionLabel={t('common.tryAgain')}
+              onAction={() => refetch()}
+            />
           </>
         ) : !data || data.length === 0 ? (
           <EmptyState title={t('notifications.emptyTitle')} message={t('notifications.emptyMessage')} />

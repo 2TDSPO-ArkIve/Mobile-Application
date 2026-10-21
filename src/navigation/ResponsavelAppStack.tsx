@@ -4,6 +4,7 @@ import { TabBar } from './BottomTabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { ResponsavelAppStackParamList } from '../interfaces/navigation';
 import { MeusAnimaisScreen } from '../screens/MeusAnimaisScreen';
+import { ResponsavelConsultasScreen } from '../screens/ResponsavelConsultasScreen';
 import { NewAnimalScreen } from '../screens/NewAnimalScreen';
 import { EditAnimalScreen } from '../screens/EditAnimalScreen';
 import { PatientDetailScreen } from '../screens/PatientDetailScreen';
@@ -28,7 +29,7 @@ import { useTranslation } from '../i18n/useTranslation';
 
 const Stack = createNativeStackNavigator<ResponsavelAppStackParamList>();
 
-type Section = 'MeusAnimais' | 'BuscarPacienteArkive' | 'SolicitacoesAcessoRecebidas' | 'MinhaConta';
+type Section = 'MeusAnimais' | 'ConsultasResponsavel' | 'BuscarPacienteArkive' | 'SolicitacoesAcessoRecebidas' | 'MinhaConta';
 
 /** Sidebar item that stays active on each stacked screen; unlisted routes are their own section. */
 const SECTION: Partial<Record<keyof ResponsavelAppStackParamList, Section>> = {
@@ -45,6 +46,8 @@ const SECTION: Partial<Record<keyof ResponsavelAppStackParamList, Section>> = {
   InserirCodigoConvite: 'MeusAnimais',
   Configuracoes: 'MinhaConta',
   AlterarSenha: 'MinhaConta',
+  // Opened from the notifications row in Meus animais.
+  Notificacoes: 'MeusAnimais',
 };
 
 function TutorSidebarLayout({
@@ -63,14 +66,18 @@ function TutorSidebarLayout({
 
   // Switching section replaces the stack instead of pushing onto it, so
   // MeusAnimais stays the only screen under the section (and Back leads there).
+  // Routes already in the stack go back in with their keys, so MeusAnimais
+  // keeps its scroll and query instead of mounting again on every switch.
+  const existing = (routeName: Section): { name: string; key?: string } => state.routes.find((route) => route.name === routeName) ?? { name: routeName };
   const go = (section: Section) => () =>
     navigation.reset({
       index: section === 'MeusAnimais' ? 0 : 1,
-      routes: section === 'MeusAnimais' ? [{ name: 'MeusAnimais' }] : [{ name: 'MeusAnimais' }, { name: section }],
+      routes: section === 'MeusAnimais' ? [existing('MeusAnimais')] : [existing('MeusAnimais'), existing(section)],
     });
 
   const items: (SidebarItem & { tabLabel: string })[] = [
     { key: 'MeusAnimais', label: t('myAnimals.title'), tabLabel: t('myAnimals.title'), icon: { active: 'paw', inactive: 'paw-outline' }, onPress: go('MeusAnimais') },
+    { key: 'ConsultasResponsavel', label: t('responsavelConsultas.title'), tabLabel: t('nav.consultas'), icon: { active: 'calendar', inactive: 'calendar-outline' }, onPress: go('ConsultasResponsavel') },
     { key: 'BuscarPacienteArkive', label: t('arkiveLookup.title'), tabLabel: t('nav.buscar'), icon: { active: 'search', inactive: 'search-outline' }, onPress: go('BuscarPacienteArkive') },
     { key: 'SolicitacoesAcessoRecebidas', label: t('accessRequestsReceived.title'), tabLabel: t('nav.solicitacoes'), icon: { active: 'person-add', inactive: 'person-add-outline' }, onPress: go('SolicitacoesAcessoRecebidas') },
   ];
@@ -128,6 +135,7 @@ export function ResponsavelAppStack() {
       }}
     >
       <Stack.Screen name="MeusAnimais" component={MeusAnimaisScreen} />
+      <Stack.Screen name="ConsultasResponsavel" component={ResponsavelConsultasScreen} />
       <Stack.Screen name="CadastrarAnimal" component={NewAnimalScreen} />
       <Stack.Screen name="EditarAnimal" component={EditAnimalScreen} />
       <Stack.Screen name="PacienteDetalhe" component={PatientDetailScreen} />

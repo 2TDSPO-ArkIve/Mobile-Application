@@ -30,6 +30,9 @@ import type { Modalidade } from '../services/consultaService';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, radius, font } from '../styles/theme';
 import { commonStyles } from '../styles/common';
+import { LoadingState } from '../components/LoadingState';
+import { useDiscardGuard } from '../hooks/useDiscardGuard';
+import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 const MODALIDADE_VALUES: Modalidade[] = ['PRESENCIAL', 'REMOTA'];
 const SEARCH_DEBOUNCE_MS = 300;
@@ -74,6 +77,10 @@ export function NewConsultaScreen() {
   // the form doesn't open already red. `error` below is API-only.
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({});
   const [error, setError] = useState('');
+  const markSubmitted = useDiscardGuard(
+    { modalidade, date, time, motivo, endereco, valorConsultaInput },
+    { submitting: createMutation.isPending }
+  );
 
   const touch = (field: Field) => setTouched((prev) => (prev[field] ? prev : { ...prev, [field]: true }));
 
@@ -176,6 +183,7 @@ export function NewConsultaScreen() {
     }
 
     try {
+      markSubmitted();
       const created = await createMutation.mutateAsync({
         animalId: selectedAnimal.id,
         modalidade,
@@ -197,7 +205,7 @@ export function NewConsultaScreen() {
 
       <ScreenContainer>
         {/* PACIENTE */}
-            <Text style={[commonStyles.eyebrow, styles.sectionLabelFirst, { color: colors.accent }]}>
+            <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabelFirst, { color: colors.inkSecondary }]}>
               {t('newConsulta.patientSection')}
             </Text>
 
@@ -215,7 +223,7 @@ export function NewConsultaScreen() {
                       {patientArkiveIdLine(selectedAnimal)}
                     </Text>
                   </View>
-                  <Ionicons name="checkmark-circle" size={22} color={colors.success} />
+                  <Ionicons name="checkmark-circle" size={22} color={colors.ink} />
                 </View>
               </AppCard>
             ) : (
@@ -250,13 +258,14 @@ export function NewConsultaScreen() {
                 </Text>
 
                 {patientsPending ? (
-                  <Text style={{ color: colors.inkSecondary, marginBottom: spacing.sm }}>
-                    {t('newConsulta.loadingPatients')}
-                  </Text>
+                  <LoadingState message={t('newConsulta.loadingPatients')} />
                 ) : patientsError ? (
                   <EmptyState
+                    tone="error"
                     title={t('newConsulta.loadPatientsErrorTitle')}
                     message={t('newConsulta.loadPatientsErrorMessage')}
+                    actionLabel={t('common.tryAgain')}
+                    onAction={() => patientsQuery.refetch()}
                   />
                 ) : clinicPatients && clinicPatients.length > 0 ? (
                   <>
@@ -266,12 +275,15 @@ export function NewConsultaScreen() {
                         <Pressable
                           key={animal.id}
                           onPress={() => handleSelectAnimal(animal)}
-                          style={[
+                          accessibilityRole="radio"
+                          accessibilityState={{ checked: selected }}
+                          style={(state: InteractionState) => [
                             styles.patientRow,
                             {
-                              backgroundColor: selected ? colors.accentTint : colors.surface,
+                              backgroundColor: selected ? colors.accentTint : isActive(state) ? colors.sunken : colors.surface,
                               borderColor: selected ? colors.accent : colors.line,
                             },
+                            focusRing(state, colors),
                           ]}
                         >
                           <View style={styles.patientTextCol}>
@@ -291,7 +303,7 @@ export function NewConsultaScreen() {
                           <Ionicons
                             name={selected ? 'checkmark-circle' : 'chevron-forward'}
                             size={selected ? 22 : 18}
-                            color={selected ? colors.success : colors.inkSecondary}
+                            color={selected ? colors.ink : colors.inkSecondary}
                           />
                         </Pressable>
                       );
@@ -328,7 +340,7 @@ export function NewConsultaScreen() {
             ) : null}
 
             {/* MODALIDADE */}
-            <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
+            <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
               {t('newConsulta.modalidadeSection')}
             </Text>
             <SegmentedControl
@@ -358,7 +370,7 @@ export function NewConsultaScreen() {
             ) : null}
 
             {/* DATA E HORÁRIO */}
-            <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
+            <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
               {t('newConsulta.dateTimeSection')}
             </Text>
             <View style={wide ? styles.dateTimeRow : null}>
@@ -388,7 +400,7 @@ export function NewConsultaScreen() {
             </View>
 
             {/* MOTIVO */}
-            <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
+            <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
               {t('newConsulta.reasonSection')}
             </Text>
             <AppInput
@@ -402,7 +414,7 @@ export function NewConsultaScreen() {
             />
 
             {/* VALOR */}
-            <Text style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.accent }]}>
+            <Text accessibilityRole="header" style={[commonStyles.eyebrow, styles.sectionLabel, { color: colors.inkSecondary }]}>
               {t('newConsulta.valueSection')}
               <Text style={[styles.optionalSuffix, { color: colors.inkSecondary }]}> · {t('common.optional')}</Text>
             </Text>
@@ -416,6 +428,12 @@ export function NewConsultaScreen() {
             />
 
             {error ? <Text style={{ color: colors.error, marginBottom: spacing.sm }}>{error}</Text> : null}
+            {touched === ALL_TOUCHED && Object.keys(fieldErrors).length > 0 ? (
+              // After a failed save (touched is then ALL_TOUCHED): the button sits at the end of a long form, so point back up.
+              <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={{ color: colors.error, marginBottom: spacing.sm }}>
+                {t('common.reviewFieldsAbove')}
+              </Text>
+            ) : null}
 
             <AppButton
               title={t('newConsulta.submit')}
