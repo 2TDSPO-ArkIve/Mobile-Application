@@ -113,6 +113,7 @@ export function SettingsScreen() {
             value={preferences.pushEnabled}
             onValueChange={handleTogglePush}
             disabled={togglingPush}
+            accessibilityLabel={t('settings.push')}
             trackColor={{ true: colors.accent }}
           />
         </View>

@@ -39,6 +39,8 @@ interface Props {
    * confused by a rejected request.
    */
   allowBreedCreation?: boolean;
+  /** Extra sections that belong to the same save (e.g. the Responsável link), drawn above the submit button. */
+  children?: React.ReactNode;
 }
 
 /**
@@ -54,6 +56,7 @@ export function PatientForm({
   submitLabel,
   errorMessage,
   allowBreedCreation = true,
+  children,
 }: Props) {
   const colors = useThemeColors();
   const { t } = useTranslation();
@@ -234,6 +237,8 @@ export function PatientForm({
         maximumDate={new Date()}
         onClear={() => setDataNascimento(null)}
       />
+
+      {children}
 
       {errorMessage ? (
         <Text

@@ -16,6 +16,7 @@ import { formatDate, formatNumber } from '../utils/localeFormat';
 import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font, iconSize, layout } from '../styles/theme';
 import { LoadingState } from '../components/LoadingState';
+import { describeLoadError } from '../utils/errorMessages';
 
 /**
  * "Configurações → IA ArkIve → Uso da IA" — VETERINARIO-only (gated both at
@@ -60,7 +61,15 @@ export function AiUsageScreen() {
         <Text style={[styles.intro, { color: colors.inkSecondary }]}>{t('aiUsage.intro')}</Text>
         <Text style={[styles.intro, { color: colors.inkSecondary }]}>{t('aiUsage.tokenExplainer')}</Text>
 
-        {sample.isPending ? (
+        {sample.isError ? (
+          <EmptyState
+            tone="error"
+            title={t('aiUsage.loadErrorTitle')}
+            message={describeLoadError(sample.error)}
+            actionLabel={t('common.tryAgain')}
+            onAction={sample.refetch}
+          />
+        ) : sample.isPending ? (
           <LoadingState message={t('aiUsage.loading')} />
         ) : sample.sampleSize === 0 ? (
           <EmptyState title={t('aiUsage.emptyTitle')} message={t('aiUsage.emptyMessage')} />

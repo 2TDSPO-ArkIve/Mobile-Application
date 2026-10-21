@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, Pressable, Platform, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, Pressable, Platform, Linking, StyleSheet, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -88,6 +88,18 @@ function CameraScanner() {
     );
   }
 
+  // Typing the code is the way forward when the camera is not an option.
+  const codeEntry =
+    status === 'authenticated' ? (
+      <AppCard style={styles.footerCard}>
+        <ListRow
+          icon="keypad-outline"
+          title={t('enterShareCode.entryLink')}
+          onPress={() => navigation.navigate('InserirCodigoConvite')}
+        />
+      </AppCard>
+    ) : null;
+
   if (!permission.granted) {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -100,7 +112,15 @@ function CameraScanner() {
           </Text>
           {permission.canAskAgain ? (
             <AppButton title={t('scanShareQr.requestPermission')} onPress={requestPermission} />
+          ) : Platform.OS !== 'web' ? (
+            <AppButton
+              title={t('scanShareQr.openSettings')}
+              variant="secondary"
+              icon="settings-outline"
+              onPress={() => Linking.openSettings()}
+            />
           ) : null}
+          {codeEntry}
         </ScreenContainer>
       </View>
     );
@@ -147,15 +167,7 @@ function CameraScanner() {
             <AppButton title={t('scanShareQr.scanAgain')} variant="secondary" onPress={handleScanAgain} />
           </>
         ) : null}
-        {status === 'authenticated' ? (
-          <AppCard style={styles.footerCard}>
-            <ListRow
-              icon="keypad-outline"
-              title={t('enterShareCode.entryLink')}
-              onPress={() => navigation.navigate('InserirCodigoConvite')}
-            />
-          </AppCard>
-        ) : null}
+        {codeEntry}
       </ScreenContainer>
     </View>
   );

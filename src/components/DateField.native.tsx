@@ -102,7 +102,7 @@ export function DateField({ label, value, onChange, error, minimumDate, maximumD
       {Platform.OS === 'ios' ? (
         <Modal visible={iosOpen} transparent animationType={modalAnimation} onRequestClose={() => setIosOpen(false)}>
           <View style={[styles.modalRoot, { backgroundColor: colors.scrim }]}>
-            <Pressable style={StyleSheet.absoluteFill} onPress={() => setIosOpen(false)} />
+            <Pressable style={StyleSheet.absoluteFill} accessible={false} focusable={false} onPress={() => setIosOpen(false)} />
             <View style={[styles.sheet, { backgroundColor: colors.raised }]}>
               <View style={[styles.sheetHeader, { borderBottomColor: colors.line }]}>
                 <Pressable onPress={() => setIosOpen(false)} accessibilityRole="button" style={styles.sheetAction}>

@@ -175,6 +175,8 @@ export const pt = {
     loadErrorMessage: 'Não foi possível carregar os dados do paciente agora.',
     title: 'Compartilhar {{name}}',
     question: 'Quem receberá acesso?',
+    veterinarioHint: 'Outro veterinário passa a ver este paciente, com o histórico de consultas e prescrições.',
+    responsavelHint: 'O Responsável passa a ver este paciente na própria conta, com o histórico de consultas e prescrições.',
     creating: 'Criando convite...',
     recipientLabel: 'Convite para: {{value}}',
     expiresAtLabel: 'Expira em: {{value}}',
@@ -223,6 +225,7 @@ export const pt = {
       'A permissão da câmera foi negada. Habilite-a nas configurações do sistema para escanear convites.',
     requestPermission: 'Permitir câmera',
     instructions: 'Aponte a câmera para o QR Code do convite.',
+    openSettings: 'Abrir configurações',
     torchLabel: 'Lanterna',
     invalidQr: 'Este QR Code não contém um convite válido do ArkIve.',
     scanAgain: 'Escanear novamente',
@@ -635,6 +638,7 @@ export const pt = {
    * doc comment for exactly how that sample is built.
    */
   aiUsage: {
+    loadErrorTitle: 'Não foi possível carregar o uso da IA',
     title: 'Uso da IA',
     intro: 'Consumo de tokens da ArkIve nas análises clínicas mais recentes com dados registrados.',
     tokenExplainer: 'Token é a unidade de texto que a IA lê e escreve, cerca de quatro caracteres. Narrativas e respostas mais longas usam mais tokens.',
@@ -1007,6 +1011,7 @@ export const pt = {
     message:
       'Não foi possível confirmar sua sessão com o servidor do ArkIve agora. Isso costuma acontecer quando o servidor está iniciando após um período inativo. Suas credenciais continuam salvas com segurança neste aparelho.',
     autoRetry: 'O app tenta de novo sozinho a cada 15 segundos.',
+    logoutButton: 'Sair e usar outra conta',
   },
   date: {
     datePlaceholder: 'DD/MM/AAAA',

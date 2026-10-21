@@ -53,7 +53,7 @@ export function DeleteConsultaModal({ visible, consultaId, onClose, onDeleted }:
         style={[styles.backdrop, { backgroundColor: colors.scrim }]}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
+        <Pressable style={StyleSheet.absoluteFill} accessible={false} focusable={false} onPress={handleClose} />
         <View style={[styles.sheet, { backgroundColor: colors.raised, paddingBottom: spacing.lg + insets.bottom }]}>
           <Text accessibilityRole="header" style={[styles.title, { color: colors.ink }]}>{t('consultaDetail.deleteConfirmTitle')}</Text>
           <Text style={{ color: colors.inkSecondary, marginBottom: spacing.md }}>

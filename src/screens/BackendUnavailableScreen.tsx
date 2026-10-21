@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { EmptyState } from '../components/EmptyState';
+import { AppButton } from '../components/AppButton';
+import { confirmAction } from '../utils/dialog';
 import { useAuth } from '../hooks/useAuth';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTranslation } from '../i18n/useTranslation';
@@ -17,7 +19,7 @@ const AUTO_RETRY_MS = 15000;
  * because the server was briefly asleep.
  */
 export function BackendUnavailableScreen() {
-  const { refreshUser } = useAuth();
+  const { refreshUser, logout } = useAuth();
   const colors = useThemeColors();
   const { t } = useTranslation();
   const [retrying, setRetrying] = useState(false);
@@ -31,6 +33,17 @@ export function BackendUnavailableScreen() {
     busy.current = false;
     setRetrying(false);
   };
+
+  // The way out when the server stays down or the saved credential is stale.
+  const handleLogout = () =>
+    confirmAction({
+      title: t('common.logoutConfirmTitle'),
+      message: t('common.logoutConfirmMessage'),
+      cancelText: t('common.cancel'),
+      confirmText: t('common.logoutConfirmButton'),
+      destructive: true,
+      onConfirm: () => logout(),
+    });
 
   // A cold start takes tens of seconds; keep knocking so the person doesn't have to.
   useEffect(() => {
@@ -50,6 +63,13 @@ export function BackendUnavailableScreen() {
             onAction={handleRetry}
             actionLoading={retrying}
           />
+          <AppButton
+            title={t('backendUnavailable.logoutButton')}
+            variant="ghost"
+            icon="log-out-outline"
+            onPress={handleLogout}
+            style={styles.logout}
+          />
         </View>
       </ScreenContainer>
     </View>
@@ -63,4 +83,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: spacing.xl,
   },
+  logout: { alignSelf: 'center' },
 });

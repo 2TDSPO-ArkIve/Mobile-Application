@@ -173,6 +173,8 @@ export const en = {
     loadErrorMessage: "Could not load the patient's data right now.",
     title: 'Share {{name}}',
     question: 'Who will receive access?',
+    veterinarioHint: 'Another veterinarian can see this patient, with its consultation and prescription history.',
+    responsavelHint: 'The Responsible party can see this patient in their own account, with its consultation and prescription history.',
     creating: 'Creating invitation...',
     recipientLabel: 'Invitation for: {{value}}',
     expiresAtLabel: 'Expires: {{value}}',
@@ -221,6 +223,7 @@ export const en = {
       'Camera permission was denied. Enable it in your system settings to scan invitations.',
     requestPermission: 'Allow camera',
     instructions: "Point the camera at the invitation's QR code.",
+    openSettings: 'Open settings',
     torchLabel: 'Flashlight',
     invalidQr: "This QR code doesn't contain a valid ArkIve invitation.",
     scanAgain: 'Scan again',
@@ -632,6 +635,7 @@ export const en = {
    * account's lifetime or monthly usage.
    */
   aiUsage: {
+    loadErrorTitle: 'Could not load AI usage',
     title: 'AI usage',
     intro: 'ArkIve token consumption across the most recent clinical analyses with recorded data.',
     tokenExplainer: 'A token is the unit of text the AI reads and writes, about four characters. Longer narratives and answers use more tokens.',
@@ -1000,6 +1004,7 @@ export const en = {
     message:
       "Could not confirm your session with the ArkIve server right now. This usually happens when the server is starting up after a period of inactivity. Your credentials remain safely stored on this device.",
     autoRetry: 'The app tries again on its own every 15 seconds.',
+    logoutButton: 'Sign out and use another account',
   },
   date: {
     datePlaceholder: 'DD/MM/YYYY',

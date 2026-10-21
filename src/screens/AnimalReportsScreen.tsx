@@ -27,6 +27,8 @@ import { focusRing, isActive, type InteractionState } from '../styles/interactio
 const SEARCH_DEBOUNCE_MS = 300;
 /** A report text past this length gets a "Ver mais" toggle instead of always rendering in full — short reports (the common case: "vomitou de madrugada") never show a pointless toggle. */
 const EXPAND_THRESHOLD = 180;
+/** Collapsed reports show this many lines; a dictated report breaks lines early (blank lines between segments). */
+const COLLAPSED_LINES = 4;
 
 /**
  * Reused by BOTH `AppStack` (VETERINARIO, read-only) and
@@ -50,7 +52,8 @@ function ReportCard({ report }: { report: AnimalReportDto }) {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
-  const isLong = report.texto.length > EXPAND_THRESHOLD;
+  const isLong =
+    report.texto.length > EXPAND_THRESHOLD || report.texto.split('\n').length > COLLAPSED_LINES;
   const createdAt = new Date(report.dataCriacao);
   const hasValidCreatedAt = !Number.isNaN(createdAt.getTime());
 
@@ -72,7 +75,7 @@ function ReportCard({ report }: { report: AnimalReportDto }) {
           {t('animalReports.occurredAtLabel', { date: toDisplayDate(report.dataOcorrencia) })}
         </Text>
       ) : null}
-      <Text style={[styles.text, { color: colors.ink }]} numberOfLines={expanded ? undefined : 4}>
+      <Text style={[styles.text, { color: colors.ink }]} numberOfLines={expanded ? undefined : COLLAPSED_LINES}>
         {report.texto}
       </Text>
       {isLong ? (

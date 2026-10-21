@@ -61,6 +61,8 @@ export function AppButton({
       disabled={disabled || loading}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? title}
+      // The small size draws at 32pt; the slop keeps the touch target at 44.
+      hitSlop={size === 'small' ? SMALL_HIT_SLOP : undefined}
       style={(state: InteractionState) => [
         styles.btn,
         size === 'small' && styles.btnSmall,
@@ -99,6 +101,8 @@ export function AppButton({
     </Pressable>
   );
 }
+
+const SMALL_HIT_SLOP = { top: 6, bottom: 6 };
 
 const styles = StyleSheet.create({
   btn: {

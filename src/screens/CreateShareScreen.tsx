@@ -227,6 +227,12 @@ export function CreateShareScreen() {
                     ? t('shareInvitationType.VETERINARIO')
                     : t('shareInvitationType.RESPONSAVEL')}
                 </Text>
+                {/* What the recipient gets, said before the invite exists. */}
+                <Text style={[styles.optionHint, { color: colors.inkSecondary }]}>
+                  {invitationType === 'VETERINARIO'
+                    ? t('shareCreate.veterinarioHint')
+                    : t('shareCreate.responsavelHint')}
+                </Text>
               </Pressable>
             ))}
 
@@ -251,8 +257,10 @@ const styles = StyleSheet.create({
     minHeight: 56,
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     borderRadius: radius.md,
-    borderWidth: 1.5,
+    borderWidth: 1,
     marginBottom: spacing.sm,
   },
+  optionHint: { fontSize: fontSize.sm, marginTop: 2 },
 });

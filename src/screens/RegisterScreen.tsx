@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { AppInput } from '../components/AppInput';
@@ -17,7 +18,7 @@ import { isPasswordValid } from '../utils/passwordPolicy';
 import { mapVeterinarioRegistrationError, mapResponsavelRegistrationError } from '../utils/errorMessages';
 import { useThemeColors } from '../hooks/useThemeColors';
 import type { AuthStackParamList } from '../interfaces/navigation';
-import { spacing, fontSize, radius, font } from '../styles/theme';
+import { spacing, fontSize, radius, font, iconSize } from '../styles/theme';
 import { focusRing, isActive, type InteractionState } from '../styles/interaction';
 
 type Role = 'VETERINARIO' | 'RESPONSAVEL';
@@ -521,9 +522,13 @@ export function RegisterScreen() {
                 error={fieldErrors.nome}
               />
 
-              <Text style={[styles.academicWarning, { color: colors.error, borderColor: colors.error }]}>
-                {t('registerResponsavel.academicWarning')}
-              </Text>
+              {/* Information, not a validation failure: neutral surface, no status color. */}
+              <View style={[styles.academicWarning, { backgroundColor: colors.sunken }]}>
+                <Ionicons name="information-circle-outline" size={iconSize.sm} color={colors.inkSecondary} />
+                <Text style={[styles.academicWarningText, { color: colors.inkSecondary }]}>
+                  {t('registerResponsavel.academicWarning')}
+                </Text>
+              </View>
 
               <SegmentedControl
                 label={t('registerResponsavel.tipoDocumentoLabel')}
@@ -656,13 +661,14 @@ const styles = StyleSheet.create({
   error: { fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.sm },
   backLink: { marginTop: spacing.sm },
   academicWarning: {
-    fontSize: fontSize.xs,
-    lineHeight: 17,
-    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
     borderRadius: radius.sm,
     padding: spacing.sm,
     marginBottom: spacing.md,
   },
+  academicWarningText: { flex: 1, fontSize: fontSize.sm, lineHeight: 19 },
   generateLinkWrap: {
     alignSelf: 'flex-start',
     minHeight: 44,

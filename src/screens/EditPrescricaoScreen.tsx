@@ -4,12 +4,13 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { PrescricaoForm } from '../components/PrescricaoForm';
+import { EmptyState } from '../components/EmptyState';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useTranslation } from '../i18n/useTranslation';
 import { useConsulta } from '../hooks/useConsultas';
 import { usePrescricao, useUpdatePrescricao } from '../hooks/usePrescricoes';
-import { describePrescricaoError } from '../utils/errorMessages';
+import { describePrescricaoError, describeLoadError } from '../utils/errorMessages';
 import { toDisplayDate } from '../utils/isoDate';
 import type { PrescricaoRequestInput } from '../services/prescricaoService';
 import type { AppStackParamList } from '../interfaces/navigation';
@@ -29,7 +30,7 @@ export function EditPrescricaoScreen() {
   const wide = useBreakpoint() === 'wide';
   const { prescricaoId, consultaId } = route.params;
 
-  const { data: prescricao, isPending } = usePrescricao(prescricaoId, consultaId);
+  const { data: prescricao, isPending, isError, error, refetch } = usePrescricao(prescricaoId, consultaId);
   const { data: consulta } = useConsulta(consultaId);
   const updateMutation = useUpdatePrescricao(prescricaoId, consultaId, consulta?.animalId);
 
@@ -41,6 +42,23 @@ export function EditPrescricaoScreen() {
       // Surfaced via updateMutation.isError below.
     }
   };
+
+  if (isError) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <AppHeader title={t('prescricaoForm.editTitle')} />
+        <ScreenContainer>
+          <EmptyState
+            tone="error"
+            title={t('prescricaoDetail.loadErrorTitle')}
+            message={describeLoadError(error, t('prescricaoDetail.notFound'))}
+            actionLabel={t('common.tryAgain')}
+            onAction={() => refetch()}
+          />
+        </ScreenContainer>
+      </View>
+    );
+  }
 
   if (isPending || !prescricao) {
     return (
