@@ -892,6 +892,16 @@ export const en = {
     infoSection: 'Info',
     version: 'Version 1.0.0',
     copyright: '© 2026 ArkIve · Optimized veterinary management',
+    aboutUsButton: 'About us',
+    aboutUsSubtitle: 'Meet the ArkIve team',
+  },
+  aboutUs: {
+    title: 'About us',
+    teamSection: 'Development team',
+    openLinkedIn: 'Open LinkedIn',
+    openLinkedInLabel: "Open {{name}}'s LinkedIn profile",
+    qrLabel: "QR code for {{name}}'s LinkedIn profile",
+    photoLabel: 'Photo of {{name}}',
   },
   profile: {
     title: 'Profile',

@@ -24,6 +24,7 @@ import { ProfileScreen } from '../screens/ProfileScreen';
 import { VeterinarianCostScreen } from '../screens/VeterinarianCostScreen';
 import { MyAccessRequestsScreen } from '../screens/MyAccessRequestsScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { AboutUsScreen } from '../screens/AboutUsScreen';
 import { ChangePasswordScreen } from '../screens/ChangePasswordScreen';
 import { CreateShareScreen } from '../screens/CreateShareScreen';
 import { SharePreviewScreen } from '../screens/SharePreviewScreen';
@@ -67,6 +68,7 @@ const SECTION: Partial<Record<keyof AppStackParamList, Section>> = {
   UsoDaIa: 'UsoDaIa',
   Perfil: 'Perfil',
   Configuracoes: 'Perfil',
+  SobreNos: 'Perfil',
   AlterarSenha: 'Perfil',
   SolicitacoesAcessoEnviadas: 'Perfil',
   // The bell lives in the Home header.
@@ -162,6 +164,7 @@ export function AppStack() {
       <Stack.Screen name="ValoresVeterinario" component={VeterinarianCostScreen} />
       <Stack.Screen name="SolicitacoesAcessoEnviadas" component={MyAccessRequestsScreen} />
       <Stack.Screen name="Configuracoes" component={SettingsScreen} />
+      <Stack.Screen name="SobreNos" component={AboutUsScreen} />
       <Stack.Screen name="AlterarSenha" component={ChangePasswordScreen} />
       <Stack.Screen name="Notificacoes" component={NotificationsScreen} />
     </Stack.Navigator>

@@ -897,6 +897,16 @@ export const pt = {
     infoSection: 'Info',
     version: 'Versão 1.0.0',
     copyright: '© 2026 ArkIve · Gestão veterinária otimizada',
+    aboutUsButton: 'Sobre nós',
+    aboutUsSubtitle: 'Conheça a equipe do ArkIve',
+  },
+  aboutUs: {
+    title: 'Sobre nós',
+    teamSection: 'Equipe de desenvolvimento',
+    openLinkedIn: 'Abrir LinkedIn',
+    openLinkedInLabel: 'Abrir o perfil de {{name}} no LinkedIn',
+    qrLabel: 'QR Code do perfil de {{name}} no LinkedIn',
+    photoLabel: 'Foto de {{name}}',
   },
   profile: {
     title: 'Perfil',
