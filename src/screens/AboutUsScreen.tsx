@@ -54,6 +54,22 @@ const TEAM: TeamMember[] = [
   },
 ];
 
+type AppKey = 'backend' | 'web';
+
+interface PublishedApp {
+  key: AppKey;
+  url: string;
+}
+
+/**
+ * The deployed services. The backend's root is an API with no page of its
+ * own, so its button opens "the API address", never "the app".
+ */
+const APPS: PublishedApp[] = [
+  { key: 'backend', url: 'https://arkive-clinical-engine.onrender.com/' },
+  { key: 'web', url: 'https://mobile-application-sooty.vercel.app/' },
+];
+
 const GRID_GAP = spacing.md;
 // Space ShareQrCode adds around the code: its card padding plus the white quiet zone, on both sides.
 const QR_FRAME = 2 * (spacing.sm + spacing.md);
@@ -116,6 +132,26 @@ export function AboutUsScreen() {
                 <MemberCard
                   key={member.linkedin}
                   member={member}
+                  width={cardWidth}
+                  qrSize={Math.min(QR_MAX, cardWidth - 2 * spacing.lg - QR_FRAME)}
+                />
+              ))
+            : null}
+        </View>
+
+        <Text
+          accessibilityRole="header"
+          style={[styles.teamTitle, wide && styles.teamTitleWide, styles.appsTitle, wide && styles.appsTitleWide, { color: colors.ink }]}
+        >
+          {t('aboutUs.appsSection')}
+        </Text>
+        {/* Same size as the member cards, centered under them. */}
+        <View style={[styles.grid, styles.appsGrid]}>
+          {cardWidth
+            ? APPS.map((app) => (
+                <AppLinkCard
+                  key={app.key}
+                  app={app}
                   width={cardWidth}
                   qrSize={Math.min(QR_MAX, cardWidth - 2 * spacing.lg - QR_FRAME)}
                 />
@@ -190,6 +226,48 @@ function MemberCard({ member, width, qrSize }: { member: TeamMember; width: numb
   );
 }
 
+/** One published service: what it is, its address, and a quiet button to open it. */
+/** A published service, laid out like a member card without the photo: name, QR code, address and button. */
+function AppLinkCard({ app, width, qrSize }: { app: PublishedApp; width: number; qrSize: number }) {
+  const colors = useThemeColors();
+  const { t } = useTranslation();
+  const name = t(`aboutUs.${app.key}Name`);
+
+  // On web this opens a new tab (react-native-web's default target is
+  // `_blank`), so the page stays where it is; on a phone it hands off to the browser.
+  const open = () => {
+    Linking.openURL(app.url).catch(() => {
+      /* Nothing actionable client-side if the OS can't open it; the QR code still works. */
+    });
+  };
+
+  return (
+    <AppCard style={{ ...styles.member, width }}>
+      <View style={styles.memberBody}>
+        <Text style={[styles.memberName, { color: colors.ink }]}>{name}</Text>
+
+        <View accessible accessibilityRole="image" accessibilityLabel={t('aboutUs.appQrLabel', { name })}>
+          <ShareQrCode value={app.url} size={qrSize} />
+        </View>
+
+        <View style={styles.links}>
+          <Text style={[styles.handle, { color: colors.inkSecondary }]} numberOfLines={1}>
+            {displayUrl(app.url)}
+          </Text>
+          <AppButton
+            title={t(`aboutUs.${app.key}Action`)}
+            variant="secondary"
+            icon="open-outline"
+            onPress={open}
+            accessibilityLabel={t('aboutUs.opensInNewTab', { name })}
+            style={styles.linkButton}
+          />
+        </View>
+      </View>
+    </AppCard>
+  );
+}
+
 const styles = StyleSheet.create({
   root: { flex: 1 },
   content: { maxWidth: layout.contentMax },
@@ -215,4 +293,7 @@ const styles = StyleSheet.create({
   links: { alignSelf: 'stretch', alignItems: 'center', gap: spacing.xs },
   handle: { fontSize: fontSize.sm, textAlign: 'center', maxWidth: '100%' },
   linkButton: { alignSelf: 'stretch' },
+  appsTitle: { marginTop: spacing.xxl, marginBottom: spacing.lg },
+  appsTitleWide: { marginTop: spacing.xxl + spacing.xl, marginBottom: spacing.xl },
+  appsGrid: { justifyContent: 'center', marginBottom: spacing.xl },
 });

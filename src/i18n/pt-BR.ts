@@ -907,6 +907,13 @@ export const pt = {
     openLinkedInLabel: 'Abrir o perfil de {{name}} no LinkedIn',
     qrLabel: 'QR Code do perfil de {{name}} no LinkedIn',
     photoLabel: 'Foto de {{name}}',
+    appsSection: 'Conheça nossas aplicações',
+    backendName: 'Motor Clínico ArkIve',
+    backendAction: 'Abrir endereço da API',
+    webName: 'Aplicação ArkIve',
+    webAction: 'Abrir aplicação',
+    opensInNewTab: '{{name}} (abre em uma nova aba)',
+    appQrLabel: 'QR Code do endereço de {{name}}',
   },
   profile: {
     title: 'Perfil',

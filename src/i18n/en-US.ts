@@ -902,6 +902,13 @@ export const en = {
     openLinkedInLabel: "Open {{name}}'s LinkedIn profile",
     qrLabel: "QR code for {{name}}'s LinkedIn profile",
     photoLabel: 'Photo of {{name}}',
+    appsSection: 'Explore our applications',
+    backendName: 'ArkIve Clinical Engine',
+    backendAction: 'Open API address',
+    webName: 'ArkIve app',
+    webAction: 'Open app',
+    opensInNewTab: '{{name}} (opens in a new tab)',
+    appQrLabel: 'QR code for the {{name}} address',
   },
   profile: {
     title: 'Profile',
