@@ -15,6 +15,7 @@ import { ArkiveIdLookupScreen } from '../screens/ArkiveIdLookupScreen';
 import { AccessRequestsScreen } from '../screens/AccessRequestsScreen';
 import { ResponsavelAccountScreen } from '../screens/ResponsavelAccountScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { AboutUsScreen } from '../screens/AboutUsScreen';
 import { ChangePasswordScreen } from '../screens/ChangePasswordScreen';
 import { CreateShareScreen } from '../screens/CreateShareScreen';
 import { SharePreviewScreen } from '../screens/SharePreviewScreen';
@@ -45,6 +46,7 @@ const SECTION: Partial<Record<keyof ResponsavelAppStackParamList, Section>> = {
   EscanearConvite: 'MeusAnimais',
   InserirCodigoConvite: 'MeusAnimais',
   Configuracoes: 'MinhaConta',
+  SobreNos: 'MinhaConta',
   AlterarSenha: 'MinhaConta',
   // Opened from the notifications row in Meus animais.
   Notificacoes: 'MeusAnimais',
@@ -149,6 +151,7 @@ export function ResponsavelAppStack() {
       <Stack.Screen name="InserirCodigoConvite" component={EnterShareCodeScreen} />
       <Stack.Screen name="MinhaConta" component={ResponsavelAccountScreen} />
       <Stack.Screen name="Configuracoes" component={SettingsScreen} />
+      <Stack.Screen name="SobreNos" component={AboutUsScreen} />
       <Stack.Screen name="AlterarSenha" component={ChangePasswordScreen} />
       <Stack.Screen name="Notificacoes" component={NotificationsScreen} />
       <Stack.Screen name="BuscarPacienteArkive" component={ArkiveIdLookupScreen} />

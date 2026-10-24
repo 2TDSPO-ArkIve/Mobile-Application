@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, Switch, Platform, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader } from '../components/AppHeader';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { SegmentedControl } from '../components/SegmentedControl';
+import { AppCard } from '../components/AppCard';
+import { ListRow } from '../components/ListRow';
+import { accountStyles } from '../components/AccountIdentity';
 import { useTheme } from '../context/ThemeContext';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useBreakpoint } from '../hooks/useBreakpoint';
@@ -10,6 +15,7 @@ import { useTranslation } from '../i18n/useTranslation';
 import { enableNativePush, disableNativePush } from '../utils/pushRegistration';
 import type { Language } from '../i18n/store';
 import type { ThemeMode } from '../types';
+import type { AppStackParamList } from '../interfaces/navigation';
 import { spacing, fontSize, font, layout } from '../styles/theme';
 
 const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
@@ -29,6 +35,8 @@ export function SettingsScreen() {
   const colors = useThemeColors();
   const { t, language, setLanguage } = useTranslation();
   const wide = useBreakpoint() === 'wide';
+  // `SobreNos` is registered in both role stacks, so the VETERINARIO param list types it for either.
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const rowStyle = [styles.row, { borderBottomColor: colors.line }];
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [pushStatusMessage, setPushStatusMessage] = useState<{ tone: 'info' | 'error'; text: string } | null>(null);
@@ -153,6 +161,14 @@ export function SettingsScreen() {
         />
 
         <Text accessibilityRole="header" style={[styles.section, { color: colors.ink }]}>{t('settings.infoSection')}</Text>
+        <AppCard style={accountStyles.group}>
+          <ListRow
+            icon="people-outline"
+            title={t('settings.aboutUsButton')}
+            subtitle={t('settings.aboutUsSubtitle')}
+            onPress={() => navigation.navigate('SobreNos')}
+          />
+        </AppCard>
         <View style={styles.infoBox}>
           <Text style={{ color: colors.ink, ...font('bold') }}>{t('common.appName')}</Text>
           <Text style={{ color: colors.inkSecondary }}>{t('settings.version')}</Text>

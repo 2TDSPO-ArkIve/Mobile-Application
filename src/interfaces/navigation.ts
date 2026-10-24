@@ -73,6 +73,8 @@ export type ResponsavelAppStackParamList = {
   NovoRelatoAnimal: { patientId: number };
   MinhaConta: undefined;
   Configuracoes: undefined;
+  /** "Configurações → Sobre nós" — static team page, shared with `AppStackParamList` (same `AboutUsScreen`). */
+  SobreNos: undefined;
   AlterarSenha: undefined;
   Notificacoes: undefined;
 };
@@ -112,6 +114,7 @@ export type AppStackParamList = {
   /** "Configurações → IA ArkIve → Uso da IA". VETERINARIO-only — this route does not exist in `ResponsavelAppStackParamList`; the AI-usage comparison sample it reads from (`GET /api/consultas`, `GET /api/consultas/{id}/suporte-clinico`) is the same cross-screen `useRecentAiUsageSample` the pre-diagnosis card already uses, read-only, no new backend endpoint. */
   UsoDaIa: undefined;
   Configuracoes: undefined;
+  SobreNos: undefined;
   AlterarSenha: undefined;
   Notificacoes: undefined;
 };

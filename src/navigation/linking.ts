@@ -75,6 +75,7 @@ export const linking: LinkingOptions<RootStackParamList> = {
           ValoresVeterinario: 'financeiro',
           UsoDaIa: 'uso-da-ia',
           Configuracoes: 'configuracoes',
+          SobreNos: 'configuracoes/sobre',
           AlterarSenha: 'alterar-senha',
           Notificacoes: 'notificacoes',
         },
