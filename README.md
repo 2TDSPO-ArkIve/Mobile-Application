@@ -1,14 +1,14 @@
-# ArkIve — Mobile Application Development
-
-## Sprint 3 — FIAP
+# ArkIve — Mobile Application
 
 ArkIve é uma aplicação mobile de **apoio à rotina clínica veterinária**, desenvolvida para auxiliar veterinários no registro, acompanhamento e condução de consultas.
+
+O aplicativo atende dois perfis: o **veterinário**, que conduz as consultas, e o **responsável** (tutor), que acompanha seus animais.
 
 O sistema utiliza Inteligência Artificial como uma ferramenta de **apoio à decisão clínica**. A IA organiza e analisa as informações fornecidas durante a consulta e apresenta sugestões e insights ao profissional, mas a decisão clínica final permanece sempre sob responsabilidade do veterinário.
 
 ---
 
-# Problema
+## Problema
 
 Durante uma consulta veterinária, o profissional precisa lidar simultaneamente com diversas informações:
 
@@ -27,7 +27,7 @@ O ArkIve foi desenvolvido para centralizar essas informações e apoiar o veteri
 
 ---
 
-# Solução
+## Solução
 
 O aplicativo oferece um fluxo clínico que acompanha a consulta desde o agendamento até sua conclusão.
 
@@ -44,25 +44,28 @@ Onde:
 * **AP — Aguardando Parecer:** o ArkIve processa o caso e fornece suporte clínico por Inteligência Artificial;
 * **FI — Finalizada:** o veterinário registra sua própria conclusão e encerra o atendimento.
 
+Uma consulta agendada também pode ser cancelada (**CA — Cancelada**), com registro do motivo.
+
 A IA não substitui o veterinário. Seu objetivo é fornecer um ponto de partida para a análise clínica, ajudando o profissional a trabalhar com mais agilidade e organização.
 
 ---
 
-# Usuário do Aplicativo
+## Perfis de Usuário
 
-Nesta Sprint, o aplicativo mobile é direcionado ao veterinário:
-
-
+### Veterinário
 
 O veterinário pode:
 
 * realizar cadastro;
 * autenticar-se;
 * consultar pacientes;
-* cadastrar pacientes;
+* cadastrar e editar pacientes;
+* buscar pacientes pelo ID ArkIve;
+* solicitar acesso a pacientes e acompanhar suas solicitações;
+* compartilhar pacientes por link, QR Code ou código de convite;
+* consultar o histórico clínico, os relatos e os valores dos atendimentos de cada paciente;
 * criar consultas;
-* editar consultas;
-* excluir consultas permitidas;
+* editar, cancelar e excluir consultas agendadas;
 * iniciar o atendimento;
 * registrar a narrativa clínica;
 * utilizar transcrição de voz;
@@ -71,14 +74,35 @@ O veterinário pode:
 * registrar sua própria conclusão;
 * finalizar consultas;
 * criar, visualizar, editar e excluir prescrições;
-* gerar o resumo da consulta em PDF;
-* gerenciar suas configurações e sessão.
+* gerar o resumo da consulta e o histórico do paciente em PDF;
+* acompanhar o resumo financeiro dos atendimentos e o consumo de IA;
+* receber notificações;
+* gerenciar seu perfil, configurações e sessão.
+
+### Responsável
+
+O responsável pode:
+
+* realizar cadastro;
+* autenticar-se;
+* cadastrar e editar seus animais;
+* acompanhar as consultas agendadas, em andamento e finalizadas dos seus animais;
+* consultar o histórico clínico e os valores dos atendimentos;
+* registrar relatos e observações sobre seus animais;
+* compartilhar animais com veterinários ou outros responsáveis;
+* aceitar convites de compartilhamento por link, QR Code ou código;
+* aprovar ou rejeitar solicitações de acesso feitas por veterinários;
+* buscar animais pelo ID ArkIve;
+* receber notificações;
+* gerenciar sua conta, configurações e sessão.
+
+As telas clínicas (consultas, análise ArkIve, conclusão e prescrições) existem apenas na aplicação do veterinário.
 
 ---
 
-# Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
-## Mobile
+### Mobile
 
 * React Native
 * Expo SDK 57
@@ -87,10 +111,12 @@ O veterinário pode:
 * TanStack Query
 * Expo SecureStore
 * Expo Audio
+* Expo Camera
+* Expo Notifications
 * Expo File System
 * Expo Sharing
 
-## Backend
+### Backend
 
 * Java
 * Spring Boot
@@ -100,14 +126,15 @@ O veterinário pode:
 * Oracle Database
 * Maven
 
-## Serviços
+### Serviços
 
 * Render — publicação da API
+* Vercel — publicação da versão web do aplicativo
 * Azure Speech — transcrição de áudio para texto
 
 ---
 
-# Arquitetura da Aplicação
+## Arquitetura da Aplicação
 
 A aplicação foi organizada separando interface, lógica de aplicação e comunicação HTTP.
 
@@ -153,13 +180,13 @@ src/
 
 ---
 
-# Navegação
+## Navegação
 
 O projeto utiliza exclusivamente **React Navigation**.
 
 A navegação é organizada em três níveis principais.
 
-## Root Navigator
+### Root Navigator
 
 Controla qual fluxo deve ser apresentado:
 
@@ -172,23 +199,29 @@ Usuário autenticado com troca de senha obrigatória
         ↓
 MandatoryPasswordChange
 
-Usuário autenticado normalmente
+Veterinário autenticado
         ↓
 AppStack
+
+Responsável autenticado
+        ↓
+ResponsavelAppStack
 ```
 
-## AuthStack
+Se existir uma sessão salva, mas a API não puder ser alcançada para validá-la, o aplicativo exibe a tela de servidor indisponível em vez de voltar ao Login.
+
+### AuthStack
 
 Contém:
 
 * Login
-* Cadastro
+* Cadastro (veterinário ou responsável)
 
-## Aplicação autenticada
+### Aplicação do Veterinário
 
 O menu principal possui três áreas:
 
-* Home
+* Início
 * Consultas
 * Pacientes
 
@@ -202,15 +235,33 @@ Além dessas áreas, o aplicativo possui fluxos específicos para:
 * conclusão veterinária;
 * prescrições;
 * cadastro e edição de pacientes;
+* histórico clínico, relatos e valores do paciente;
+* compartilhamento de pacientes e convites;
+* busca por ID ArkIve e solicitações de acesso;
+* resumo financeiro e uso da IA;
+* notificações;
 * perfil;
 * configurações;
 * alteração de senha.
 
-A aplicação possui mais de seis telas funcionais e distintas, atendendo ao requisito da Sprint 3.
+### Aplicação do Responsável
+
+O menu principal possui quatro áreas:
+
+* Meus Animais
+* Consultas
+* Buscar
+* Solicitações
+
+A área **Minha Conta** reúne configurações, alteração de senha e informações sobre o aplicativo.
+
+Em telas largas (web e tablets), a barra de abas inferior é substituída por um menu lateral.
+
+Na versão web, as telas possuem URLs próprias, permitindo usar o botão “voltar” do navegador e recarregar a página sem perder a tela aberta.
 
 ---
 
-# Integração com API
+## Integração com API
 
 Todos os dados funcionais utilizados pelo aplicativo são provenientes da API Spring Boot.
 
@@ -220,10 +271,13 @@ URL padrão da API:
 https://arkive-b7v2.onrender.com
 ```
 
+A URL pode ser substituída pela variável de ambiente `EXPO_PUBLIC_API_URL`, por exemplo para apontar para uma API executada localmente.
 
+Como a API está hospedada no Render, a primeira requisição pode demorar enquanto o servidor inicia. O aplicativo informa essa situação ao usuário.
 
+---
 
-# Aplicação no ar 
+## Aplicação Web
 
 ```text
 https://mobile-application-sooty.vercel.app/
@@ -231,7 +285,7 @@ https://mobile-application-sooty.vercel.app/
 
 ---
 
-# TanStack Query
+## TanStack Query
 
 O projeto utiliza TanStack Query para:
 
@@ -248,7 +302,7 @@ Isso permite que as alterações apareçam na interface sem necessidade de reini
 
 ---
 
-# CRUD 1 — Consultas
+## CRUD 1 — Consultas
 
 O módulo de Consultas possui CRUD completo.
 
@@ -257,7 +311,7 @@ O módulo de Consultas possui CRUD completo.
 | Create   | Criar nova consulta            |
 | Read     | Lista e detalhes das consultas |
 | Update   | Editar uma consulta agendada   |
-| Delete   | Excluir uma consulta permitida |
+| Delete   | Excluir uma consulta agendada  |
 
 Fluxo simplificado:
 
@@ -285,11 +339,17 @@ Excluir
 DELETE /api/consultas/{id}
 ```
 
+Uma consulta agendada também pode ser cancelada com o registro do motivo:
+
+```text
+POST /api/consultas/{id}/cancelar
+```
+
 Consultas são atualizadas automaticamente na interface utilizando invalidação de queries do TanStack Query.
 
 ---
 
-# CRUD 2 — Prescrições
+## CRUD 2 — Prescrições
 
 O módulo de Prescrições também possui CRUD completo.
 
@@ -303,7 +363,7 @@ O módulo de Prescrições também possui CRUD completo.
 Endpoints principais:
 
 ```text
-GET    /api/prescricoes
+GET    /api/prescricoes?consultaId={id}
 POST   /api/prescricoes
 GET    /api/prescricoes/{id}
 PUT    /api/prescricoes/{id}
@@ -314,11 +374,11 @@ Todas as operações estão disponíveis pela interface do aplicativo.
 
 ---
 
-# Fluxo Clínico ArkIve
+## Fluxo Clínico ArkIve
 
 O principal fluxo da aplicação acontece dentro de uma Consulta.
 
-## 1. Consulta Agendada
+### 1. Consulta Agendada
 
 O veterinário cria uma consulta associada a um paciente.
 
@@ -326,11 +386,9 @@ O veterinário cria uma consulta associada a um paciente.
 AG
 ```
 
-Enquanto a consulta estiver agendada, ela pode ser editada ou excluída.
+Enquanto a consulta estiver agendada, ela pode ser editada, cancelada ou excluída.
 
----
-
-## 2. Início da Consulta
+### 2. Início da Consulta
 
 O veterinário inicia o atendimento.
 
@@ -340,9 +398,7 @@ AG → EP
 
 Nesse momento começa o registro clínico.
 
----
-
-## 3. Narrativa Clínica
+### 3. Narrativa Clínica
 
 O veterinário descreve o caso do animal.
 
@@ -359,9 +415,7 @@ POST /api/transcricoes
 
 O backend realiza a transcrição utilizando Azure Speech.
 
----
-
-## 4. Suporte Clínico por IA
+### 4. Suporte Clínico por IA
 
 Após registrar o caso, o veterinário pode solicitar uma análise do ArkIve.
 
@@ -373,9 +427,7 @@ O backend processa as informações e retorna suporte clínico contendo informa�
 
 A IA funciona exclusivamente como ferramenta de apoio.
 
----
-
-## 5. Conclusão Veterinária
+### 5. Conclusão Veterinária
 
 Depois de analisar o caso e os insights apresentados, o veterinário registra sua própria conclusão.
 
@@ -385,9 +437,7 @@ A decisão final continua pertencendo ao profissional.
 AP → FI
 ```
 
----
-
-## 6. Prescrições
+### 6. Prescrições
 
 Após a finalização da consulta, o veterinário pode gerenciar prescrições relacionadas ao atendimento.
 
@@ -395,7 +445,40 @@ As prescrições possuem CRUD completo integrado ao backend.
 
 ---
 
-# Transcrição por Voz
+## Pacientes e Compartilhamento
+
+### ID ArkIve
+
+Cada paciente possui um identificador permanente no formato `ARK-PET-...`. O ID permite localizar o paciente, mas não concede acesso a ele por si só.
+
+### Compartilhamento
+
+Veterinários e responsáveis podem compartilhar um paciente com outro veterinário ou com um responsável. O convite pode ser enviado por link, QR Code ou código, e expira após um período.
+
+Ao aceitar o convite, o paciente passa a aparecer na conta de quem o recebeu, com o histórico de consultas e prescrições.
+
+### Solicitação de Acesso
+
+Um veterinário pode solicitar acesso a um paciente a partir do seu ID ArkIve. A solicitação é aprovada ou rejeitada pelo responsável do animal.
+
+```text
+GET  /api/solicitacoes-acesso
+POST /api/solicitacoes-acesso
+POST /api/solicitacoes-acesso/{id}/aprovar
+POST /api/solicitacoes-acesso/{id}/rejeitar
+```
+
+### Histórico, Relatos e Valores
+
+Para cada paciente, o aplicativo apresenta:
+
+* histórico clínico das consultas;
+* relatos e observações registrados pelos responsáveis;
+* valores das consultas e medicamentos.
+
+---
+
+## Transcrição por Voz
 
 Durante o registro clínico, o veterinário pode narrar o caso utilizando o microfone.
 
@@ -415,25 +498,43 @@ Texto transcrito
 Narrativa clínica
 ```
 
+O idioma da transcrição acompanha o idioma configurado no aplicativo.
+
 A funcionalidade reduz a necessidade de digitação durante o atendimento.
 
 ---
 
-# Resumo da Consulta em PDF
+## Documentos em PDF
 
-O aplicativo permite obter um resumo da consulta em PDF através do backend.
+O aplicativo permite obter documentos em PDF gerados pelo backend.
 
-Endpoint:
+Endpoints:
 
 ```text
 GET /api/consultas/{id}/resumo-pdf
+GET /api/animais/{id}/historico-pdf
 ```
 
-O arquivo pode ser aberto ou compartilhado pelo dispositivo.
+* **Resumo da consulta:** dados do atendimento, conclusão e prescrições;
+* **Histórico do paciente:** consultas registradas para o animal.
+
+Os arquivos podem ser abertos ou compartilhados pelo dispositivo.
 
 ---
 
-# Autenticação
+## Notificações
+
+O aplicativo exibe uma lista de notificações com contagem de itens não lidos.
+
+Quando habilitado nas configurações, o dispositivo é registrado para receber notificações push:
+
+```text
+POST /api/notificacoes/dispositivos
+```
+
+---
+
+## Autenticação
 
 A autenticação utiliza Spring Security com HTTP Basic.
 
@@ -452,9 +553,11 @@ Enquanto essa validação ocorre, a navegação permanece no estado de inicializ
 
 ---
 
-# Cadastro de Veterinário
+## Cadastro
 
-O aplicativo possui cadastro real de veterinários.
+O aplicativo possui cadastro real para os dois perfis. Na tela de Cadastro, o usuário escolhe se é veterinário ou responsável.
+
+### Veterinário
 
 Endpoint:
 
@@ -467,37 +570,47 @@ Campos:
 * Nome
 * CRMV
 * E-mail
+* Senha e confirmação
 
-O perfil não é escolhido pelo usuário.
+### Responsável
 
-O backend define obrigatoriamente:
+Endpoint:
+
+```text
+POST /api/auth/register/responsavel
+```
+
+Campos:
+
+* Nome
+* Tipo de documento (CPF ou RG)
+* Documento
+* E-mail
+* Telefone (opcional)
+* Senha e confirmação
+
+O perfil não é enviado pelo aplicativo. Cada endpoint define obrigatoriamente o seu:
 
 ```text
 VETERINARIO
+RESPONSAVEL
 ```
 
 Isso impede que alguém utilize o cadastro público para criar contas administrativas.
 
+As senhas são armazenadas no banco exclusivamente como hash BCrypt.
+
 ---
 
-# Primeiro Acesso
+## Troca Obrigatória de Senha
 
-Após o cadastro:
+Contas criadas pelo cadastro público já definem a própria senha e entram diretamente no aplicativo.
 
-```text
-Login = e-mail cadastrado
-Senha temporária = e-mail cadastrado
-```
-
-A senha temporária é armazenada no banco exclusivamente como hash BCrypt.
-
-O backend marca o usuário com troca de senha obrigatória.
+Contas de veterinário criadas por um administrador recebem uma senha temporária e são marcadas com troca de senha obrigatória.
 
 Fluxo:
 
 ```text
-Cadastro
-   ↓
 Login
    ↓
 trocaSenhaObrigatoria = true
@@ -513,11 +626,11 @@ Após a alteração, a senha temporária deixa de funcionar.
 
 ---
 
-# Proteção de Rotas
+## Proteção de Rotas
 
 As telas internas não ficam registradas no mesmo fluxo de navegação das telas públicas.
 
-O `RootNavigator` decide qual stack deve existir de acordo com o estado de autenticação.
+O `RootNavigator` decide qual stack deve existir de acordo com o estado de autenticação e o perfil do usuário.
 
 Assim:
 
@@ -525,18 +638,23 @@ Assim:
 Não autenticado
 → Login / Cadastro
 
-Autenticado
-→ Aplicação
-
 Troca obrigatória
 → Alteração de senha
+
+Veterinário autenticado
+→ Aplicação do veterinário
+
+Responsável autenticado
+→ Aplicação do responsável
 ```
 
 Isso impede acesso às telas internas simplesmente navegando diretamente para uma rota privada.
 
+As telas clínicas não são registradas na stack do responsável, portanto não podem ser acessadas por esse perfil por nenhum link ou navegação.
+
 ---
 
-# Logout
+## Logout
 
 Ao realizar logout, o aplicativo:
 
@@ -550,7 +668,7 @@ Por isso, não é possível utilizar o botão “voltar” para retornar a uma t
 
 ---
 
-# Tratamento de Estados
+## Tratamento de Estados
 
 As funcionalidades integradas à API possuem tratamento para:
 
@@ -564,9 +682,21 @@ Botões de envio são bloqueados durante operações pendentes, evitando requisi
 
 ---
 
-# Como Executar
+## Configurações
 
-## Pré-requisitos
+O usuário pode configurar:
+
+* tema: sistema, claro ou escuro;
+* idioma: português (pt-BR) ou inglês (en-US), aplicado à interface e à transcrição por voz;
+* notificações push neste dispositivo.
+
+A tela **Sobre nós** apresenta a equipe do ArkIve.
+
+---
+
+## Como Executar
+
+### Pré-requisitos
 
 * Node.js
 * npm
@@ -600,12 +730,16 @@ npm run ios
 npm run web
 ```
 
+### Variáveis de Ambiente (opcionais)
+
+| Variável                     | Uso                                                            |
+| ---------------------------- | -------------------------------------------------------------- |
+| `EXPO_PUBLIC_API_URL`        | URL da API (padrão: Render)                                    |
+| `EXPO_PUBLIC_SHARE_BASE_URL` | Endereço usado nos links de compartilhamento (padrão: Vercel) |
+
 ---
 
-
-# Validação do Projeto
-
-## Mobile
+## Validação do Projeto
 
 Validação TypeScript:
 
@@ -613,18 +747,21 @@ Validação TypeScript:
 npx tsc --noEmit
 ```
 
-Resultado da versão entregue:
+Verificação de contraste (WCAG) das cores do tema:
 
-```text
-0 erros
+```bash
+npm run contrast
 ```
 
+Verificação do mapa de URLs da versão web:
+
+```bash
+npm run linking
+```
 
 ---
 
-
-
-# Vídeo de Apresentação
+## Demonstração do Aplicativo
 
 Link:
 
@@ -646,7 +783,7 @@ O vídeo demonstra:
 
 ---
 
-# Integrantes
+## Integrantes
 
 ```text
 Gustavo Crevelari Monteiro Porto — RM561408
